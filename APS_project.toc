@@ -1,0 +1,14 @@
+\babel@toc {italian}{}\relax 
+\babel@toc {italian}{}\relax 
+\contentsline {section}{\numberline {1}WP 1: Modello}{1}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Attori \& Obiettivi}{2}{subsection.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.1}Studente Erasmus}{2}{subsubsection.1.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.2}Università Ospitante}{2}{subsubsection.1.1.2}%
+\contentsline {subsubsection}{\numberline {1.1.3}Università di Origine}{2}{subsubsection.1.1.3}%
+\contentsline {subsubsection}{\numberline {1.1.4}Ente di accreditamento (CA?)}{3}{subsubsection.1.1.4}%
+\contentsline {subsection}{\numberline {1.2}Threat Model}{3}{subsection.1.2}%
+\contentsline {subsubsection}{\numberline {1.2.1}Ascoltatore comunicazioni credenziali}{3}{subsubsection.1.2.1}%
+\contentsline {subsubsection}{\numberline {1.2.2}Intercettatore comunicazioni credenziali}{3}{subsubsection.1.2.2}%
+\contentsline {section}{\numberline {2}WP 2}{3}{section.2}%
+\contentsline {section}{\numberline {3}WP 3}{3}{section.3}%
+\contentsline {section}{\numberline {4}WP 4}{3}{section.4}%

@@ -1,0 +1,13 @@
+@startuml
+:Studente Erasmus: as stud
+:Università Ospitante: as UO
+:Università di Origine: as UdO
+
+(Ottenimento credenziale accademica) as req
+(Comunicazione credenziale accademica) as forn
+:stud: --> req
+:UO: --> req
+
+:stud: --> forn
+:UdO: --> forn
+@enduml
