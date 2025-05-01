@@ -1,13 +1,27 @@
 @startuml
+left to right direction
+
 :Studente Erasmus: as stud
 :Università Ospitante: as UO
 :Università di Origine: as UdO
+:Ente di Accreditamento: as CA
+(Emissione credenziale) as req
+(Presentazione credenziale) as forn
+(Certificazione credenziale) as cert
+(Validazione certificazione credenziale) as valid
+(Scomposizione credenziale) as subs
+(Revoca certificazione credenziale) as revoc
 
-(Ottenimento credenziale accademica) as req
-(Comunicazione credenziale accademica) as forn
+
 :stud: --> req
-:UO: --> req
-
+:stud: --> subs
 :stud: --> forn
 :UdO: --> forn
+:UdO: --> valid
+valid <-- :CA:
+cert <-- :CA:
+:UO: --> req
+:UO: --> cert
+:UO: --> revoc
+revoc <-- :CA:
 @enduml

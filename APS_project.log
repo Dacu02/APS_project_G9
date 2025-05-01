@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2025.1.29)  29 APR 2025 18:34
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2025.1.29)  1 MAY 2025 12:14
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
@@ -376,51 +376,59 @@ Package: float 2001/11/08 v1.3d Float enhancements (AL)
 \float@box=\box56
 \@float@everytoks=\toks34
 \@floatcapt=\box57
+) (C:\Users\Davide\AppData\Local\Programs\MiKTeX\tex/latex/enumitem\enumitem.sty
+Package: enumitem 2025/02/06 v3.11 Customized lists
+\labelindent=\skip55
+\enit@outerparindent=\dimen178
+\enit@toks=\toks35
+\enit@inbox=\box58
+\enit@count@id=\count312
+\enitdp@description=\count313
 ) (C:\Users\Davide\AppData\Local\Programs\MiKTeX\tex/latex/l3backend\l3backend-pdftex.def
 File: l3backend-pdftex.def 2024-05-08 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count312
-\l__pdf_internal_box=\box58
+\l__color_backend_stack_int=\count314
+\l__pdf_internal_box=\box59
 ) (APS_project.aux)
 \openout1 = `APS_project.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 18.
-LaTeX Font Info:    ... okay on input line 18.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 18.
-LaTeX Font Info:    ... okay on input line 18.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 18.
-LaTeX Font Info:    ... okay on input line 18.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 18.
-LaTeX Font Info:    ... okay on input line 18.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 18.
-LaTeX Font Info:    ... okay on input line 18.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 18.
-LaTeX Font Info:    ... okay on input line 18.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 18.
-LaTeX Font Info:    ... okay on input line 18.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 18.
-LaTeX Font Info:    ... okay on input line 18.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 18.
-LaTeX Font Info:    ... okay on input line 18.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
  (C:\Users\Davide\AppData\Local\Programs\MiKTeX\tex/context/base/mkii\supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count313
-\scratchdimen=\dimen178
-\scratchbox=\box59
-\nofMPsegments=\count314
-\nofMParguments=\count315
-\everyMPshowfont=\toks35
-\MPscratchCnt=\count316
-\MPscratchDim=\dimen179
-\MPnumerator=\count317
-\makeMPintoPDFobject=\count318
-\everyMPtoPDFconversion=\toks36
+\scratchcounter=\count315
+\scratchdimen=\dimen179
+\scratchbox=\box60
+\nofMPsegments=\count316
+\nofMParguments=\count317
+\everyMPshowfont=\toks36
+\MPscratchCnt=\count318
+\MPscratchDim=\dimen180
+\MPnumerator=\count319
+\makeMPintoPDFobject=\count320
+\everyMPtoPDFconversion=\toks37
 ) (C:\Users\Davide\AppData\Local\Programs\MiKTeX\tex/latex/epstopdf-pkg\epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
 Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 485.
  (C:\Users\Davide\AppData\Local\Programs\MiKTeX\tex/latex/00miktex\epstopdf-sys.cfg
 File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
 ))
-Package hyperref Info: Link coloring OFF on input line 18.
+Package hyperref Info: Link coloring OFF on input line 20.
  (APS_project.out) (APS_project.out)
 \@outlinefile=\write4
 \openout4 = `APS_project.out'.
@@ -460,99 +468,77 @@ Package hyperref Info: Link coloring OFF on input line 18.
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-LaTeX Info: Redefining \it@ocap on input line 18.
-LaTeX Info: Redefining \it@ccap on input line 18.
-LaTeX Font Info:    Trying to load font information for U+msa on input line 21.
+LaTeX Info: Redefining \it@ocap on input line 20.
+LaTeX Info: Redefining \it@ccap on input line 20.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 23.
 (C:\Users\Davide\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 21.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 23.
  (C:\Users\Davide\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) (APS_project.toc)
 \tf@toc=\write5
 \openout5 = `APS_project.toc'.
 
-Package svg Info: Last page of `./svg-inkscape/usecase_1_svg-tex.pdf' is 6 on input line 31.
- (svg-inkscape/usecase_1_svg-tex.pdf_tex
-<./svg-inkscape/usecase_1_svg-tex.pdf, id=67, page=1, 465.13661pt x 151.12485pt>
-File: ./svg-inkscape/usecase_1_svg-tex.pdf Graphic file (type pdf)
-<use ./svg-inkscape/usecase_1_svg-tex.pdf, page 1>
-Package pdftex.def Info: ./svg-inkscape/usecase_1_svg-tex.pdf , page1 used on input line 56.
-(pdftex.def)             Requested size: 452.9679pt x 147.17432pt.
-<./svg-inkscape/usecase_1_svg-tex.pdf, id=68, page=2, 465.13661pt x 151.12485pt>
-File: ./svg-inkscape/usecase_1_svg-tex.pdf Graphic file (type pdf)
-<use ./svg-inkscape/usecase_1_svg-tex.pdf, page 2>
-Package pdftex.def Info: ./svg-inkscape/usecase_1_svg-tex.pdf , page2 used on input line 58.
-(pdftex.def)             Requested size: 452.9679pt x 147.17432pt.
-<./svg-inkscape/usecase_1_svg-tex.pdf, id=69, page=3, 465.13661pt x 151.12485pt>
-File: ./svg-inkscape/usecase_1_svg-tex.pdf Graphic file (type pdf)
-<use ./svg-inkscape/usecase_1_svg-tex.pdf, page 3>
-Package pdftex.def Info: ./svg-inkscape/usecase_1_svg-tex.pdf , page3 used on input line 60.
-(pdftex.def)             Requested size: 452.9679pt x 147.17432pt.
-<./svg-inkscape/usecase_1_svg-tex.pdf, id=70, page=4, 465.13661pt x 151.12485pt>
-File: ./svg-inkscape/usecase_1_svg-tex.pdf Graphic file (type pdf)
-<use ./svg-inkscape/usecase_1_svg-tex.pdf, page 4>
-Package pdftex.def Info: ./svg-inkscape/usecase_1_svg-tex.pdf , page4 used on input line 62.
-(pdftex.def)             Requested size: 452.9679pt x 147.17432pt.
-<./svg-inkscape/usecase_1_svg-tex.pdf, id=71, page=5, 465.13661pt x 151.12485pt>
-File: ./svg-inkscape/usecase_1_svg-tex.pdf Graphic file (type pdf)
-<use ./svg-inkscape/usecase_1_svg-tex.pdf, page 5>
-Package pdftex.def Info: ./svg-inkscape/usecase_1_svg-tex.pdf , page5 used on input line 64.
-(pdftex.def)             Requested size: 452.9679pt x 147.17432pt.
-<./svg-inkscape/usecase_1_svg-tex.pdf, id=72, page=6, 465.13661pt x 151.12485pt>
-File: ./svg-inkscape/usecase_1_svg-tex.pdf Graphic file (type pdf)
-<use ./svg-inkscape/usecase_1_svg-tex.pdf, page 6>
-Package pdftex.def Info: ./svg-inkscape/usecase_1_svg-tex.pdf , page6 used on input line 66.
-(pdftex.def)             Requested size: 452.9679pt x 147.17432pt.
-)
+
 
 [1
 
 {C:/Users/Davide/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}]
+Package epstopdf Info: Source file: <usecase_1.eps>
+(epstopdf)                    date: 2025-05-01 10:44:49
+(epstopdf)                    size: 35015 bytes
+(epstopdf)             Output file: <usecase_1-eps-converted-to.pdf>
+(epstopdf)                    date: 2025-05-01 10:46:06
+(epstopdf)                    size: 12725 bytes
+(epstopdf)             Command: <miktex-epstopdf-unrestricted --outfile=usecase_1-eps-converted-to.pdf usecase_1.eps>
+(epstopdf)             \includegraphics on input line 32.
+Package epstopdf Info: Output file is already uptodate.
+<usecase_1-eps-converted-to.pdf, id=87, 533.995pt x 356.33125pt>
+File: usecase_1-eps-converted-to.pdf Graphic file (type pdf)
+<use usecase_1-eps-converted-to.pdf>
+Package pdftex.def Info: usecase_1-eps-converted-to.pdf  used on input line 32.
+(pdftex.def)             Requested size: 452.9679pt x 302.27402pt.
+
 
 [2
 pdfTeX warning (ext4): destination with the same identifier (name{figure.1}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.54 \subsubsection
-                   {Ascoltatore comunicazioni credenziali} Si considera un a... <./svg-inkscape/usecase_1_svg-tex.pdf> <./svg-inkscape/usecase_1_svg-tex.pdf
+l.46 
+      <./usecase_1-eps-converted-to.pdf>]
 
-pdfTeX warning: pdflatex (file ./svg-inkscape/usecase_1_svg-tex.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-> <./svg-inkscape/usecase_1_svg-tex.pdf
+[3]
 
-pdfTeX warning: pdflatex (file ./svg-inkscape/usecase_1_svg-tex.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-> <./svg-inkscape/usecase_1_svg-tex.pdf
+[4]
 
-pdfTeX warning: pdflatex (file ./svg-inkscape/usecase_1_svg-tex.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-> <./svg-inkscape/usecase_1_svg-tex.pdf
+[5]
 
-pdfTeX warning: pdflatex (file ./svg-inkscape/usecase_1_svg-tex.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-> <./svg-inkscape/usecase_1_svg-tex.pdf
+[6]
 
-pdfTeX warning: pdflatex (file ./svg-inkscape/usecase_1_svg-tex.pdf): PDF inclusion: multiple pdfs with page group included in a single page
->]
+[7]
 
-[3] (APS_project.aux)
+[8] (APS_project.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 1
 L3 programming layer <2024-12-25>
  ***********
 Package rerunfilecheck Info: File `APS_project.out' has not changed.
-(rerunfilecheck)             Checksum: 78DF8A5F1DBAA89D6635477DB53027D4;1848.
+(rerunfilecheck)             Checksum: 6B2FE0BA9086E1DF157DB38B60801CF6;2299.
  ) 
 Here is how much of TeX's memory you used:
- 14296 strings out of 473535
- 240847 string characters out of 5714451
- 679152 words of memory out of 5000000
- 37239 multiletter control sequences out of 15000+600000
- 571481 words of font info for 72 fonts, out of 8000000 for 9000
+ 14601 strings out of 473535
+ 245146 string characters out of 5714451
+ 685796 words of memory out of 5000000
+ 37538 multiletter control sequences out of 15000+600000
+ 571818 words of font info for 73 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 94i,14n,93p,502b,496s stack positions out of 10000i,1000n,20000p,200000b,200000s
- <C:\Users\Davide\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1440.pk> <C:\Users\Davide\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk> <C:\Users\Davide\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1200.pk> <C:\Users\Davide\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1728.pk> <C:\Users\Davide\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1440.pk> <C:\Users\Davide\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm2074.pk>
-Output written on APS_project.pdf (3 pages, 81452 bytes).
+ 94i,6n,93p,656b,566s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ <C:\Users\Davide\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm1200.pk> <C:\Users\Davide\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1440.pk> <C:\Users\Davide\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk> <C:\Users\Davide\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1200.pk> <C:\Users\Davide\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1728.pk> <C:\Users\Davide\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1440.pk> <C:\Users\Davide\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm2074.pk><C:/Users/Davide/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb>
+Output written on APS_project.pdf (8 pages, 109429 bytes).
 PDF statistics:
- 286 PDF objects out of 1000 (max. 8388607)
- 18 named destinations out of 1000 (max. 500000)
- 144 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 340 PDF objects out of 1000 (max. 8388607)
+ 25 named destinations out of 1000 (max. 500000)
+ 130 words of extra memory for PDF output out of 10000 (max. 10000000)
 

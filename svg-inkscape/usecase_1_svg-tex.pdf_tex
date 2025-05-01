@@ -38,7 +38,7 @@
   \newcommand*\fsize{\dimexpr\f@size pt\relax}%
   \newcommand*\lineheight[1]{\fontsize{\fsize}{#1\fsize}\selectfont}%
   \ifx\svgwidth\undefined%
-    \setlength{\unitlength}{463.39888bp}%
+    \setlength{\unitlength}{531.67565918bp}%
     \ifx\svgscale\undefined%
       \relax%
     \else%
@@ -50,19 +50,29 @@
   \global\let\svgwidth\undefined%
   \global\let\svgscale\undefined%
   \makeatother%
-  \begin{picture}(1,0.32490421)%
+  \begin{picture}(1,0.66723375)%
     \lineheight{1}%
     \setlength\tabcolsep{0pt}%
     \put(0,0){\includegraphics[width=\unitlength,page=1]{usecase_1_svg-tex.pdf}}%
-    \put(0.38560192,0.207168){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Studente Erasmus\end{tabular}}}}%
+    \put(0.00890562,0.23562886){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Studente Erasmus\end{tabular}}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=2]{usecase_1_svg-tex.pdf}}%
-    \put(0.09665539,0.207168){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Università Ospitante\end{tabular}}}}%
+    \put(-0.00170235,0.46415162){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Università Ospitante\end{tabular}}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=3]{usecase_1_svg-tex.pdf}}%
-    \put(0.65015801,0.207168){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Università di Origine\end{tabular}}}}%
+    \put(-0.00171646,0.0367294){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Università di Origine\end{tabular}}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=4]{usecase_1_svg-tex.pdf}}%
-    \put(0.01527485,0.04503263){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Ottenimento credenziale accademica\end{tabular}}}}%
+    \put(0.76846171,0.46415162){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Ente di Accreditamento\end{tabular}}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=5]{usecase_1_svg-tex.pdf}}%
-    \put(0.53106083,0.04504217){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Comunicazione credenziale accademica\end{tabular}}}}%
+    \put(0.37449017,0.38967972){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Emissione credenziale\end{tabular}}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=6]{usecase_1_svg-tex.pdf}}%
+    \put(0.35470982,0.16256998){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Presentazione credenziale\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=7]{usecase_1_svg-tex.pdf}}%
+    \put(0.35685668,0.62807623){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Certificazione credenziale\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=8]{usecase_1_svg-tex.pdf}}%
+    \put(0.29826978,0.03702618){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Validazione certificazione credenziale\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=9]{usecase_1_svg-tex.pdf}}%
+    \put(0.35064733,0.27824437){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Scomposizione credenziale\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=10]{usecase_1_svg-tex.pdf}}%
+    \put(0.31888436,0.50676406){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Revoca certificazione credenziale\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=11]{usecase_1_svg-tex.pdf}}%
   \end{picture}%
 \endgroup%
