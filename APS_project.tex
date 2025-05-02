@@ -102,7 +102,29 @@ Riguardo invece l'università di origine, l'attaccante potrebbe:
     \item Invalidare una certificazione valida
     \item Bloccare una richiesta di validazione, per evitare che l'università possa validare una credenziale
 \end{itemize}
-Per cui si aggiunge anche una perdita della proprietà di autenticità delle credenziali, in quanto non si ha la certezza che la credenziale sia stata emessa da un'autorità competente. 
+Per cui si aggiunge anche una perdita della proprietà di autenticità delle credenziali, in quanto non si ha la certezza che la credenziale sia stata emessa da un'autorità competente.
+
+\subsection{Definizioni formali}
+In questa sezione riportiamo le definizioni formali delle proprietà predentemente citate. 
+\newline 
+Lo schema di cifratura di riferimento utilizzato per le formalizzazione delle proprietà successive è $\Pi =\mathsf{(Gen,Enc,Dec)}$, dove: 
+\begin{itemize}
+    \item $\mathsf{Gen}$ è l'algoritmo di generazione di un determinato numero di chiavi, necessario alla cifratura e decifratura dei messaggi, la cui sicurezza dipende dal parametro di sicurezza $n$.
+    \item $\mathsf{Enc}$ è l'algoritmo di cifratura, che produce un messaggio cifrato, detto cyphertext $c$, a partire da un messaggio in chiaro, detto plaintext $m$.
+    \item $\mathsf{Dec}$ è l'algoritmo di decifratura, che produce un messaggio in chiaro, a partire da un messaggio cifrato.
+\end{itemize}
+Con $\mathcal{A}$ indichiamo un attaccante 
+
+\subsubsection {Confidenzialità}
+La confidenzialità è la proprietà che assicura l'accesso alle informazioni solamente a chi autorizzato. Un individuo non autorizzatto non deve essere in grado di accedere ad alcuna informazione, neanche parziale. 
+\newline Si esprime la proprietà di confidenzialità tramite l'esperimento $\mathsf{Exp}_{\mathcal A,\Pi}^\mathsf{conf}(n)$,
+
+
+
+\subsubsection {Integrità}
+
+\subsubsection {Autenticità}
+
 \newpage
 \section{WP 2}
 Describe your methodology here.

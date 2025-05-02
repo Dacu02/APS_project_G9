@@ -11,6 +11,10 @@
 \contentsline {subsubsection}{\numberline {1.3.1}Ascoltatore tra studente e università}{4}{subsubsection.1.3.1}%
 \contentsline {subsubsection}{\numberline {1.3.2}Intercettatore tra studente e università}{5}{subsubsection.1.3.2}%
 \contentsline {subsubsection}{\numberline {1.3.3}Intercettatore tra università e ente di accreditamento}{5}{subsubsection.1.3.3}%
-\contentsline {section}{\numberline {2}WP 2}{6}{section.2}%
-\contentsline {section}{\numberline {3}WP 3}{7}{section.3}%
-\contentsline {section}{\numberline {4}WP 4}{8}{section.4}%
+\contentsline {subsection}{\numberline {1.4}Definizioni formali}{6}{subsection.1.4}%
+\contentsline {subsubsection}{\numberline {1.4.1}Confidenzialità}{6}{subsubsection.1.4.1}%
+\contentsline {subsubsection}{\numberline {1.4.2}Integrità}{6}{subsubsection.1.4.2}%
+\contentsline {subsubsection}{\numberline {1.4.3}Autenticità}{6}{subsubsection.1.4.3}%
+\contentsline {section}{\numberline {2}WP 2}{7}{section.2}%
+\contentsline {section}{\numberline {3}WP 3}{8}{section.3}%
+\contentsline {section}{\numberline {4}WP 4}{9}{section.4}%
