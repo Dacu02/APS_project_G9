@@ -4,3 +4,9 @@ APS_project.out
 APS_project.pdf
 APS_project.synctex.gz
 APS_project.toc
+*.aux
+*.log
+*.out
+*.pdf
+*.toc
+*.gz

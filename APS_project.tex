@@ -39,25 +39,25 @@ La seguente sezione si occupa di descrivere gli attori onesti presenti nel siste
 Lo studente Erasmus è interessato a sostenere attività accademiche all'interno della sede ospitante, le quali devono essere poi certificate e dimostrate all'università di origine.
 \paragraph{Richiesta credenziale} Per cui lo studente necessita dall'università ospitante una credenziale accademica, che attesti le attività da egli effettuate all'interno dell'università ospitante durante il periodo di mobilità.
 \paragraph{Trasmissione credenziale}Tale credenziale dev'essere successivamente fornita all'università di origine per certificare le attività svolte dallo studente in sede ospitante. 
-\paragraph{Condivisione selettiva} Tuttavia, lo studente potrebbe desiderare di comunicare solamente un sottoinsieme delle informazioni contenute all'interno della credenziale, in maniera tale da dimostrare il rispetto dei criteri dell'accordo di mobilità e non rivelare informazioni personali superflue.
-\newline Si suppone che le risorse computazionali dello studente siano limitate. 
+\paragraph{Condivisione selettiva} Lo studente potrebbe desiderare di comunicare solamente un sottoinsieme sufficiente delle informazioni contenute all'interno della credenziale, in maniera tale da dimostrare il rispetto dei criteri dell'accordo di mobilità e non rivelare informazioni personali superflue.
+\\[0.5em] Si suppone che le risorse computazionali dello studente siano limitate. 
 
 \subsubsection{Università Ospitante}
 L'università ospitante, accordatasi con l'università di origine, permette a vari studenti erasmus di poter usufruire di un periodo di mobilità all'interno della sua sede, nel quale gli studenti hanno la possibilità di effettuare varie atttività accademiche.
 \paragraph{Emissione credenziale} La sede è interessata a certificare, per ogni studente in mobilità da essa, le attività svolte da questo attraverso una credenziale, cosicché egli sia in grado di comunicarle successivamente alla sua sede d'origine.
-\paragraph{Interoperabilità credenziale} Siccome l'università ospitante non conosce i criteri definiti dall'accordo di mobilità per ciascuno degli studenti, inserisce nelle credenziali tutte le informazioni relative alle attività accademiche dallo studente, sicché sia poi in grado di poterle comunicare all'università di origine.
-\paragraph{Certificazione credenziale}  L'ateneo inoltre desidera dimostrare che la credenziale è stata effettivamente emessa da sé, per cui richiede all'ente di accrediamento la certificazione dell'avvenuta emissione, che fornisce allo studente congiuntamente alla credenziale.
-\paragraph{Revoca certificazione} Infine, in particolari casi laddove si verifichino errori amministrativi, oppure lo studente fornisca dati fraudolenti e/o cometta plagio o frode, l'università ospitante deve essere in grado di invalidare la credenziale revocando il certificato, attraverso l'ente di accreditamento.
+\paragraph{Interoperabilità credenziale} Siccome l'università ospitante non conosce i criteri definiti dall'accordo di mobilità per ciascuno degli studenti, inserisce nelle credenziali tutte le informazioni relative alle attività accademiche dello studente, sicché sia poi in grado di poterle comunicare all'università di origine.
+\paragraph{Certificazione credenziale}  L'ateneo desidera dimostrare che la credenziale è stata effettivamente emessa da sé, per cui richiede all'ente di accrediamento la certificazione dell'avvenuta emissione, che fornisce allo studente congiuntamente alla credenziale.
+\paragraph{Revoca certificazione} In particolari casi laddove si verifichino errori amministrativi, lo studente fornisca dati fraudolenti, cometta plagio, oppure frode, l'università ospitante deve essere in grado di invalidare la credenziale revocando il certificato, attraverso l'ente di accreditamento.
 
 \subsubsection{Università di Origine}
 L'università di origine è accordata con l'università ospitante, mentre con lo studente attraverso un accordo di mobilità. All'interno di questo vengono definite tutte le attività accademiche che lo studente è richiesto soddisfare per validare il suo periodo di mobilità.
-\paragraph{Presentazione credenziale} Per cui si aspetta di ricevere, da ciascuno studente che ha terminato il proprio periodo di mobilità, una credenziale nella quale sono presenti almeno le attività definite dall'accordo di mobilità.
-\paragraph{Validazione credenziale} Inoltre, la credenziale deve essere certificata da un ente di accreditamento, cosicché si abbia la certezza della validità di questa. Qualora la credenziale non fosse certificata, oppure la certificazione è invalida o revocata, l'ateneo è in grado di rifiutare la credenziale.
+\paragraph{Presentazione credenziale} L'ateneo si aspetta di ricevere, da ciascuno studente che ha terminato il proprio periodo di mobilità, una credenziale nella quale sono presenti almeno le attività definite dall'accordo di mobilità.
+\paragraph{Validazione credenziale} La credenziale deve essere certificata da un ente di accreditamento, cosicché si abbia la certezza della validità di questa. Qualora la credenziale non fosse certificata, oppure la certificazione è invalida o revocata, l'ateneo è in grado di rifiutare la credenziale.
 \subsubsection{Ente di accreditamento}
 L'ente di accreditamento è un'autorità esterna, che si occupa di certificare le credenziali emesse dalle università, in modo tale da garantirne validità e autenticità. 
 \paragraph{Archiviazione certificati}Non solo, si occupa anche dell'archiviazione delle certificazioni associate alle credenziali, conservandole sino ad una determinata data, ed eventualmente si rende disponibile ad informare gli atenei della revoca di una certificazione.
 \paragraph{Definizione formato} Infine, l'ente stabilisce, congiuntamente con le università, il formato delle credenziali, a cui gli atenei devono attenersi per essere in grado di emettere credenziali universali.
-\newline Si suppone che l'ente di accreditamento sia affidabile e che possieda alte risorse computazionali.
+\\[0.5em]Si suppone che l'ente di accreditamento sia affidabile e che possieda alte risorse computazionali.
 
 \subsection{Credenziale}
 La credenziale è un documento contenente le informazioni relative alle attività accademiche che lo studente in mobilità ha svolto nella sede ospitante. 
@@ -113,7 +113,23 @@ Riguardo invece l'università di origine, l'attaccante potrebbe:
     \item Bloccare una richiesta di validazione, per evitare che l'università possa validare una credenziale
 \end{itemize}
 Per cui si aggiunge anche una perdita della proprietà di autenticità delle credenziali, in quanto non si ha la certezza che la credenziale sia stata emessa da un'autorità competente.
-
+\subsubsection{Attacco con credenziale nota}
+Si tiene in considerazione il caso di un attaccante che riesca ad ascoltare una conversazione tra una università e uno studente, dove venga comunicata la credenziale non in chiaro, conoscendo però la credenziale attraverso altri mezzi. Questi potrebbe inferire informazioni sulle conversazioni tra tale università ed altri studenti, siccome potrebbe comprenderee rompere, del tutto o in parte, il meccanismo di comunicazione sicura.
+\subsubsection{CCA?}
+\subsection{Proprietà}
+In questa sezione si discuteranno con maggior riguardo le proprietà che il sistema deve possedere per soddisfare i requisiti di sicurezza richiesti.
+\subsubsection{Confidenzialità}
+Con confidenziale si intende l'accesso alle informazioni solamente a coloro che sono autorizzati. Nessun individuo non autorizzato deve accedere, neanche in parte, ad alcuna informazione che non è loro permesso di vedere.
+\subsubsection{Integrità}
+Con proprietà di integrità ci si riferisce alla garanzia che non vi siano alterazioni di messaggi durante la trasmissione. 
+\subsubsection{Autenticità}
+L'autenticità è la proprietà che assicura l'originalità del messaggio, ovvero che sia stato effettivamente inviato dal mittente, e che non ci sia stata alcuna impersonificazione.
+\subsubsection{Revocabilità}
+La revocabilità è l'abilità da parte di un ente certificatore di revocare una sua certificazione precedentemente emessa. Ciò richiede che l'ente informi tutti gli attori interessati di ciascuna revoca.
+\subsection{Non ripudio}
+La proprietà di non ripudio è la garanzia con la quale un attore non è in grado di negare l'invio di un messaggio di cui è stato effettivamente mittente. 
+\newpage
+\section{WP 2}
 \subsection{Definizioni formali}
 In questa sezione riportiamo le definizioni formali delle proprietà predentemente citate. 
 \newline 
@@ -125,19 +141,11 @@ Lo schema di cifratura di riferimento utilizzato per le formalizzazione delle pr
 \end{itemize}
 Con $\mathcal{A}$ indichiamo un attaccante 
 
-\subsubsection {Confidenzialità}
+\subsubsection{Confidenzialità}
 La confidenzialità è la proprietà che assicura l'accesso alle informazioni solamente a chi autorizzato. Un individuo non autorizzatto non deve essere in grado di accedere ad alcuna informazione, neanche parziale. 
 \newline Si esprime la proprietà di confidenzialità tramite l'esperimento $\mathsf{Exp}_{\mathcal A,\Pi}^\mathsf{conf}(n)$,
 
 
-
-\subsubsection {Integrità}
-
-\subsubsection {Autenticità}
-
-\newpage
-\section{WP 2}
-Describe your methodology here.
 \newpage
 \section{WP 3}
 Describe your methodology here.
