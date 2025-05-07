@@ -92,12 +92,22 @@ Le università devono attenersi a questo formato per assicurare l'interoperabili
 \subsection{Threat Model}
 Come threat model si considerano avversari in grado di compromettere il sistema in un determinato attacco, dipendente dalle risorse e capacità da essi possedute, andando a definire quale sia la proprietà che viene meno laddove il sistema non sia resiliente a tale attacco.
 \newline Ciascun attaccante viene considerato efficiente e probabilistico, ovvero con una determinata probabilità di avere successo nell'intento in tempo polinomiale.
-\subsubsection{Ascoltatore tra studente e università} Si considera un attaccante in grado di ascoltare le comunicazioni che avvengono tra le università e lo studente, cercando di carpire le credenziali scambiate tra gli attori, cosicché da avere accesso a informazioni riservate dello studente.
+\subsubsection{Tra CA e Università ospitante}
+\paragraph{CCA} Viene considerato un attaccante in grado di ottenere delle coppie di messaggi in chiaro e cifrati. Dovesse inferire attraverso questi informazioni riguardanti il messaggio cifrato durante la trasmissione, si perderebbe la proprietà di confidenzialità.
+\paragraph{Manipolare di messsaggi} Un ulteriore attaccante considerato è colui in grado di ascoltare ed alterare i messaggi durante la loro trasmissione. Egli potrebbe alterare le credenziali, violando la proprietà di integrità. 
+\subsubsection{Tra CA e Università di origine}
+\subsubsection{Tra studente ed università}
+\paragraph{Attacco con credenziale nota} Si tiene in considerazione il caso di un attaccante che riesca ad ascoltare una conversazione tra una università e uno studente, dove venga comunicata la credenziale non in chiaro, conoscendo però la credenziale attraverso altri mezzi. Questi potrebbe inferire informazioni sulle conversazioni tra tale università ed altri studenti, siccome potrebbe comprenderee rompere, del tutto o in parte, il meccanismo di comunicazione sicura.
+\paragraph{Ascoltatore tra studente e università} Si considera un attaccante in grado di ascoltare le comunicazioni che avvengono tra le università e lo studente, cercando di carpire le credenziali scambiate tra gli attori, cosicché da avere accesso a informazioni riservate dello studente.
 \newline A questo punto, la proprietà compromessa è la confidenzialità delle credenziali, in quanto, sebbene possedere la credenziale di per sé non rappresenti un pericolo, l'attaccante è in grado di leggere informazioni sensibili dello studente contenute in questa.
-\subsubsection{Intercettatore tra studente e università} Si considera un attaccante in grado di compromettere le comunicazioni tra gli attori, alterando le credenziali durante la loro trasmissione. L'attaccante potrebbe manipolare le informazioni contenute nelle credenziali, invalidandole o cambiando i dati in esse contenuti.
+\paragraph{Intercettatore tra studente e università} Si considera un attaccante in grado di compromettere le comunicazioni tra gli attori, alterando le credenziali durante la loro trasmissione. L'attaccante potrebbe manipolare le informazioni contenute nelle credenziali, invalidandole o cambiando i dati in esse contenuti.
 \newline In questo caso, la proprietà violata è l'integrità delle credenziali, siccome si perde la garanzia che il contenuto sia originale, ovvero che non sia stato alterato durante la trasmissione.
 \newline In questo modello si aggiunge anche il caso di uno studente malevolo che tenta di fornire una credenziale alterata, non originale, o che venga impersonato dall'attaccante. In queste circostante, l'attaccante potrebbe fornire credenziali errate o alterate, per tentare di validarle.
 \newline Sebbene non rappresenti una minaccia importante, vi è comunque la perdita della proprietà di autenticita dei messaggi dello studente.
+\subsubsection{Riguardanti CA}
+\paragraph{Attaccante interno} Si considera un attaccante interno, il quale accede alla chiave privata dell'ente di accreditamento, e riesce a generare certificazioni a piacimento e a revocare certificazioni valide.
+In questa situazione verrebbe meno la proprietà di autenticità, siccome le credenziali certificate dall'ente non sono più affidabili.
+% ------------------------------
 \subsubsection{Intercettatore tra università e ente di accreditamento} Si considera un attaccante in grado di compromettere le comunicazioni tra l'università e l'ente di accreditamento, alterando le credenziali durante la loro trasmissione. Nel seguente caso, l'attaccante potrebbe manipolare le informazioni contenute nelle credenziali, invalidandole o cambiando i dati in esse contenuti, portando l'ente di accreditamento a rigettare il messaggio, o peggio a certificare credenziali false o alterate.
 \newline La proprietà infranta è l'integrità delle credenziali, siccome si perde la garanzia che il contenuto sia originale, ovvero che non sia stato alterato durante la trasmissione.
 \newline Infine, in questo modello si considera anche il caso di un attaccante che si frapponga nella comunicazione, assumento le parti dell'università dal punto di vista dell'ente di accreditamento, e viceversa. In queste circostanze, l'attaccante che assume le sembianze dell'università ospitante è in grado di:
@@ -113,8 +123,7 @@ Riguardo invece l'università di origine, l'attaccante potrebbe:
     \item Bloccare una richiesta di validazione, per evitare che l'università possa validare una credenziale
 \end{itemize}
 Per cui si aggiunge anche una perdita della proprietà di autenticità delle credenziali, in quanto non si ha la certezza che la credenziale sia stata emessa da un'autorità competente.
-\subsubsection{Attacco con credenziale nota}
-Si tiene in considerazione il caso di un attaccante che riesca ad ascoltare una conversazione tra una università e uno studente, dove venga comunicata la credenziale non in chiaro, conoscendo però la credenziale attraverso altri mezzi. Questi potrebbe inferire informazioni sulle conversazioni tra tale università ed altri studenti, siccome potrebbe comprenderee rompere, del tutto o in parte, il meccanismo di comunicazione sicura.
+
 \subsubsection{CCA?}
 \subsection{Proprietà}
 In questa sezione si discuteranno con maggior riguardo le proprietà che il sistema deve possedere per soddisfare i requisiti di sicurezza richiesti.
