@@ -31,33 +31,37 @@ La seguente sezione si occupa di descrivere gli attori onesti presenti nel siste
 \subsection{Attori \& Obiettivi}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{usecase_1.eps}
+    \includegraphics[width=0.95\textwidth]{usecase_1.eps}
     \caption{Use Case degli attori onesti}
     \label{fig:usecase1}
+    
 \end{figure}
 \subsubsection{Studente Erasmus}
 Lo studente Erasmus è interessato a sostenere attività accademiche all'interno della sede ospitante, le quali devono essere poi certificate e dimostrate all'università di origine.
 \paragraph{Richiesta credenziale} Per cui lo studente necessita dall'università ospitante una credenziale accademica, che attesti le attività da egli effettuate all'interno dell'università ospitante durante il periodo di mobilità.
-\paragraph{Trasmissione credenziale}Tale credenziale dev'essere successivamente fornita all'università di origine per certificare le attività svolte dallo studente in sede ospitante. 
+\paragraph{Trasmissione credenziale} Tale credenziale dev'essere successivamente fornita all'università di origine per certificare le attività svolte dallo studente in sede ospitante. 
 \paragraph{Condivisione selettiva} Lo studente potrebbe desiderare di comunicare solamente un sottoinsieme sufficiente delle informazioni contenute all'interno della credenziale, in maniera tale da dimostrare il rispetto dei criteri dell'accordo di mobilità e non rivelare informazioni personali superflue.
 \\[0.5em] Si suppone che le risorse computazionali dello studente siano limitate. 
 
 \subsubsection{Università Ospitante}
 L'università ospitante, accordatasi con l'università di origine, permette a vari studenti erasmus di poter usufruire di un periodo di mobilità all'interno della sua sede, nel quale gli studenti hanno la possibilità di effettuare varie atttività accademiche.
 \paragraph{Emissione credenziale} La sede è interessata a certificare, per ogni studente in mobilità da essa, le attività svolte da questo attraverso una credenziale, cosicché egli sia in grado di comunicarle successivamente alla sua sede d'origine.
-\paragraph{Interoperabilità credenziale} Siccome l'università ospitante non conosce i criteri definiti dall'accordo di mobilità per ciascuno degli studenti, inserisce nelle credenziali tutte le informazioni relative alle attività accademiche dello studente, sicché sia poi in grado di poterle comunicare all'università di origine.
-\paragraph{Certificazione credenziale}  L'ateneo desidera dimostrare che la credenziale è stata effettivamente emessa da sé, per cui richiede all'ente di accrediamento la certificazione dell'avvenuta emissione, che fornisce allo studente congiuntamente alla credenziale.
-\paragraph{Revoca certificazione} In particolari casi laddove si verifichino errori amministrativi, lo studente fornisca dati fraudolenti, cometta plagio, oppure frode, l'università ospitante deve essere in grado di invalidare la credenziale revocando il certificato, attraverso l'ente di accreditamento.
+\paragraph{Interoperabilità credenziale} Siccome l'università ospitante non conosce i criteri definiti dall'accordo di mobilità per ciascuno degli studenti, inserisce nelle credenziali tutte le informazioni relative alle attività accademiche dello studente, sicché sia poi in grado di poterle comunicare all'università di origine. Tutte le informazioni devono essere contenute in un formato standard, definito congiuntamente con l'università di origine, per garantire l'interoperabilità delle credenziali.
+\paragraph{Certificazione credenziale} L'ateneo desidera dimostrare che la credenziale è stata effettivamente emessa da sé, per cui emette un certificato dell'avvenuta emissione, che fornisce allo studente congiuntamente alla credenziale.
+\paragraph{Revoca certificazione} In particolari casi laddove si verifichino errori amministrativi, lo studente fornisca dati fraudolenti, cometta plagio, oppure frode, l'università ospitante deve essere in grado di invalidare la credenziale revocando il certificato.
+\paragraph{Certificato pubblico} L'università ospitante deve contattare un ente di accreditamento per richiedre un certificato, il quale attesi l'autenticità delle sue comunicazioni, e le permetta di rilasciare certificazioni valide.
+% \\[0.5em]Si suppone che le università ospitanti possiedano medie o elevate risorse computazionali.
 
 \subsubsection{Università di Origine}
 L'università di origine è accordata con l'università ospitante, mentre con lo studente attraverso un accordo di mobilità. All'interno di questo vengono definite tutte le attività accademiche che lo studente è richiesto soddisfare per validare il suo periodo di mobilità.
 \paragraph{Presentazione credenziale} L'ateneo si aspetta di ricevere, da ciascuno studente che ha terminato il proprio periodo di mobilità, una credenziale nella quale sono presenti almeno le attività definite dall'accordo di mobilità.
-\paragraph{Validazione credenziale} La credenziale deve essere certificata da un ente di accreditamento, cosicché si abbia la certezza della validità di questa. Qualora la credenziale non fosse certificata, oppure la certificazione è invalida o revocata, l'ateneo è in grado di rifiutare la credenziale.
+\paragraph{Validazione credenziale} La credenziale deve essere certificata dall'università osiptante, cosicché si abbia la certezza della validità di questa. Qualora la credenziale non fosse certificata, oppure la certificazione associata è invalida o revocata, l'ateneo è in grado di rifiutare la credenziale.
+\paragraph{Verifica certificato} L'università di origine deve essere in grado di verificare l'autenticità della credenziale, attraverso la verifica del certificato associato ad essa.
+
 \subsubsection{Ente di accreditamento}
-L'ente di accreditamento è un'autorità esterna, che si occupa di certificare le credenziali emesse dalle università, in modo tale da garantirne validità e autenticità. 
-\paragraph{Archiviazione certificati}Non solo, si occupa anche dell'archiviazione delle certificazioni associate alle credenziali, conservandole sino ad una determinata data, ed eventualmente si rende disponibile ad informare gli atenei della revoca di una certificazione.
-\paragraph{Definizione formato} Infine, l'ente stabilisce, congiuntamente con le università, il formato delle credenziali, a cui gli atenei devono attenersi per essere in grado di emettere credenziali universali.
-\\[0.5em]Si suppone che l'ente di accreditamento sia affidabile e che possieda alte risorse computazionali.
+L'ente di accreditamento è un'autorità esterna, che si occupa di certificare le università, in modo tale da garantire l'autenticità delle comunicazioni. 
+\paragraph{Emissione certificato} L'ente di accreditamento emette certificati per le universitò che lo richiedono, i quali vengono utilizzati da queste per certificare o validare credenziali.
+\paragraph{Archiviazione certificati} Non solo, si occupa anche dell'archiviazione delle certificazioni associate alle università, conservandole sino ad una determinata data, e rendendoli disponibili per la validazione.
 
 \subsection{Credenziale}
 La credenziale è un documento contenente le informazioni relative alle attività accademiche che lo studente in mobilità ha svolto nella sede ospitante. 
@@ -92,39 +96,31 @@ Le università devono attenersi a questo formato per assicurare l'interoperabili
 \subsection{Threat Model}
 Come threat model si considerano avversari in grado di compromettere il sistema in un determinato attacco, dipendente dalle risorse e capacità da essi possedute, andando a definire quale sia la proprietà che viene meno laddove il sistema non sia resiliente a tale attacco.
 \newline Ciascun attaccante viene considerato efficiente e probabilistico, ovvero con una determinata probabilità di avere successo nell'intento in tempo polinomiale.
-\subsubsection{Tra CA e Università ospitante}
-\paragraph{CCA} Viene considerato un attaccante in grado di ottenere delle coppie di messaggi in chiaro e cifrati. Dovesse inferire attraverso questi informazioni riguardanti il messaggio cifrato durante la trasmissione, si perderebbe la proprietà di confidenzialità.
-\paragraph{Manipolare di messsaggi} Un ulteriore attaccante considerato è colui in grado di ascoltare ed alterare i messaggi durante la loro trasmissione. Egli potrebbe alterare le credenziali, violando la proprietà di integrità. 
-\subsubsection{Tra CA e Università di origine}
-\subsubsection{Tra studente ed università}
-\paragraph{Attacco con credenziale nota} Si tiene in considerazione il caso di un attaccante che riesca ad ascoltare una conversazione tra una università e uno studente, dove venga comunicata la credenziale non in chiaro, conoscendo però la credenziale attraverso altri mezzi. Questi potrebbe inferire informazioni sulle conversazioni tra tale università ed altri studenti, siccome potrebbe comprenderee rompere, del tutto o in parte, il meccanismo di comunicazione sicura.
-\paragraph{Ascoltatore tra studente e università} Si considera un attaccante in grado di ascoltare le comunicazioni che avvengono tra le università e lo studente, cercando di carpire le credenziali scambiate tra gli attori, cosicché da avere accesso a informazioni riservate dello studente.
-\newline A questo punto, la proprietà compromessa è la confidenzialità delle credenziali, in quanto, sebbene possedere la credenziale di per sé non rappresenti un pericolo, l'attaccante è in grado di leggere informazioni sensibili dello studente contenute in questa.
-\paragraph{Intercettatore tra studente e università} Si considera un attaccante in grado di compromettere le comunicazioni tra gli attori, alterando le credenziali durante la loro trasmissione. L'attaccante potrebbe manipolare le informazioni contenute nelle credenziali, invalidandole o cambiando i dati in esse contenuti.
-\newline In questo caso, la proprietà violata è l'integrità delle credenziali, siccome si perde la garanzia che il contenuto sia originale, ovvero che non sia stato alterato durante la trasmissione.
-\newline In questo modello si aggiunge anche il caso di uno studente malevolo che tenta di fornire una credenziale alterata, non originale, o che venga impersonato dall'attaccante. In queste circostante, l'attaccante potrebbe fornire credenziali errate o alterate, per tentare di validarle.
-\newline Sebbene non rappresenti una minaccia importante, vi è comunque la perdita della proprietà di autenticita dei messaggi dello studente.
-\subsubsection{Riguardanti CA}
-\paragraph{Attaccante interno} Si considera un attaccante interno, il quale accede alla chiave privata dell'ente di accreditamento, e riesce a generare certificazioni a piacimento e a revocare certificazioni valide.
-In questa situazione verrebbe meno la proprietà di autenticità, siccome le credenziali certificate dall'ente non sono più affidabili.
-% ------------------------------
-\subsubsection{Intercettatore tra università e ente di accreditamento} Si considera un attaccante in grado di compromettere le comunicazioni tra l'università e l'ente di accreditamento, alterando le credenziali durante la loro trasmissione. Nel seguente caso, l'attaccante potrebbe manipolare le informazioni contenute nelle credenziali, invalidandole o cambiando i dati in esse contenuti, portando l'ente di accreditamento a rigettare il messaggio, o peggio a certificare credenziali false o alterate.
-\newline La proprietà infranta è l'integrità delle credenziali, siccome si perde la garanzia che il contenuto sia originale, ovvero che non sia stato alterato durante la trasmissione.
-\newline Infine, in questo modello si considera anche il caso di un attaccante che si frapponga nella comunicazione, assumento le parti dell'università dal punto di vista dell'ente di accreditamento, e viceversa. In queste circostanze, l'attaccante che assume le sembianze dell'università ospitante è in grado di:
+\subsubsection{Violazione dell'ente di accreditamento}
+Si prende in esame il caso in cui l'ente di accrediamento venga compromesso da un attaccante, il quale riesce ad ottenere accesso ai meccanismi di emissione e revoca dei certificati. In questo caso, l'attaccante potrebbe emettere certificati false, oppure revocare certificati valide.
+\newline In questo caso si perde la proprietà di autenticità, in quanto non si ha la certezza che il certificato sia stato emesso da un'autorità competente.
+\subsubsection{Violazione dell'università ospitante}
+Si considera lo scenario dove l'università ospitante vieen compromessa da un attaccante, il quale riesce ad ottenere accesso ai meccanismi di emissione, certificazione e revoca delle credenziali. In questo caso, l'attaccante diverrebbe in grado di:
 \begin{itemize}
-    \item Alterare la credenziale, per ottenere una certificazione valida di una credenziale alterata
-    \item Bloccare la comunicazione, per evitare che l'università possa certificare una credenziale valida o revocare una certificazione
-    \item Revocare una certificazione valida
+    \item Emettere credenziali false
+    \item Certificare credenziali false
+    \item Revocare certificazioni
 \end{itemize}
-Riguardo invece l'università di origine, l'attaccante potrebbe:
-\begin{itemize}
-    \item Validare una certificazione invalida
-    \item Invalidare una certificazione valida
-    \item Bloccare una richiesta di validazione, per evitare che l'università possa validare una credenziale
-\end{itemize}
-Per cui si aggiunge anche una perdita della proprietà di autenticità delle credenziali, in quanto non si ha la certezza che la credenziale sia stata emessa da un'autorità competente.
+In questo caso si perde la proprietà di autenticità, siccome non si ha la certezza che la certificazione sia stata emessa dall'università.
+\subsubsection{Violazione dell'università di origine}
+Si analizza il caso in cui l'università di origine venga compromessa da un attaccante, il quale riesce ad ottenere accesso ai meccanismi di validazione delle credenziali. In questo scenario, l'attaccante potrebbe accettare credenziali false, oppure respingere credenziali valide.
+\newline In questo si perde la proprietà di confidenzialità, poiché l'attaccante sarebbe in grado di accedere a informazioni riservate riguardanti lo studente, attraverso la credenziale.
+\subsubsection{Studente malevolo}
+Si studia il caso laddove lo studente sia malevolo, e tenti di far passare come valida una credenziale parzialmente sufficiente, oppure alterata. In questo caso, lo studente potrebbe violare la proprietà di integrità ed autenticità della credenziale.
+\subsubsection{Intercettatore di comunicazioni dell'università ospitante}
+Si prende in esame la presenza di un attaccante che intercetti tutte le comunicazioni da e verso l'università ospitante. Questo attaccante ha accesso a uno storico di messaggi cifrati e relative decifrature attraverso mezzi alternativi. 
+\newline In questo caso, l'attaccante potrebbe essere in grado di inferire informazioni sui successivi messaggi cifrati, violando la proprietà di confidenzialità. Non solo, l'attaccante potrebbe alterare le comunicazioni in uscita, violando quindi le proprietà di sicurezza del sistema.
+\subsubsection{Ascoltatore di comunicazioni dello studente}
+Si prende in esame la circostanza di un attaccante che ascolti le comunicazioni tra studente ed altri attori, presente sul canale di comunicazione prima che questa avvenga. In questo caso, l'attaccante potrebbe carpire informazioni riservate, come la credenziale dello studente, violando la proprietà di integrità.
+\subsubsection{Attacco con credenziale nota}
+Si tiene in considerazione il caso di un attaccante che riesca ad ascoltare la conversazione tra l'università di origine e uno studente di cui conosce la credenzale attraverso altri mezzi.
+\newline In questo caso, l'attaccante potrebbe inferire informazioni riguardati il meccanismo di comunicazione sicura, e violare le proprietà di sicurezza del sistema. 
 
-\subsubsection{CCA?}
 \subsection{Proprietà}
 In questa sezione si discuteranno con maggior riguardo le proprietà che il sistema deve possedere per soddisfare i requisiti di sicurezza richiesti.
 \subsubsection{Confidenzialità}
@@ -135,8 +131,10 @@ Con proprietà di integrità ci si riferisce alla garanzia che non vi siano alte
 L'autenticità è la proprietà che assicura l'originalità del messaggio, ovvero che sia stato effettivamente inviato dal mittente, e che non ci sia stata alcuna impersonificazione.
 \subsubsection{Revocabilità}
 La revocabilità è l'abilità da parte di un ente certificatore di revocare una sua certificazione precedentemente emessa. Ciò richiede che l'ente informi tutti gli attori interessati di ciascuna revoca.
-\subsection{Non ripudio}
+\subsubsection{Non ripudio}
 La proprietà di non ripudio è la garanzia con la quale un attore non è in grado di negare l'invio di un messaggio di cui è stato effettivamente mittente. 
+\subsubsection{Interoperabilità}
+L'interoperabilità è la proprietà che assicura che le credenziali emesse da un'università siano riconoscibili dalle altre università, a patto che rispettino un formato definito.
 \newpage
 \section{WP 2}
 \subsection{Definizioni formali}

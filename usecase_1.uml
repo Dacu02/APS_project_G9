@@ -11,17 +11,27 @@ left to right direction
 (Validazione certificazione credenziale) as valid
 (Scomposizione credenziale) as subs
 (Revoca certificazione credenziale) as revoc
+(Emissione certificato universiario) as UCertif
+(Archiviazione certificati universitari) as UArchiv
+(Validazione certificato universitario) as UValid
 
 
+UValid <-- :CA:
+UCertif <-- :CA: 
+UArchiv <-- :CA:  
+
+:UO: --> UCertif
+:UdO: --> UCertif
+cert <. req: include
+forn .> valid :include
+:UdO: --> UValid
 :stud: --> req
 :stud: --> subs
 :stud: --> forn
 :UdO: --> forn
 :UdO: --> valid
-valid <-- :CA:
-cert <-- :CA:
+
 :UO: --> req
 :UO: --> cert
 :UO: --> revoc
-revoc <-- :CA:
 @enduml
