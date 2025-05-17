@@ -11,9 +11,9 @@ left to right direction
 (Validazione certificazione credenziale) as valid
 (Scomposizione credenziale) as subs
 (Revoca certificazione credenziale) as revoc
-(Emissione certificato universiario) as UCertif
-(Archiviazione certificati universitari) as UArchiv
-(Validazione certificato universitario) as UValid
+(Emissione certificato università) as UCertif
+(Archiviazione certificati università) as UArchiv
+(Validazione certificato università) as UValid
 
 
 UValid <-- :CA:
