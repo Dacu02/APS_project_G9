@@ -47,7 +47,7 @@ Lo studente Erasmus è interessato a sostenere attività accademiche all'interno
 L'università ospitante, accordatasi con l'università di origine, permette a vari studenti erasmus di poter usufruire di un periodo di mobilità all'interno della sua sede, nel quale gli studenti hanno la possibilità di effettuare varie atttività accademiche.
 \paragraph{Emissione credenziale} La sede è interessata a certificare, per ogni studente in mobilità da essa, le attività svolte da questo attraverso una credenziale, cosicché egli sia in grado di comunicarle successivamente alla sua sede d'origine.
 \paragraph{Interoperabilità credenziale} Siccome l'università ospitante non conosce i criteri definiti dall'accordo di mobilità per ciascuno degli studenti, inserisce nelle credenziali tutte le informazioni relative alle attività accademiche dello studente, sicché sia poi in grado di poterle comunicare all'università di origine. Tutte le informazioni devono essere contenute in un formato standard, definito congiuntamente con l'università di origine, per garantire l'interoperabilità delle credenziali.
-\paragraph{Certificazione credenziale} L'ateneo desidera dimostrare che la credenziale è stata effettivamente emessa da sé, per cui emette un certificato dell'avvenuta emissione, che fornisce allo studente congiuntamente alla credenziale.
+\paragraph{Certificazione credenziale} L'ateneo desidera dimostrare che la credenziale è stata effettivamente emessa da sé, per cui emette un certificato dell'avvenuta emissione.
 \paragraph{Revoca certificazione} In particolari casi laddove si verifichino errori amministrativi, lo studente fornisca dati fraudolenti, cometta plagio, oppure frode, l'università ospitante deve essere in grado di invalidare la credenziale revocando il certificato.
 \paragraph{Certificato pubblico} L'università ospitante deve contattare un ente di accreditamento per richiedre un certificato, il quale attesi l'autenticità delle sue comunicazioni, e le permetta di rilasciare certificazioni valide.
 % \\[0.5em]Si suppone che le università ospitanti possiedano medie o elevate risorse computazionali.
@@ -136,7 +136,45 @@ La proprietà di non ripudio è la garanzia con la quale un attore non è in gra
 \subsubsection{Interoperabilità}
 L'interoperabilità è la proprietà che assicura che le credenziali emesse da un'università siano riconoscibili dalle altre università, a patto che rispettino un formato definito.
 \newpage
+
 \section{WP 2}
+\subsection{Introduzione alla soluzione}
+In questa sezione si presenta la soluzione proposta per il modello descritto precedentemente.
+\newline Nella prima sezione si descrive il sistema di certificazione delle università, il quale permetterà il rispetto della proprietà di autenticità, fondamentale per la parte successiva. In questa parte vengono trattate le interazioni tra le università e l'ente di accreditamento.  
+\newline Segue l'esposizione del sistema di gestione dei certificati delle credenziali degli studenti, il quale si basa sull'utilizzo dei certificati per l'autenticazione delle università nel sistema. Le interazioni rappresentate sono quelle tra le università. 
+\newline Infine, si spiega come lo studente possa utilizzare il sistema per validare le attività svolte durante il periodo di mobilità. Qui ricadono le interazioni tra lo studente e le univesità. 
+\newline Per ciascusa di queste sezioni, si tengono in considerazioni le proprietà di sicurezza predentemente elencate, sottolineando i meccanismi progettati per garantirle. 
+\subsection{Emissione dei certficati delle università} 
+In questo contesto l'ente di accreditamento si considera essere un'autorità certificante (CA): quando necessario, l'università contatta la CA per richiedere un certificato. 
+\subsubsection{Crittografia asimmetrica}
+Il meccanismo dei certificati digitali si basa sull'utilizzo della crittografia asimmetrica, che garantisce le proprietà di sicurezza durante la comunicazione. 
+\newline La crittografia asimmetrica prevede l'utilizzo di una coppia di chiavi da parte di ciascun attore: una chiave pubblica, che viene condivisa con gli altri attori, ed una chiave privata, che deve rimanere segreta.
+\paragraph{Confidenzialità} 
+La chiave pubblica del destinatario permette al mittente di cifrare il proprio messaggio, successivamente decifrato dal destinatario attraverso la propria chiave privata.
+Questo meccanismo garantisce la confidenzialità del messaggio, in quanto solamente il destinatario è in grado di decifrare il messaggio cifrato.
+\paragraph{Integrità}
+Tuttavia, la confidenzialità non è sufficiente per garantire la sicurezza del sistema, ma è necssario rispettare ulteriori proprietà. 
+Il mittente, per assicurarsi che il messaggio non venga alterato, associa al messaggio cifrato la funzione di hash applicata allo stesso. Ciò permette di garantire l'integrità del messaggio. 
+\paragraph{Autenticità}
+Sebbene, per garantire la proprietà di autenticità, il mittente cifra anche il risultato della funzione di hash, ottenendo la firma. Quando il destinatario decifra la firma, la confronta con il risultato dalla funzione di hash calcolata sul messaggio cifrato. Se i due valori coincidono, il destinatario è in grado di verificare che il messaggio non sia stato alterato e che provenga effettivamente dal mittente.
+\subsubsection{Funzione di hash \& MAC}
+Per garantire l'integrità del messaggio, come menzionato precedentemente, è necessario un meccanismo di hashing che si fonda sul Messsage Authentication Code (MAC).
+\paragraph{Tag}
+Il MAC è un meccanismo attraverso il quale, dato un messaggio ed una chiave, forgia un tag, che inserisce insieme al messaggio da inviare. Il destinatario, una volta ricevuto il messaggio, calcola il tag associato, e lo confronta con quello ricevuto. Se i due tag coincidono, vi la certezza che il messaggio non sia stato alterato.
+\paragraph{Funzione di hash}    
+Una funzione di hash è una one-way function, che determina un valore di lunghezza fissa a partire da un messaggio di lunghezza arbitraria. Con one-way function si intende una funzione che non è computazionalmente possibile invertire, ovvero non è possibile risalire al messaggio a partire dal valore di hash. 
+Questa funzione, deterministica, deve rispettare le seguenti proprietà:
+\begin{itemize}
+    \item \textbf{Non reversibilità}: data una funzione di hash $h$, non è computazionalmente possibile trovare un messaggio $m$ tale che $h(m)=h(m')$.
+    \item \textbf{Efficienza}: data una funzione di hash $h$ deve essere computazionalmente efficiente calcolare $h(m)$ per ogni messaggio $m$.
+    \item \textbf{Resistenza alle collisioni}: non è computazionalmente possibile trovare due messaggi distinti $m_1$ e $m_2$ tali che $h(m_1)=h(m_2)$.
+    \item \textbf{Hiding}: scelto un segreto  
+\end{itemize}
+
+\subsubsection{Certificato digitale} 
+Un certificato è un documento elettronico che associa una chiave pubblica ad un'identità, e viene firmato digitalmente dalla CA. Nel documento sono presenti informazioni riguardanti l'università e la sua chiave pubblica, il CA e la sua firma, e il periodo di validità del certificato. 
+\subsection{Sistema di gestione dei certificati delle credenziali }
+
 
 
 \newpage

@@ -10,3 +10,4 @@ APS_project.toc
 *.pdf
 *.toc
 *.gz
+.DS_Store
