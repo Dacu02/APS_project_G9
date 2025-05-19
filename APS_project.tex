@@ -148,32 +148,39 @@ In questa sezione si presenta la soluzione proposta per il modello descritto pre
 In questo contesto l'ente di accreditamento si considera essere un'autorità certificante (CA): quando necessario, l'università contatta la CA per richiedere un certificato. 
 \subsubsection{Crittografia asimmetrica}
 Il meccanismo dei certificati digitali si basa sull'utilizzo della crittografia asimmetrica, che garantisce le proprietà di sicurezza durante la comunicazione. 
-\newline La crittografia asimmetrica prevede l'utilizzo di una coppia di chiavi da parte di ciascun attore: una chiave pubblica, che viene condivisa con gli altri attori, ed una chiave privata, che deve rimanere segreta.
+\newline La crittografia asimmetrica è uno schema $\Pi$ che prevede l'utilizzo di una coppia di chiavi da parte di ciascun attore: una chiave pubblica $p_k$, che viene condivisa con gli altri attori, ed una chiave privata $s_k$, che deve rimanere segreta.
 \paragraph{Confidenzialità} 
-La chiave pubblica del destinatario permette al mittente di cifrare il proprio messaggio, successivamente decifrato dal destinatario attraverso la propria chiave privata.
-Questo meccanismo garantisce la confidenzialità del messaggio, in quanto solamente il destinatario è in grado di decifrare il messaggio cifrato.
+La chiave pubblica del destinatario permette al mittente di cifrare il proprio messaggio $m$, attraverso un algoritmo di cifratura $\mathsf{Enc}_{p_k}(m)$, il quale ritorna un messaggio cifrato $c$. Successivamente, il destinatario decifra il messaggio cifrato attraverso la propria chiave privata ed un algoritmo di decifratura $\mathsf{Dec}_{s_k}(c)$.
+Questo meccanismo garantisce la confidenzialità del messaggio, in quanto solamente il destinatario è in grado di decifrare il messaggio.
 \paragraph{Integrità}
-Tuttavia, la confidenzialità non è sufficiente per garantire la sicurezza del sistema, ma è necssario rispettare ulteriori proprietà. 
-Il mittente, per assicurarsi che il messaggio non venga alterato, associa al messaggio cifrato la funzione di hash applicata allo stesso. Ciò permette di garantire l'integrità del messaggio. 
+Tuttavia, la confidenzialità non è sufficiente per garantire la sicurezza del sistema, ma è necssario rispettare ulteriori proprietà.
+Il mittente, per assicurarsi che il messaggio non venga alterato, associa al messaggio cifrato la funzione di hash $h$ applicata allo stesso: $h(m)$. Ciò permette di garantire l'integrità del messaggio, siccome, una volta che il destinatario ha ricevuto il messaggio cifrato, può calcolare la funzione di hash su esso, e confrontare il risultato con quello ricevuto. Se il messaggio venisse alterato durante la trasmissione, il risultato della funzione di hash calcolata dal destinatario non coinciderebbe.
 \paragraph{Autenticità}
-Sebbene, per garantire la proprietà di autenticità, il mittente cifra anche il risultato della funzione di hash, ottenendo la firma. Quando il destinatario decifra la firma, la confronta con il risultato dalla funzione di hash calcolata sul messaggio cifrato. Se i due valori coincidono, il destinatario è in grado di verificare che il messaggio non sia stato alterato e che provenga effettivamente dal mittente.
+Sebbene, per garantire la proprietà di autenticità, il mittente cifra con la propria chiave privata il risultato della funzione di hash, ottenendo la firma $\sigma$: $\sigma=\mathsf{Enc}_{s_k}(h(c))$. Quando il destinatario decifra la firma $\sigma=\mathsf{Dec}_{p_k}\left(\mathsf{Enc}_{s_k}\left(h\left(c\right)\right)\right)$ con la chiave pubblica del mittente, la confronta con il risultato dalla funzione di hash calcolata sul messaggio cifrato. Se i due valori coincidono, il destinatario è in grado di verificare che il messaggio non sia stato alterato e che provenga effettivamente dal mittente.
 \subsubsection{Funzione di hash \& MAC}
 Per garantire l'integrità del messaggio, come menzionato precedentemente, è necessario un meccanismo di hashing che si fonda sul Messsage Authentication Code (MAC).
 \paragraph{Tag}
-Il MAC è un meccanismo attraverso il quale, dato un messaggio ed una chiave, forgia un tag, che inserisce insieme al messaggio da inviare. Il destinatario, una volta ricevuto il messaggio, calcola il tag associato, e lo confronta con quello ricevuto. Se i due tag coincidono, vi la certezza che il messaggio non sia stato alterato.
-\paragraph{Funzione di hash}    
-Una funzione di hash è una one-way function, che determina un valore di lunghezza fissa a partire da un messaggio di lunghezza arbitraria. Con one-way function si intende una funzione che non è computazionalmente possibile invertire, ovvero non è possibile risalire al messaggio a partire dal valore di hash. 
+Il MAC è un meccanismo attraverso il quale, dato un messaggio $m$ ed una chiave $k$, forgia un tag $t=\mathsf{Mac}_k(m)$, che viene spedito insieme al messaggio. Il destinatario, una volta ricevuto il messaggio, calcola il tag associato, e lo confronta con quello ricevuto. Se i due tag coincidono, vi è la certezza che il messaggio non sia stato alterato.
+\paragraph{Funzione di hash}
+Una funzione di hash $h$ è una one-way function, che determina un valore di lunghezza fissa a partire da un messaggio di lunghezza arbitraria. Con one-way function si intende una funzione che non è computazionalmente fattibile invertire, ovvero non è possibile risalire al messaggio a partire dal valore di hash. 
 Questa funzione, deterministica, deve rispettare le seguenti proprietà:
 \begin{itemize}
-    \item \textbf{Non reversibilità}: data una funzione di hash $h$, non è computazionalmente possibile trovare un messaggio $m$ tale che $h(m)=h(m')$.
+    \item \textbf{Non reversibilità}: data una funzione di hash $h$, non è computazionalmente fattibile trovare un messaggio $m$ tale che $h(m)=h(m')$.
     \item \textbf{Efficienza}: data una funzione di hash $h$ deve essere computazionalmente efficiente calcolare $h(m)$ per ogni messaggio $m$.
-    \item \textbf{Resistenza alle collisioni}: non è computazionalmente possibile trovare due messaggi distinti $m_1$ e $m_2$ tali che $h(m_1)=h(m_2)$.
-    \item \textbf{Hiding}: scelto un segreto  
+    \item \textbf{Resistenza alle collisioni}: non è computazionalmente fattibile trovare due messaggi distinti $m_1$ e $m_2$ tali che $h(m_1)=h(m_2)$.
+    \item \textbf{Hiding}: data una funzione di hash $h$, scelto un segreto $r$ da una distribuzione di probabilità, la cui entropia minima è alta, dato $h(r\|x)$ non è computazionalmente fattibile trovare $x$.
 \end{itemize}
-
+Infine, una ultima proprietà, che sarà successivamente necessaria, è la puzzle friendliness:
+\begin{itemize}
+    \item \textbf{Puzzle friendliness} Una funzione di hash $h$ è detta puzzle friendly se, per ogni possibile sequenza $y$ in output di $n$ bit, se $k$ è scelto da una distribuzione di probabilità la cui minima entropia è alta, allora è infattibile trovare un $x$ tale per cui $h(k\|x)=y$ in tempo significativamente minore di $2^n$.
+\end{itemize}
+La funzione di hash ritorna utile nella comuniczione sicura in quanto, come suddetto, permette di fornire, data una stringa di lunghezza arbitraria, un valore di lunghezza fissa. Non è computazionalmente fattibile invertire tale funzione, oppure cercare una collisione (ingressi per i quali l'uscita è la medesima). Grazie a queste proprietà, una volta che viene applicato l'hash ad un messaggio, si ottiene un digest equivalente ad una associazione uno ad uno con l'ingresso, senza svelare alcuna informazione su esso. Ciò significa che è possibile utilizzarlo in sicurezza per validare l'integrità e l'autenticità del messaggio.
 \subsubsection{Certificato digitale} 
-Un certificato è un documento elettronico che associa una chiave pubblica ad un'identità, e viene firmato digitalmente dalla CA. Nel documento sono presenti informazioni riguardanti l'università e la sua chiave pubblica, il CA e la sua firma, e il periodo di validità del certificato. 
-\subsection{Sistema di gestione dei certificati delle credenziali }
+Un certificato è un documento elettronico che associa una chiave pubblica ad un'identità, e viene firmato digitalmente dalla CA. Nel documento sono presenti informazioni riguardanti l'università e la sua chiave pubblica, la CA e la sua firma, e il periodo di validità del certificato. Il certificato rappresenta una garanzia di affidabilità, in quanto la CA è un ente di fiducia che rende disponibile pubblicamente la chiave pubblica dell'università.
+\paragraph{Emissione certificato} Quando l'università necessita di essere certificata per rendere nota la propria chiave pubblica deve contattare una CA, e fornirle le informazioni necessarie alla creazione del certificato digitale. In particolare, l'università deve generare una coppia di chiavi pubblica $p_k$ e privata $s_k$, e fornire alla CA la chiave pubblica $p_k$, più il proprio identificativo. La CA, per garantire che stia effettivamente dialogando con l'università, deve verificare via mezzi alternativi la sua identità. Una volta fatto ciò, emette il certificato digitale associato alla chiave pubblica dell'università, firmandolo con la propria chiave privata.
+\paragraph{Revoca Certificato} Di norma, i certificati hanno una scadenza temporale, dopo la quale non sono più validi. In tal caso, l'università deve rinnovare il certificato ripetendo la procedura di cui sopra. Tuttavia, in particolari circostanze, la CA potrebbe decidere di revocare un certificato prima che questo scada. Ciò può avvenire in caso di un certificato errato, ma anche in caso di compromissione della chiave privata dell'università, o della CA. In questo caso, la CA deve informare tutti gli attori interessati della revoca del certificato, in modo tale che non venga più utilizzato.
+\paragraph{Validazione certificato}
+\subsection{Sistema di gestione dei certificati delle credenziali}
 
 
 
