@@ -27,7 +27,7 @@
 \newpage
 \section{WP 1: Modello}
 La seguente sezione si occupa di descrivere gli attori onesti presenti nel sistema, evidenziando le attività che sono interessati a svolgere.
-\newline Successivamente, si procede alla discussione degli avversari e del threat model considerato, andando a specificare le capacità e le risorse da essi possedute. Infine, si presentano le proprietà che devono essere possedute dal sistema al fine di essere resiliente agli attacchi considerati.
+\newline Successivamente, si procede alla discussione degli avversari e del threat model considerato, andando a specificare le capacità e le risorse da essi possedute. Infine, si presentano le proprietà che devono essere preservate dal sistema al fine di essere resiliente agli attacchi considerati.
 \subsection{Attori \& Obiettivi}
 \begin{figure}[H]
     \centering
@@ -38,30 +38,31 @@ La seguente sezione si occupa di descrivere gli attori onesti presenti nel siste
 \end{figure}
 \subsubsection{Studente Erasmus}
 Lo studente Erasmus è interessato a sostenere attività accademiche all'interno della sede ospitante, le quali devono essere poi certificate e dimostrate all'università di origine.
-\paragraph{Richiesta credenziale} Per cui lo studente necessita dall'università ospitante una credenziale accademica, che attesti le attività da egli effettuate all'interno dell'università ospitante durante il periodo di mobilità.
-\paragraph{Trasmissione credenziale} Tale credenziale dev'essere successivamente fornita all'università di origine per certificare le attività svolte dallo studente in sede ospitante. 
+\paragraph{Richiesta credenziale} Lo studente deve ricevere dall'università ospitante una credenziale accademica, che attesti le attività da egli effettuate durante il periodo di mobilità.
+\paragraph{Trasmissione credenziale} Tale credenziale dev'essere successivamente fornita all'università di origine per certificare le attività svolte dallo studente nella sede ospitante. 
 \paragraph{Condivisione selettiva} Lo studente potrebbe desiderare di comunicare solamente un sottoinsieme sufficiente delle informazioni contenute all'interno della credenziale, in maniera tale da dimostrare il rispetto dei criteri dell'accordo di mobilità e non rivelare informazioni personali superflue.
 \\[0.5em] Si suppone che le risorse computazionali dello studente siano limitate. 
 
 \subsubsection{Università Ospitante}
-L'università ospitante, accordatasi con l'università di origine, permette a vari studenti erasmus di poter usufruire di un periodo di mobilità all'interno della sua sede, nel quale gli studenti hanno la possibilità di effettuare varie atttività accademiche.
+L'università ospitante, accordatasi con l'università di origine, permette a vari studenti Erasmus di poter usufruire di un periodo di mobilità all'interno della sua sede, nel quale gli studenti hanno la possibilità di effettuare varie atttività accademiche.
 \paragraph{Emissione credenziale} La sede è interessata a certificare, per ogni studente in mobilità da essa, le attività svolte da questo attraverso una credenziale, cosicché egli sia in grado di comunicarle successivamente alla sua sede d'origine.
-\paragraph{Interoperabilità credenziale} Siccome l'università ospitante non conosce i criteri definiti dall'accordo di mobilità per ciascuno degli studenti, inserisce nelle credenziali tutte le informazioni relative alle attività accademiche dello studente, sicché sia poi in grado di poterle comunicare all'università di origine. Tutte le informazioni devono essere contenute in un formato standard, definito congiuntamente con l'università di origine, per garantire l'interoperabilità delle credenziali.
-\paragraph{Certificazione credenziale} L'ateneo desidera dimostrare che la credenziale è stata effettivamente emessa da sé, per cui emette un certificato dell'avvenuta emissione.
-\paragraph{Revoca certificazione} In particolari casi laddove si verifichino errori amministrativi, lo studente fornisca dati fraudolenti, cometta plagio, oppure frode, l'università ospitante deve essere in grado di invalidare la credenziale revocando il certificato.
-\paragraph{Certificato pubblico} L'università ospitante deve contattare un ente di accreditamento per richiedre un certificato, il quale attesi l'autenticità delle sue comunicazioni, e le permetta di rilasciare certificazioni valide.
+\paragraph{Interoperabilità credenziale} Siccome l'università ospitante non conosce i criteri definiti dall'accordo di mobilità per ciascuno degli studenti, inserisce nelle credenziali tutte le informazioni relative alle attività accademiche dello studente, sicché sia poi in grado di poterle comunicare all'università di origine. Tutte le informazioni devono essere rappresentate in un formato standard, definito congiuntamente con l'università di origine, per garantire l'interoperabilità delle credenziali.
+\paragraph{Certificazione credenziale} L'ateneo desidera dimostrare che la credenziale è stata effettivamente emessa da sé, per cui rilascia un certificato dell'avvenuta emissione.
+\paragraph{Revoca certificazione} In particolari casi laddove si verifichino: errori amministrativi, lo studente fornisce dati fraudolenti, comette plagio, oppure frode, e altre situazioni simili, l'università ospitante deve essere in grado di invalidare la credenziale revocandone il certificato.
+\paragraph{Certificato pubblico} L'università ospitante deve contattare un ente di accreditamento per richiedere un certificato, il quale attesti l'autenticità delle sue comunicazioni, e le permetta di rilasciare certificazioni valide.
 % \\[0.5em]Si suppone che le università ospitanti possiedano medie o elevate risorse computazionali.
 
 \subsubsection{Università di Origine}
-L'università di origine è accordata con l'università ospitante, mentre con lo studente attraverso un accordo di mobilità. All'interno di questo vengono definite tutte le attività accademiche che lo studente è richiesto soddisfare per validare il suo periodo di mobilità.
+L'università di origine è accordata con l'università ospitante, mentre con lo studente attraverso un accordo di mobilità. All'interno di questo vengono definite tutte le attività accademiche che allo studente è richiesto soddisfare per validare il suo periodo di mobilità.
 \paragraph{Presentazione credenziale} L'ateneo si aspetta di ricevere, da ciascuno studente che ha terminato il proprio periodo di mobilità, una credenziale nella quale sono presenti almeno le attività definite dall'accordo di mobilità.
-\paragraph{Validazione credenziale} La credenziale deve essere certificata dall'università osiptante, cosicché si abbia la certezza della validità di questa. Qualora la credenziale non fosse certificata, oppure la certificazione associata è invalida o revocata, l'ateneo è in grado di rifiutare la credenziale.
-\paragraph{Verifica certificato} L'università di origine deve essere in grado di verificare l'autenticità della credenziale, attraverso la verifica del certificato associato ad essa.
+\paragraph{Validazione credenziale} La credenziale deve essere certificata dall'università ospitante, cosicché si abbia la certezza della validità di questa. Qualora la credenziale non fosse certificata, invalida oppure revocata, l'ateneo è in grado di rifiutare la credenziale.
+\paragraph{Verifica certificato} L'università di origine deve poter verificare l'autenticità della credenziale, attraverso la verifica del certificato associato ad essa.
 
 \subsubsection{Ente di accreditamento}
 L'ente di accreditamento è un'autorità esterna, che si occupa di certificare le università, in modo tale da garantire l'autenticità delle comunicazioni. 
-\paragraph{Emissione certificato} L'ente di accreditamento emette certificati per le universitò che lo richiedono, i quali vengono utilizzati da queste per certificare o validare credenziali.
+\paragraph{Emissione certificato} L'ente di accreditamento emette certificati per le università che lo richiedono, i quali vengono utilizzati da queste per certificare o validare credenziali.
 \paragraph{Archiviazione certificati} Non solo, si occupa anche dell'archiviazione delle certificazioni associate alle università, conservandole sino ad una determinata data, e rendendoli disponibili per la validazione.
+\paragraph{Revoca certificato} L'ente di accreditamento deve essere in grado di revocare i certificati emessi, qualora vi siano errori o violazioni.
 
 \subsection{Credenziale}
 La credenziale è un documento contenente le informazioni relative alle attività accademiche che lo studente in mobilità ha svolto nella sede ospitante. 
@@ -71,8 +72,8 @@ La credenziale è un documento contenente le informazioni relative alle attivit�
     \item Nome e cognome dello studente
     \item Matricola esterna dello studente
     \item Codice e nome dell'università ospitante
-    \item Nome e cognome del referente dell'università ospitante
     \item Nome e cognome del referente dell'università di origine
+    \item Nome e cognome del referente dell'università ospitante
     \item Data di emissione  
     \item Data di fine validità
     \item Periodo di mobilità
@@ -96,13 +97,13 @@ La credenziale è un documento contenente le informazioni relative alle attivit�
 \end{itemize}
 Le università devono attenersi a questo formato per assicurare l'interoperabilità delle credenziali emesse.
 \subsection{Threat Model}
-Come threat model si considerano avversari in grado di compromettere il sistema in un determinato attacco, dipendente dalle risorse e capacità da essi possedute, andando a definire quale sia la proprietà che viene meno laddove il sistema non sia resiliente a tale attacco.
+Come threat model si considerano avversari che potrebbero compromettere il sistema con una determinata sequenza di azioni, le quali dipendono dalle risorse e capacità da essi possedute, definendo poi quale sia la proprietà che potrebbe venire meno laddove il sistema non sia resiliente a tale attacco.
 \newline Ciascun attaccante viene considerato efficiente e probabilistico, ovvero con una determinata probabilità di avere successo nell'intento in tempo polinomiale.
 \subsubsection{Violazione dell'ente di accreditamento}
-Si prende in esame il caso in cui l'ente di accrediamento venga compromesso da un attaccante, il quale riesce ad ottenere accesso ai meccanismi di emissione e revoca dei certificati. In questo caso, l'attaccante potrebbe emettere certificati false, oppure revocare certificati valide.
-\newline In questo caso si perde la proprietà di autenticità, in quanto non si ha la certezza che il certificato sia stato emesso da un'autorità competente.
+Si prende in esame il caso in cui l'ente di accrediamento venga compromesso da un attaccante, il quale riesce ad ottenere accesso ai meccanismi di emissione e revoca dei certificati. In questo caso, l'attaccante potrebbe emettere certificati falsi, oppure revocare certificati validi.
+\newline In questo caso si perde la proprietà di autenticità, in quanto non si ha la certezza che il certificato sia stato emesso da un'autorità competente, problema che si ripercuote sulle comunicazioni tra gli altri attori, siccome la loro fiducia nella sicurezza si basa sui certificati emessi.
 \subsubsection{Violazione dell'università ospitante}
-Si considera lo scenario dove l'università ospitante vieen compromessa da un attaccante, il quale riesce ad ottenere accesso ai meccanismi di emissione, certificazione e revoca delle credenziali. In questo caso, l'attaccante diverrebbe in grado di:
+Si considera lo scenario dove l'università ospitante viene compromessa da un attaccante, il quale riesce ad ottenere accesso ai meccanismi di emissione, certificazione e revoca delle credenziali. In questo caso, l'attaccante diverrebbe in grado di:
 \begin{itemize}
     \item Emettere credenziali false
     \item Certificare credenziali false
@@ -111,9 +112,9 @@ Si considera lo scenario dove l'università ospitante vieen compromessa da un at
 In questo caso si perde la proprietà di autenticità, siccome non si ha la certezza che la certificazione sia stata emessa dall'università.
 \subsubsection{Violazione dell'università di origine}
 Si analizza il caso in cui l'università di origine venga compromessa da un attaccante, il quale riesce ad ottenere accesso ai meccanismi di validazione delle credenziali. In questo scenario, l'attaccante potrebbe accettare credenziali false, oppure respingere credenziali valide.
-\newline In questo si perde la proprietà di confidenzialità, poiché l'attaccante sarebbe in grado di accedere a informazioni riservate riguardanti lo studente, attraverso la credenziale.
+\newline Così si perde la proprietà di confidenzialità, poiché l'attaccante sarebbe in grado di accedere a informazioni riservate riguardanti studenti, attraverso le credenziali che inviano all'ateneo, ignari che sia stato violato.
 \subsubsection{Studente malevolo}
-Si studia il caso laddove lo studente sia malevolo, e tenti di far passare come valida una credenziale parzialmente sufficiente, oppure alterata. In questo caso, lo studente potrebbe violare la proprietà di integrità ed autenticità della credenziale.
+Si studia il caso laddove lo studente sia malevolo, e tenti di far passare come valida una credenziale parzialmente sufficiente, oppure alterata. In questo caso, lo studente 
 \subsubsection{Intercettatore di comunicazioni dell'università ospitante}
 Si prende in esame la presenza di un attaccante che intercetti tutte le comunicazioni da e verso l'università ospitante. Questo attaccante ha accesso a uno storico di messaggi cifrati e relative decifrature attraverso mezzi alternativi. 
 \newline In questo caso, l'attaccante potrebbe essere in grado di inferire informazioni sui successivi messaggi cifrati, violando la proprietà di confidenzialità. Non solo, l'attaccante potrebbe alterare le comunicazioni in uscita, violando quindi le proprietà di sicurezza del sistema.
@@ -155,11 +156,11 @@ In questa sezione si presenta la soluzione proposta per il modello descritto pre
 \newline Infine, si spiega come lo studente possa utilizzare il sistema per validare le attività svolte durante il periodo di mobilità. Qui ricadono le interazioni tra lo studente e le univesità. 
 \newline Per ciascuna di queste sezioni, si tengono in considerazione le proprietà di sicurezza precedentemente elencate, sottolineandone i meccanismi progettati per garantirle.
 \subsection{Certificati digitali} 
-Il meccanismo dei certificati digitali si basa sull'utilizzo della crittografia asimmetrica, che garantisce le proprietà di confidenzialità, integrità ed autenticità durante la comunicazione. 
+Il meccanismo dei certificati digitali si basa sull'utilizzo della crittografia asimmetrica, che garantisce le proprietà di confidenzialità, integrità ed autenticità nelle comunicazioni. 
 In questo contesto, l'ente di accreditamento si considera essere un'autorità certificante (CA): quando necessario, l'università contatta la CA per richiedere un certificato.
 \newline
 Un certificato digitale è un documento elettronico che associa una chiave pubblica ad un'identità, e viene firmato digitalmente dalla CA. Nel documento sono presenti informazioni riguardanti l'università e la sua chiave pubblica, la CA e la sua firma, e il periodo di validità del certificato. Il certificato rappresenta una garanzia di affidabilità, in quanto la CA è un ente di fiducia che rende disponibile pubblicamente la chiave pubblica dell'università.
-\subsubsection{Emissione certificato} Quando l'università necessita di essere certificata per rendere nota la propria chiave pubblica deve contattare una CA, e fornirle le informazioni necessarie alla creazione del certificato digitale. In particolare, l'università deve generare una coppia di chiavi pubblica e privata, e fornire alla CA la chiave pubblica, più il proprio identificativo. La CA, per garantire che stia effettivamente dialogando con l'università, deve verificarne via mezzi alternativi l'identità. Una volta fatto ciò, emette il certificato digitale associato alla chiave pubblica dell'università, firmandolo con la propria chiave privata.
+\subsubsection{Emissione certificato} Quando l'università necessita di essere certificata per rendere nota la propria chiave pubblica deve contattare una CA, e fornirle le informazioni necessarie alla creazione del certificato digitale. In particolare, l'università deve generare una coppia di chiavi pubblica e privata, e fornire alla CA la chiave pubblica, più il proprio identificativo. La CA, per garantire che stia effettivamente dialogando con l'università, deve verificarne via mezzi alternativi l'identità, siano essi l'utilizzo di un Identity Provider, canale preesistente sicuro, o di persona. Una volta fatto ciò, emette il certificato digitale associato alla chiave pubblica dell'università, firmandolo con la propria chiave privata.
 \subsubsection{Revoca Certificato} Di norma, i certificati hanno una scadenza temporale, dopo la quale non sono più validi, e quando scade, l'università deve rinnovarlo ripetendo la procedura di cui sopra. Tuttavia, in particolari circostanze, la CA potrebbe decidere di revocare un certificato prima che questo scada. Ciò può avvenire quando il certificato è errato, ma anche laddove venisse compromessa la chiave privata dell'università o della CA. In caso di revoca di un certificato, la CA deve informare tutti gli attori interessati, in modo tale che non venga più utilizzato.
 \subsubsection{Validazione certificato} Siccome il certificato può essere revocato prima della data di scadenza, è necessario un meccanismo che permetta di valutare se un certificato è valido nel senso che, durante la durata di validità, non è stato revocato. Per permettere ciò, è innanzitutto necessario che la CA archivi i certificati non scaduti, ma revocati. Dopodiché, ogni attore deve accedere, almeno una volta, alla lista dei certificati revocati, siccome altrimenti non sarebbe in grado di sapere se un certificato sia valido o revocato. Per ottimizzare le rirsorse computazionali e spaziali, gli attori potrebbero, piuttosto che chiedere costantemente alla CA se un certificato sia valido o meno, e renderlo quindi un singolo punto di fallimento, salvare periodcamente in locale una lista dei certificati revocati. Per risparmiare poi ulteriore spazio, è possibile conservare, dei certificati in corso di validità, solamente il loro identificativo, e un bit che ne attesti la validità (Certificate Revocation Vector).
 \subsubsection{Punto di fallimento} L'aggiornamento della lista dei certificati revocati deve avvenire periodicamente ed online, cosicché ciascuna università rimanga aggiornata riguardo le revoche e l'autenticità delle comunicazioni, anche in assenza di accesso alla rete.
