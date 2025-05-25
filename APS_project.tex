@@ -234,13 +234,11 @@ Una volta che lo studente ha ricevuto la credenziale, è in grado di decidere qu
 \newline Siccome è una semplice scomposizione di informazioni da un file di testo, basse prestazioni computazionali sono più che sufficienti.
 \subsubsection{Trasmissione credenziale}
 Una volta che lo studente ha ottenuto la credenziale, ed eventualmente deciso quali informazioni divulgare, è pronto per inviarla all'università di origine. Stabilisce quindi, attraverso la stessa procedura menzionata precedentemente, un canale sicuro con l'ateneo, ottenendo una nuova chiave di sessione. Cifra quindi la credenziale con questa chiave, e la invia ad essa. Subito dopo, l'università calcola blocchi di hash dalla credenziale, e contatta lo smart contract sulla blockchain per richiedere la validazione della credenziale.
-\newline In base alle circostanze vi possono essere tre scenari differenti:
-\begin{itemize}
-    \item La credenziale è correttamente certificata in un blocco della blockchain, e lo smart contract restituisce l'ID del blocco, il quale è unico per quella credenziale. L'università di origine può quindi procedere a validare la credenziale, e a registrarla nel proprio sistema, qualora le informazioni in esse siano sufficienti.
-    \item Non esiste alcuna certificazione per la credenziale, e lo smart contract restituisce un errore. In questo caso l'università di origine non può procedere alla validazione della credenziale, e deve informare lo studente che la credenziale non è valida.
-    \item La credenziale è stata revocata, e lo smart contract restituisce l'ID del blocco contenente la revoca. In questo caso l'università di origine non può procedere alla validazione della credenziale, e deve informare lo studente che la credenziale è stata revocata.
-    \item La credenziale è stata certificata, sebbene però non sia corretta, o venga meno agli standard definiti tra le università. In questo caso lo smart contract restituisce l'ID del blocco della certificazione, e l'università di origine può procedere avvisando lo studente che la credenziale non è corretta, e chiedendo all'università ospitante la sostituzione della credenziale.
-\end{itemize}
+\newline In base alle circostanze vi possono essere scenari differenti:
+\paragraph{Credenziale certificata} La credenziale è correttamente certificata in un blocco della blockchain, e lo smart contract restituisce l'ID del blocco, il quale è unico per quella credenziale. L'università di origine può quindi procedere a validare la credenziale, e a registrarla nel proprio sistema, qualora le informazioni in esse siano sufficienti.
+\paragraph{Credenziale non certificata} Non esiste alcuna certificazione per la credenziale, e lo smart contract restituisce un errore. In questo caso l'università di origine non può procedere alla validazione della credenziale, e deve informare lo studente che la credenziale non è valida.
+\paragraph{Credenziale revocata} La credenziale è stata revocata, e lo smart contract restituisce l'ID del blocco contenente la revoca. In questo caso l'università di origine non può procedere alla validazione della credenziale, e deve informare lo studente che la credenziale è stata revocata.
+\paragraph{Credenziale scorretta} La credenziale è stata certificata, sebbene però non sia corretta, o venga meno agli standard definiti tra le università. In questo caso lo smart contract restituisce l'ID del blocco della certificazione, e l'università di origine può procedere avvisando lo studente che la credenziale non è corretta, e chiedendo all'università ospitante la sostituzione della credenziale.
 \newpage
 \section{WP 3}
 \subsection{Da definire}
