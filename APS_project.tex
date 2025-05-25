@@ -144,6 +144,8 @@ La disponibilità è la proprietà che assicura continua operatività del sistem
 La trasparenza è la proprietà attraverso la quale ciascun attore è sempre in grado di risalire all'autore di una data azione, possa essa essere l'emissione di un certificato, oppure la sua revoca.
 \subsubsection{Scalabilità}
 La proprietà di scalabilità garantisce che non vi sia riduzione delle prestazioni del sistema, all'aumentare dei nodi.
+\subsubsection{Divulgazione selettiva}
+Ciascuno studente deve poter essere in grado di divulgare soltanto un sottoinsieme sufficiente delle sue informazioni. Tale proprietà è denominata divulgazione selettiva.
 
 
 
@@ -170,13 +172,52 @@ Un certificato digitale è un documento elettronico che associa una chiave pubbl
 \subsubsection{Gerarchia delle CA} Siccome anche il gruppo di CA necessita di chiavi pubbliche affidabili per emettere i certificati e comunicare gli aggiornamenti, è necessario che ciascuna di esse venga certificata da altre CA, in maniera reciproca. In questo modo, si ha una gerarchia di CA, in cui ciascuna CA è in grado di emettere certificati per le università, e ciascuna CA è in grado di validare i certificati emessi dalle altre CA.
 
 \subsection{Sistema di gestione dei certificati delle credenziali}
-Per garantire l'accesso pubblico alle credenziali certificate è necessario un archivio pubblico, digitale. Tuttavia da questo non devono trasparire informazioni riservate. È quindi necessario non poter inferire, dai certificati emessi dalle università, informazioni sulle credenziali a cui sono associati.
+Per garantire l'accesso pubblico ai certificati delle credenziali è necessario un archivio digitale, condiviso tra le università. Tuttavia da questo non devono trasparire informazioni riservate, siccome non vi sono restrizioni sull'accesso. È quindi necessario non poter inferire, dai certificati emessi dalle università, informazioni sulle credenziali a cui sono associati.
 
 \subsubsection{Certificazione della credenziale}
 Quando l'università desidera emettere una certificazione per una credenziale, deve fornire tramite la credenziale, un identificativo univoco, da cui non è possibile dedurre alcuna informazione su essa. 
-Tale identificativo è contenuto nella certificazione, permettendo a chiunque la possieda, di validare la credenziale.
+Tale identificativo è contenuto nella certificazione, permettendo a chiunque la possieda, di validare la credenziale, e corrisponde ad una struttura dati contenente un insieme di digest, ottenuti attraverso l'applicazione di una funzione di hash alle varie parti della credenziale. In particolare nella credenziale le parti a cui viene applicato l'hash sono: 
+\begin{itemize}
+    \item Le informazioni riguardanti lo studente, le università, la credenziale e il periodo di mobilità 
+    \item Ciascun esame e le relative informazioni 
+    \item Ciascun attività e le relative informazioni
+\end{itemize}
+Per cui la struttura dati conterrà: un hash per ciascun esame, un hash per ciascuna attività e un hash per le altre informazioni rimanenti. 
+\subsubsection{Merkle Tree}
+La struttura dati a cui si è fatto riferimento è un albero, denominato Merkle Tree, le cui proprietà sono: 
+\begin{itemize}
+    \item Ciascuna foglia contiene l'hash di un blocco di informazioni 
+    \item Ciascun nodo interno contiene l'hash della concatenazione del contenuto dei due nodi figli 
+    \item L'albero è pieno, ciascun nodo o ha due figli o è un nodo foglia 
+\end{itemize}
+Queste proprietà garantiscono la possibilità di divulgare le sole informazioni desiderate, permettendo comunque di validarle. 
+\subsubsection{Validazione selettiva}
+Determinato un Merkle Tree di una credenziale, è possibile effettuare il processo di validazione della credenziale attraverso di esso. Se tutte le informazioni della credenziale sono fornite, calcolando l'hash per ciascun blocco di informazioni, attraverso la stessa procedura che si è precedentemente discussa, si otterrà un insieme di blocchi di hash. Si controlla quindi la presenza di ciascun blocco all'interno delle foglie: se vi è un'associazione uno a uno il Merkle Tree è effettivamente calcolato sulla credenziale. 
+\newline Tuttavia, se non tutte le informazioni della credenziale vengono fornite, non è possibile confrontare tutte le foglie, per cui si utilizza la dimostrazione di appartenenza. Si individuano le foglie a cui appartengono gli hash calcolati e si valuta il loro percorso sino alla radice: se ciascun nodo intermedio è correttamente calcolato come l'hash della concatenazione dei nodi figli, allora le informazioni parziali appartengono ad una credenziale valida. 
+\subsubsection{Certificazioni \& Blockchain} 
+Un'università che desidera emettere una certificazione per una credenziale, ne deve decidere la durata di validità e poi calcolare su essa il Merkle Tree. Ottenuto questo, deve pubblicare il Merkle Tree a tutte le università che potrebbero essere interessate a validare tale credenziale. L'archivio condiviso, dove vengono conservati tutti i Merkle Tree, è una blockchain, dove a ciascun Merkle Tree è inoltre associato l'hash corrispondente alla radice del Merkle Tree precedente, ovvero un puntatore hash al Merkle Tree precedente.
+\newline Si considerano il Merkle Tree e il puntatore hash 
+appartenenti ad un blocco, nel quale vi è anche l'informazione riguardante la chiave pubblica dell'università che l'ha generato ed un identificativo univoco del blocco, ottenuto attraverso l'hash dell'intera credenziale. 
+Da qui si considera certificazione il blocco e il suo contenuto nel suo insieme. 
+\newline Con informazione riguardante la chiave pubblica dell'università che ha generato il blocco, si intende una procedura che assicura l'autencità e il non ripudio del suo contenuto.
+Quando l'università genera un blocco, cifra la radice del Merkle Tree mediante la sua chiave privata, e quando successivamente un'università desidera verificarne l'autencità, decifra quel campo con la chiave pubblica di tale università, e si aspetta di ottenere lo stesso risultato.
+\subsubsection{Smart Contract e transazioni}
+Per automatizzare e semplificare i processi di caricamento e validazione di un certificato, si utilizza uno smart contract, il quale rappresenta un'interfaccia standard per le università. Lo smart contract si occupa di generare il blocco a seconda dei dati ricevuti dall'università, quando desidera emettere un certificato, i quali vengono inviati all'interno di un messaggio detto transazione.
+\newline Per garantire la proprietà di trasparenza, la transazione è pubblicamente visibile siccome è salvata nella blockchain, all'interno di questa vi sono, informazioni quali: l'indirizzo dell'università nella blockchain, il contenuto della richiesta e l'indirizzo di destinazione, il quale corrisponde a quello del contratto. 
+\newline Sempre per trasparenza, sia il codice che lo stato dello smart contract risiedono sulla blockchain, cosicché che tutti i partecipanti ne possano verificare il corretto funzionamento.
+\subsubsection{Revoca certificazione}
+Riguardo la procedura di revoca di una certificazione, già presente sulla blockchain, lo smart contract mette a disposizione un'interfaccia di comunicazione per la gestione di tale eventualità.
+\newline Siccome non è possibile alterare un blocco una volta caricato, poiché renderebbe invalidi i puntatori hash e quindi la catena, si aggiunge allora un nuovo blocco, il quale scopo è quello di invalidare la certificazione. Questo blocco contiene le stesse informazioni del precedente, più una flag di invalidità posta al valore di vero.
+\newline Per assicurare uniformità ai blocchi della catena, anche ai blocchi riguardanti la creazione della certificazione si include questa flag, posta al valore falso.
+\newline Le politiche di revoca di una certificazione sono due: 
+\begin{itemize}
+    \item L'autore della certificazione è automaticamente in grado di revocarla, per cui si aggiunge all'interno di ogni blocco  l'indirizzo dell'autore. Il contratto mette a disposizione questa tipologia di revoca.
+    \item Un numero sufficiente di università decide di revocare la certificazione, qualora essa non rispetti determinati criteri oppure l'università autrice venga estromessa dal sistema. 
+\end{itemize}
 
-
+\subsubsection{Meccanismo di validazione}
+Siccome generalmente nella blockchain, è il solo smart contract a generare blocchi, si potrebbe non intravedere la necessità della validazione dei blocchi. Tuttavia, tutti i partecipanti sarebbero in grado di generare dei blocchi, per cui è necessaria una procedura attraverso la quale le università siano in grado di decidere quali blocchi debbano essere salvati e quali no. 
+\newline Questa procedura richiede che almeno un certo numero, di tutte le università presenti nel sistema, acconsenta all'inserimento di tale blocco nella blockchain. Il numero esatto è un compromesso tra la sicurezza del sistema e la velocità di revoca, ed è fortemente dipendente dal numero di università presenti nel sistema.
 
 \newpage
 \section{WP 3}
