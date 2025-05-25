@@ -40,7 +40,7 @@ La seguente sezione si occupa di descrivere gli attori onesti presenti nel siste
 Lo studente Erasmus è interessato a sostenere attività accademiche all'interno della sede ospitante, le quali devono essere poi certificate e dimostrate all'università di origine.
 \paragraph{Richiesta credenziale} Lo studente deve ricevere dall'università ospitante una credenziale accademica, che attesti le attività da egli effettuate durante il periodo di mobilità.
 \paragraph{Trasmissione credenziale} Tale credenziale dev'essere successivamente fornita all'università di origine per certificare le attività svolte dallo studente nella sede ospitante. 
-\paragraph{Condivisione selettiva} Lo studente potrebbe desiderare di comunicare solamente un sottoinsieme sufficiente delle informazioni contenute all'interno della credenziale, in maniera tale da dimostrare il rispetto dei criteri dell'accordo di mobilità e non rivelare informazioni personali superflue.
+\paragraph{Condivisione selettiva} Lo studente potrebbe desiderare di comunicare solamente un sottoinsieme strettamente necessario delle informazioni contenute all'interno della credenziale, in maniera tale da dimostrare il rispetto dei criteri dell'accordo di mobilità e non rivelare informazioni personali superflue.
 \\[0.5em] Si suppone che le risorse computazionali dello studente siano limitate. 
 
 \subsubsection{Università Ospitante}
@@ -114,7 +114,7 @@ In questo caso si perde la proprietà di autenticità, siccome non si ha la cert
 Si analizza il caso in cui l'università di origine venga compromessa da un attaccante, il quale riesce ad ottenere accesso ai meccanismi di validazione delle credenziali. In questo scenario, l'attaccante potrebbe accettare credenziali false, oppure respingere credenziali valide.
 \newline Così si perde la proprietà di confidenzialità, poiché l'attaccante sarebbe in grado di accedere a informazioni riservate riguardanti studenti, attraverso le credenziali che inviano all'ateneo, ignari che sia stato violato.
 \subsubsection{Studente malevolo}
-Si studia il caso laddove lo studente sia malevolo, e tenti di far passare come valida una credenziale parzialmente sufficiente, oppure alterata. In questo caso, lo studente 
+Si studia il caso laddove lo studente sia malevolo, e tenti di far passare come valida una credenziale insufficiente, oppure alterata. In questo caso, lo studente 
 \subsubsection{Intercettatore di comunicazioni dell'università ospitante}
 Si prende in esame la presenza di un attaccante che intercetti tutte le comunicazioni da e verso l'università ospitante. Questo attaccante ha accesso a uno storico di messaggi cifrati e relative decifrature attraverso mezzi alternativi. 
 \newline In questo caso, l'attaccante potrebbe essere in grado di inferire informazioni sui successivi messaggi cifrati, violando la proprietà di confidenzialità. Non solo, l'attaccante potrebbe alterare le comunicazioni in uscita, violando quindi le proprietà di sicurezza del sistema.
@@ -145,7 +145,7 @@ La trasparenza è la proprietà attraverso la quale ciascun attore è sempre in 
 \subsubsection{Scalabilità}
 La proprietà di scalabilità garantisce che non vi sia riduzione delle prestazioni del sistema, all'aumentare dei nodi.
 \subsubsection{Divulgazione selettiva}
-Ciascuno studente deve poter essere in grado di divulgare soltanto un sottoinsieme sufficiente delle sue informazioni. Tale proprietà è denominata divulgazione selettiva.
+Ciascuno studente deve poter essere in grado di divulgare soltanto un sottoinsieme strettamente necessario delle sue informazioni. Tale proprietà è denominata divulgazione selettiva.
 
 
 
@@ -207,18 +207,40 @@ Per automatizzare e semplificare i processi di caricamento e validazione di un c
 \newline Sempre per trasparenza, sia il codice che lo stato dello smart contract risiedono sulla blockchain, cosicché che tutti i partecipanti ne possano verificare il corretto funzionamento.
 \subsubsection{Revoca certificazione}
 Riguardo la procedura di revoca di una certificazione, già presente sulla blockchain, lo smart contract mette a disposizione un'interfaccia di comunicazione per la gestione di tale eventualità.
-\newline Siccome non è possibile alterare un blocco una volta caricato, poiché renderebbe invalidi i puntatori hash e quindi la catena, si aggiunge allora un nuovo blocco, il quale scopo è quello di invalidare la certificazione. Questo blocco contiene le stesse informazioni del precedente, più una flag di invalidità posta al valore di vero.
+\newline Siccome non è possibile alterare un blocco una volta caricato, poiché renderebbe invalidi i puntatori hash e quindi la catena, si aggiunge allora un nuovo blocco, il quale scopo è quello di invalidare la certificazione. Questo blocco contiene le stesse informazioni contenute in quello della certificazione, più una flag di invalidità posta al valore di vero. L'ID di questo blocco sarà lo stesso di prima ma con un '1' alla fine, mentre il precedente terminerà per '0'.
 \newline Per assicurare uniformità ai blocchi della catena, anche ai blocchi riguardanti la creazione della certificazione si include questa flag, posta al valore falso.
 \newline Le politiche di revoca di una certificazione sono due: 
 \begin{itemize}
-    \item L'autore della certificazione è automaticamente in grado di revocarla, per cui si aggiunge all'interno di ogni blocco  l'indirizzo dell'autore. Il contratto mette a disposizione questa tipologia di revoca.
+    \item L'autore della certificazione è automaticamente in grado di revocarla, per cui si aggiunge all'interno di ogni blocco l'indirizzo dell'autore. Il contratto mette a disposizione questa tipologia di revoca.
     \item Un numero sufficiente di università decide di revocare la certificazione, qualora essa non rispetti determinati criteri oppure l'università autrice venga estromessa dal sistema. 
 \end{itemize}
-
+Ovviamente, perché sia possibile revoare una certificazione, è necessario che ne si conosca l'ID, il quale è univoco per ciascun blocco.
 \subsubsection{Meccanismo di validazione}
 Siccome generalmente nella blockchain, è il solo smart contract a generare blocchi, si potrebbe non intravedere la necessità della validazione dei blocchi. Tuttavia, tutti i partecipanti sarebbero in grado di generare dei blocchi, per cui è necessaria una procedura attraverso la quale le università siano in grado di decidere quali blocchi debbano essere salvati e quali no. 
 \newline Questa procedura richiede che almeno un certo numero, di tutte le università presenti nel sistema, acconsenta all'inserimento di tale blocco nella blockchain. Il numero esatto è un compromesso tra la sicurezza del sistema e la velocità di revoca, ed è fortemente dipendente dal numero di università presenti nel sistema.
-
+\subsection{Studenti e emissione credenziale}
+Gli utenti finali che accedono a questo sistema mediante le università sono gli studenti, i quali non sono consapevoli della blockchain e dei certificati, siccome vi interagiscono indirettamente mediante le università. Le azioni che interessano gli studenti sono: ricezione della credenziale dall'università ospitante, condivisione selettiva delle sole informazioni necessarie all'interno di questa, e l'invio di esse all'ateneo di origine.
+\newline Tuttavia, per poter effettuare queste operazioni, è necessario stabilire una comunicazione sicura verso le università, e poi che lo studente si autentichi perché sia garantito che la persona dietro tali azioni sia proprio lui.
+\subsubsection{Autenticazione dello studente}
+%  egli però ne è sprovvisto, sicccome non possiede un certificato.\newline La soluzione è quella di assegnare, ad ogni studente, una coppia di chiavi generata al momento della registrazione al sistema dell'università. 
+\subsubsection{Stabilimento canale sicuro}
+Per stabilire un canale sicuro tra lo studente e l'università, è possibile usufruire dapprima della crittografia asimmetrica, e successivamente della crittografia simmetrica. Tuttavia, per permettere ciò è necessario che entrambi gli attori possiedano una coppia di chiavi pubblica e privata. Si è già discusso che l'università possiede un certificato il quale le associa una chiave pubblica, per cui lo studente è sempre in grado di inviare un messaggio in sicurezza verso l'università.
+\newline Lo studente, una volta autenticato, possiede una coppia di chiavi pubblica e privata generata al momento della registrazione. Attraverso la chiave pubblica dell'università è in grado di inviare in sicurezza un messaggio cifrato, contente la richiesta di aprire una sessione di comunicazione sicura. Di risposta, l'università fornisce allo studente una chiave di sessione per la crittografia simmetrica, cifrata attraverso la chiave pubblica dello studente. In entrambi i casi si usa consegnare all'interno del messaggio anche la firma del mittente, in modo tale che il destinatario possa verificarne autenticità e integrità.
+\newline Una volta che lo studente ha ricevuto la chiave di sessione, può utilizzarla per cifrare i messaggi che invia all'università, e viceversa. In questo modo si garantisce la confidenzialità dei messaggi scambiati, rilassando il vincolo computazionale sullo studente, siccome si presume che egli non abbia in dotazione elevate prestazioni computazionali.
+\subsubsection{Ricezione credenziale}
+Una volta che lo studente ha stabilito un canale sicuro con l'università ospitante, è pronto per richiedere la trasmissione della credenziale. L'università ospitante procede generando la credenziale, contenente le informazioni riguardanti le attività dello studente, e la certificazione di questa. Associa alla credenziale una determinata durata di validità, e la cifra con la chiave di sessione, inviandola quindi allo studente. Dopodiché, calcola l'hash sui vari blocchi della credenziae, secondo le modalità precedentemente descrite, e invia una transazione allo smart contract, il quale provvederà a generare un blocco con le informazioni ricevute, e a pubblicarlo nella blockchain.
+\subsubsection{Divulgazione selettiva}
+Una volta che lo studente ha ricevuto la credenziale, è in grado di decidere quali informazioni divulgare all'università di origine. Il meccanismo di divulgazione selettiva può essere, per semplificare il lavoro dello studente, implementato come un'applicazione offline che, grazie allo standard definito per le credenziali, permetta di selezionare le informazioni da divulgare, e produrre una nuova credenziale, contenente solamente le informazioni selezionate.
+\newline Siccome è una semplice scomposizione di informazioni da un file di testo, basse prestazioni computazionali sono più che sufficienti.
+\subsubsection{Trasmissione credenziale}
+Una volta che lo studente ha ottenuto la credenziale, ed eventualmente deciso quali informazioni divulgare, è pronto per inviarla all'università di origine. Stabilisce quindi, attraverso la stessa procedura menzionata precedentemente, un canale sicuro con l'ateneo, ottenendo una nuova chiave di sessione. Cifra quindi la credenziale con questa chiave, e la invia ad essa. Subito dopo, l'università calcola blocchi di hash dalla credenziale, e contatta lo smart contract sulla blockchain per richiedere la validazione della credenziale.
+\newline In base alle circostanze vi possono essere tre scenari differenti:
+\begin{itemize}
+    \item La credenziale è correttamente certificata in un blocco della blockchain, e lo smart contract restituisce l'ID del blocco, il quale è unico per quella credenziale. L'università di origine può quindi procedere a validare la credenziale, e a registrarla nel proprio sistema, qualora le informazioni in esse siano sufficienti.
+    \item Non esiste alcuna certificazione per la credenziale, e lo smart contract restituisce un errore. In questo caso l'università di origine non può procedere alla validazione della credenziale, e deve informare lo studente che la credenziale non è valida.
+    \item La credenziale è stata revocata, e lo smart contract restituisce l'ID del blocco contenente la revoca. In questo caso l'università di origine non può procedere alla validazione della credenziale, e deve informare lo studente che la credenziale è stata revocata.
+    \item La credenziale è stata certificata, sebbene però non sia corretta, o venga meno agli standard definiti tra le università. In questo caso lo smart contract restituisce l'ID del blocco della certificazione, e l'università di origine può procedere avvisando lo studente che la credenziale non è corretta, e chiedendo all'università ospitante la sostituzione della credenziale.
+\end{itemize}
 \newpage
 \section{WP 3}
 \subsection{Da definire}
