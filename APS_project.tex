@@ -223,6 +223,7 @@ Gli utenti finali che accedono a questo sistema mediante le università sono gli
 \newline Tuttavia, per poter effettuare queste operazioni, è necessario stabilire una comunicazione sicura verso le università, e poi che lo studente si autentichi perché sia garantito che la persona dietro tali azioni sia proprio lui.
 \subsubsection{Autenticazione dello studente}
 %  egli però ne è sprovvisto, sicccome non possiede un certificato.\newline La soluzione è quella di assegnare, ad ogni studente, una coppia di chiavi generata al momento della registrazione al sistema dell'università. 
+DA COMPLETARE
 \subsubsection{Stabilimento canale sicuro}
 Per stabilire un canale sicuro tra lo studente e l'università, è possibile usufruire dapprima della crittografia asimmetrica, e successivamente della crittografia simmetrica. Tuttavia, per permettere ciò è necessario che entrambi gli attori possiedano una coppia di chiavi pubblica e privata. Si è già discusso che l'università possiede un certificato il quale le associa una chiave pubblica, per cui lo studente è sempre in grado di inviare un messaggio in sicurezza verso l'università.
 \newline Lo studente, una volta autenticato, possiede una coppia di chiavi pubblica e privata generata al momento della registrazione. Attraverso la chiave pubblica dell'università è in grado di inviare in sicurezza un messaggio cifrato, contente la richiesta di aprire una sessione di comunicazione sicura. Di risposta, l'università fornisce allo studente una chiave di sessione per la crittografia simmetrica, cifrata attraverso la chiave pubblica dello studente. In entrambi i casi si usa consegnare all'interno del messaggio anche la firma del mittente, in modo tale che il destinatario possa verificarne autenticità e integrità.
@@ -239,11 +240,38 @@ Una volta che lo studente ha ottenuto la credenziale, ed eventualmente deciso qu
 \paragraph{Credenziale non certificata} Non esiste alcuna certificazione per la credenziale, e lo smart contract restituisce un errore. In questo caso l'università di origine non può procedere alla validazione della credenziale, e deve informare lo studente che la credenziale non è valida.
 \paragraph{Credenziale revocata} La credenziale è stata revocata, e lo smart contract restituisce l'ID del blocco contenente la revoca. In questo caso l'università di origine non può procedere alla validazione della credenziale, e deve informare lo studente che la credenziale è stata revocata.
 \paragraph{Credenziale scorretta} La credenziale è stata certificata, sebbene però non sia corretta, o venga meno agli standard definiti tra le università. In questo caso lo smart contract restituisce l'ID del blocco della certificazione, e l'università di origine può procedere avvisando lo studente che la credenziale non è corretta, e chiedendo all'università ospitante la sostituzione della credenziale.
+
 \newpage
 \section{WP 3}
-\subsection{Da definire}
+\subsection{Introduzione alla sicurezza}
+Nella seguente sezione si discute come il sistema sia o meno in grado di difendersi dai threat model esposti nella prima sezione. Per ciascuno, ne si definiscono le proprietà che possono essere intaccate, come le si preservano, e una formalizzazione dei meccanismi di sicurezza del sistema.
+\newline Nella prima parte si introducono formalmente tali meccanismi, successivamente si esprimono alcuni attacchi sottoforma di esperimenti, e ne si discutono i restanti. Per ciascun attacco si mostra come il sistema sia o meno in grado di difendersi, o eventualmente i danni.
+\subsection{Meccanismi di sicurezza}
+\subsubsection{Funzione di hash}
+Una funzione di hash $h$ è una one-way function, che determina un valore di lunghezza fissa, detto digest, a partire da un messaggio di lunghezza arbitraria. Questa funzione, deterministica, deve rispettare le seguenti proprietà:
+\begin{itemize}
+    \item \textbf{Non reversibilità o one-way function}: data una funzione di hash $h$, ed un digest $d=h(m)$, non è computazionalemente possibile trovare il messaggio $m$.
+    \item \textbf{Efficienza}: data una funzione di hash $h$ deve essere computazionalmente efficiente calcolare $h(m)$ per ogni messaggio $m$.
+    \item \textbf{Resistenza alle collisioni}: non è computazionalmente fattibile trovare due messaggi distinti $m_1$ e $m_2$ tali che $h(m_1)=h(m_2)$.
+    \item \textbf{Hiding}: data una funzione di hash $h$, scelto un segreto $r$ da una distribuzione di probabilità, la cui entropia minima è alta, allora dato $h(r\|x)$ non è computazionalmente fattibile trovare $x$.
+\end{itemize}
+La funzione di hash torna utile laddove è necessario riferirsi ad una informazione, senza lasciarne trasparire alcuna parte. Un esempio è la trasformazione della credenziale in un Merkle Tree: in questo caso non è possibile risalire alla credenziale che l'ha originato, tuttavia, una volta trovata tale credenziale è immediato controllarlo.
+\newline Ancora, questa funzione ritorna fondamentale per il controllo di integrità ed autenteicità nella comunicazione asimmetrica.
+
+% La funzione di hash ritorna utile nella comunicazione sicura in quanto, come suddetto, permette di fornire, data una stringa di lunghezza arbitraria, un valore di lunghezza fissa. Non è computazionalmente fattibile invertire tale funzione, oppure cercare una collisione (ingressi per i quali l'uscita è la medesima). Grazie a queste proprietà, una volta che viene applicato l'hash ad un messaggio, si ottiene un digest equivalente ad una associazione uno ad uno con l'ingresso, senza svelare alcuna informazione su esso. Ciò significa che è possibile utilizzarlo in sicurezza per validare l'integrità e l'autenticità del messaggio.
+
+
+
+
+
+
 \subsubsection{Crittografia asimmetrica}
-La crittografia asimmetrica è uno schema $\Pi$ che prevede la generazione di una coppia di chiavi da parte di ciascun attore: una chiave pubblica $p_k$, che viene condivisa con gli altri attori, ed una chiave privata $s_k$, che deve rimanere segreta.
+La crittografia asimmetrica è uno schema di crittografia, esprimibile come una terna di algoritmi $\Pi=\mathsf{(Gen, Enc, Dec)}$:
+\begin{itemize}
+    \item Il primo si occupa di generare una coppia di chiavi pubblica e privata per il primo attore, ????
+    \item Il secondo algoritmo si occupa di crittografare un messaggio, trasformandolo in un ciphertext. Inoltre, applica la funzione di hash a questo e la associa al messaggio.
+    \item Il terzo algoritmo si occupa di decifrare un ciphertext, ottenendo un messaggio se avviene correttamente, oppure un errore se, una volta decifrato, non consiste con il risultato della funzione di hash inserito.
+\end{itemize}
 \paragraph{Confidenzialità} 
 La chiave pubblica del destinatario permette al mittente di cifrare il proprio messaggio $m$, attraverso un algoritmo di cifratura $\mathsf{Enc}_{p_k}(m)$, il quale ritorna un messaggio cifrato $c$. Successivamente, il destinatario decifra il messaggio cifrato attraverso la propria chiave privata ed un algoritmo di decifratura $\mathsf{Dec}_{s_k}(c)$.
 Questo meccanismo garantisce la confidenzialità del messaggio, in quanto solamente il destinatario è in grado di decifrare il messaggio.
@@ -257,19 +285,6 @@ Per garantire l'integrità del messaggio, come menzionato precedentemente, è ne
 \paragraph{Tag}
 Il MAC è un meccanismo attraverso il quale, dato un messaggio $m$ ed una chiave $k$, forgia un tag $t=\mathsf{Mac}_k(m)$, che viene spedito insieme al messaggio. Il destinatario, una volta ricevuto il messaggio, calcola il tag associato, e lo confronta con quello ricevuto. Se i due tag coincidono, vi è la certezza che il messaggio non sia stato alterato.
 \paragraph{Funzione di hash}
-Una funzione di hash $h$ è una one-way function, che determina un valore di lunghezza fissa a partire da un messaggio di lunghezza arbitraria. Con one-way function si intende una funzione che non è computazionalmente fattibile invertire, ovvero non è possibile risalire al messaggio a partire dal valore di hash. 
-Questa funzione, deterministica, deve rispettare le seguenti proprietà:
-\begin{itemize}
-    \item \textbf{Non reversibilità}: data una funzione di hash $h$, non è computazionalmente fattibile trovare un messaggio $m$ tale che $h(m)=h(m')$.
-    \item \textbf{Efficienza}: data una funzione di hash $h$ deve essere computazionalmente efficiente calcolare $h(m)$ per ogni messaggio $m$.
-    \item \textbf{Resistenza alle collisioni}: non è computazionalmente fattibile trovare due messaggi distinti $m_1$ e $m_2$ tali che $h(m_1)=h(m_2)$.
-    \item \textbf{Hiding}: data una funzione di hash $h$, scelto un segreto $r$ da una distribuzione di probabilità, la cui entropia minima è alta, dato $h(r\|x)$ non è computazionalmente fattibile trovare $x$.
-\end{itemize}
-Infine, una ultima proprietà, che sarà successivamente necessaria, è la puzzle friendliness:
-\begin{itemize}
-    \item \textbf{Puzzle friendliness} Una funzione di hash $h$ è detta puzzle friendly se, per ogni possibile sequenza $y$ in output di $n$ bit, se $k$ è scelto da una distribuzione di probabilità la cui minima entropia è alta, allora è infattibile trovare un $x$ tale per cui $h(k\|x)=y$ in tempo significativamente minore di $2^n$.
-\end{itemize}
-La funzione di hash ritorna utile nella comunicazione sicura in quanto, come suddetto, permette di fornire, data una stringa di lunghezza arbitraria, un valore di lunghezza fissa. Non è computazionalmente fattibile invertire tale funzione, oppure cercare una collisione (ingressi per i quali l'uscita è la medesima). Grazie a queste proprietà, una volta che viene applicato l'hash ad un messaggio, si ottiene un digest equivalente ad una associazione uno ad uno con l'ingresso, senza svelare alcuna informazione su esso. Ciò significa che è possibile utilizzarlo in sicurezza per validare l'integrità e l'autenticità del messaggio.
 \subsection{Definizioni formali}
 In questa sezione riportiamo le definizioni formali delle proprietà precedentemente citate. 
 \newline 
