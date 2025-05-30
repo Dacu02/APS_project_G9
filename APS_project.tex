@@ -267,24 +267,27 @@ La funzione di hash torna utile laddove è necessario riferirsi ad una informazi
 
 \subsubsection{Crittografia asimmetrica}
 La crittografia asimmetrica è uno schema di crittografia, esprimibile come una terna di algoritmi $\Pi=\mathsf{(Gen, Enc, Dec)}$:
-\begin{itemize}
-    \item Il primo si occupa di generare una coppia di chiavi pubblica e privata per il primo attore, ????
-    \item Il secondo algoritmo si occupa di crittografare un messaggio, trasformandolo in un ciphertext. Inoltre, applica la funzione di hash a questo e la associa al messaggio.
-    \item Il terzo algoritmo si occupa di decifrare un ciphertext, ottenendo un messaggio se avviene correttamente, oppure un errore se, una volta decifrato, non consiste con il risultato della funzione di hash inserito.
-\end{itemize}
+%\begin{itemize}
+    %\item Il primo si occupa di generare una coppia di chiavi pubblica e privata per il primo attore, ????
+    %\item Il secondo algoritmo si occupa di crittografare un messaggio, trasformandolo in un ciphertext. Inoltre, applica la funzione di hash a questo e la associa al messaggio.
+    %\item Il terzo algoritmo si occupa di decifrare un ciphertext, ottenendo un messaggio se avviene correttamente, oppure un errore se, una volta decifrato, non consiste con il risultato della funzione di hash inserito.
+%\end{itemize}
 \paragraph{Confidenzialità} 
+L'algoritmo $\mathsf{Gen}$ genera una coppia di chiavi, una pubblica $p_k$ e una privata $s_k$, per un attore mittente. L'attore intenzionato a stabilire una comunicazione, ovvero il destinatario, deve fornirsi della propria coppia di chiavi, prodotta da un'altra esecuzione di $\mathsf{Gen}$. 
 La chiave pubblica del destinatario permette al mittente di cifrare il proprio messaggio $m$, attraverso un algoritmo di cifratura $\mathsf{Enc}_{p_k}(m)$, il quale ritorna un messaggio cifrato $c$. Successivamente, il destinatario decifra il messaggio cifrato attraverso la propria chiave privata ed un algoritmo di decifratura $\mathsf{Dec}_{s_k}(c)$.
 Questo meccanismo garantisce la confidenzialità del messaggio, in quanto solamente il destinatario è in grado di decifrare il messaggio.
 \paragraph{Integrità}
 Tuttavia, la confidenzialità non è sufficiente per garantire la sicurezza del sistema, ma è necessario rispettare ulteriori proprietà.
-Il mittente, per assicurarsi che il messaggio non venga alterato, associa al messaggio cifrato la funzione di hash $h$ applicata allo stesso: $h(m)$. Ciò permette di garantire l'integrità del messaggio, siccome, una volta che il destinatario ha ricevuto il messaggio cifrato, può calcolare la funzione di hash su esso, e confrontare il risultato con quello ricevuto. Se il messaggio venisse alterato durante la trasmissione, il risultato della funzione di hash calcolata dal destinatario non coinciderebbe.
+Il mittente, per assicurarsi che il messaggio non venga alterato, associa alla cifratura la funzione di hash $h$ applicata ad essa: $h(c)$. Il destinatario è dotato di una funzione di verifica $\mathsf{Vrfy}_{h}(h(c),c)$, la quale effettua lo stesso procedimento della funzione di hash sul messaggio cifrato ricevuto, e confronta il risultato con l'hash ricevuto. In tal modo il destinatario può assicurarsi dell'integrità del messaggio, sulla base del risultato della verifica.  
 \paragraph{Autenticità}
-Sebbene, per garantire la proprietà di autenticità, il mittente cifra con la propria chiave privata il risultato della funzione di hash, ottenendo la firma $\sigma$: $\sigma=\mathsf{Enc}_{s_k}(h(c))$. Quando il destinatario decifra la firma $\sigma=\mathsf{Dec}_{p_k}\left(\mathsf{Enc}_{s_k}\left(h\left(c\right)\right)\right)$ con la chiave pubblica del mittente, la confronta con il risultato dalla funzione di hash calcolata sul messaggio cifrato. Se i due valori coincidono, il destinatario è in grado di verificare che il messaggio non sia stato alterato e che provenga effettivamente dal mittente.
-\subsubsection{Funzione di hash \& MAC}
-Per garantire l'integrità del messaggio, come menzionato precedentemente, è necessario un meccanismo di hashing che si fonda sul Message Authentication Code (MAC).
-\paragraph{Tag}
-Il MAC è un meccanismo attraverso il quale, dato un messaggio $m$ ed una chiave $k$, forgia un tag $t=\mathsf{Mac}_k(m)$, che viene spedito insieme al messaggio. Il destinatario, una volta ricevuto il messaggio, calcola il tag associato, e lo confronta con quello ricevuto. Se i due tag coincidono, vi è la certezza che il messaggio non sia stato alterato.
-\paragraph{Funzione di hash}
+Infine, per aggiungere un ulteriore grado di sicurezza, si introduce il concetto di firma $\sigma$, ottenuta attraverso la cifratura del digest $h(c)$. 
+Il mittente cifra con la propria chiave privata il risultato della funzione di hash, ottenendo la firma $\sigma=\mathsf{Enc}_{s_k}(h(c))$, una volta che il destinatario riceve il messaggio, utilizza la chiave pubblica del mittente per decifrare la firma. La nuova funzione di verifica confronta la decifratura della firma con l'hash del messaggio cifrato ricevuto, se i due valori coincidono, allora il destinatario ha la certezza non solo che il messaggio sia integro, ma anche che provenga effettivamente dal mittente.
+\paragraph{Non ripudio}
+Fin quando la chiave privata del mittente è segreta, ovvero nota solo ad egli, è innegabile l'autenticità del messaggio, per cui vige anche la proprietà di non ripudio. In altre parole, il mittente non può negare di essere stato l'autore del messaggio, siccome la firma può essere generata solamente tramite la sua chiave privata.
+\\[1em] La crittografia asimmetrica è utilizzata per garantire la sicurezza del canale tra l'università, l'ente di accreditamento e lo studente. In particolare, nel caso dello studente, viene utilizzata soltanto per condividere una chiave simmetrica, applicata durante tale sessione di comunicazione. Ciò è dovuto alla complessità computazionale degli algoritmi della crittografia asimmetrica, nel sistema essa viene utilizzata solo da attori con buone capacità di calcolo. 
+Lo studente, che invece ne è sprovvisto, deve affidarsi alla crittografia simmetrica per comunicare, utilizzando l'altra soltanto per la condivisione della chiave.
+
+
 \subsection{Definizioni formali}
 In questa sezione riportiamo le definizioni formali delle proprietà precedentemente citate. 
 \newline 
@@ -304,6 +307,7 @@ Describe your methodology here.
 \newpage
 \section{WP 4}
 Describe your methodology here.
+
 
 
 \end{document}
