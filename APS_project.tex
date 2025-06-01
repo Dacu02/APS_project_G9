@@ -114,7 +114,7 @@ In questo caso si perde la proprietà di autenticità, siccome non si ha la cert
 Si analizza il caso in cui l'università di origine venga compromessa da un attaccante, il quale riesce ad ottenere accesso ai meccanismi di validazione delle credenziali. In questo scenario, l'attaccante potrebbe accettare credenziali false, oppure respingere credenziali valide.
 \newline Così si perde la proprietà di confidenzialità, poiché l'attaccante sarebbe in grado di accedere a informazioni riservate riguardanti studenti, attraverso le credenziali che inviano all'ateneo, ignari che sia stato violato.
 \subsubsection{Studente malevolo}
-Si studia il caso laddove lo studente sia malevolo, e tenti di far passare come valida una credenziale insufficiente, oppure alterata. In questo caso, lo studente 
+Si studia il caso laddove lo studente sia malevolo, e tenti di far passare come valida una credenziale insufficiente, oppure alterata. In questo caso, lo studente potrebbe violare la proprietà di integrità ed autenticità della credenziale.
 \subsubsection{Intercettatore di comunicazioni dell'università ospitante}
 Si prende in esame la presenza di un attaccante che intercetti tutte le comunicazioni da e verso l'università ospitante. Questo attaccante ha accesso a uno storico di messaggi cifrati e relative decifrature attraverso mezzi alternativi. 
 \newline In questo caso, l'attaccante potrebbe essere in grado di inferire informazioni sui successivi messaggi cifrati, violando la proprietà di confidenzialità. Non solo, l'attaccante potrebbe alterare le comunicazioni in uscita, violando quindi le proprietà di sicurezza del sistema.
@@ -286,22 +286,62 @@ Il mittente cifra con la propria chiave privata il risultato della funzione di h
 Fin quando la chiave privata del mittente è segreta, ovvero nota solo ad egli, è innegabile l'autenticità del messaggio, per cui vige anche la proprietà di non ripudio. In altre parole, il mittente non può negare di essere stato l'autore del messaggio, siccome la firma può essere generata solamente tramite la sua chiave privata.
 \\[1em] La crittografia asimmetrica è utilizzata per garantire la sicurezza del canale tra l'università, l'ente di accreditamento e lo studente. In particolare, nel caso dello studente, viene utilizzata soltanto per condividere una chiave simmetrica, applicata durante tale sessione di comunicazione. Ciò è dovuto alla complessità computazionale degli algoritmi della crittografia asimmetrica, nel sistema essa viene utilizzata solo da attori con buone capacità di calcolo. 
 Lo studente, che invece ne è sprovvisto, deve affidarsi alla crittografia simmetrica per comunicare, utilizzando l'altra soltanto per la condivisione della chiave.
+\subsubsection{Blockchain}
+La blockchain è un ledger decentralizzato, formata come sequenza di blocchi immutabili, aggiungibili alla fine.
+\paragraph{Interoperabilità} 
+Con gli smart contract appartenenti alla blockchain, le università sono in grado di interagire con essa, attraverso un'interfaccia comune, la quale permette di generare, valida re e revocare certificazione di credenziali. 
+Le credenziali sono definite con un formato standard, il quale permette a ciascuna università di interpretarle correttamente.
+\paragraph{Divulgazione selettiva}
+Nei blocchi della blockchain sono contenuti dei Merkle Tree, i quali permettono di validare le credenziali per parti, senza doverle divulgare per intero. In questo modo si garantisce la proprietà di divulgazione selettiva, siccome lo studente è in grado di decidere quali informazioni divulgare.
+\paragraph{Disponibilità }
+Siccome la blockchain è decentralizzata, quindi ciascuna università possiede una copia della blockchain in locale. Se un'università vicina non è disponibile, le altre università sono comunque in grado di comunicare lo stato della blockchain.
+\paragraph{Scalabilità \& Decentralizzazione}
+La blockchain è per definizione decentralizzata, e come conseguenza di ciò è anche scalabile: l'aggiunta di nuovi nodi non comporta una riduzione delle prestazioni del sistema, anzi, al contrario, aumenta la disponibilità del sistema. 
+\paragraph{Trasparenza}
+La blockchain è pubblicamente visibile, e ciascuna università è in grado di risalire all'autore di un blocco, per cui è garantita la proprietà di trasparenza.
+\paragraph{Revocabilità}
+Lo smart contract mette a disposizione un'interfaccia per la revoca di una certificazione, la quale può essere effettuata dall'autore della certificazione, oppure da un numero sufficiente di università, in entrambi i casi l'azione è pubblicamente visibile.
+\subsection{Modelli di attacco}
+\subsubsection{Violazione dell’ente di accreditamento}
+Per difendersi da un attaccante in grado di utilizzare l'ente di accreditamento per revocare certificati o emetterne di falsi, il sistema deve percepire tale violazione. 
+Quando un'università si vede revocato un certificato, si può segnalare tale evento ad altri enti di accreditamento ed università, i quali sono a conoscenza dell'ente revocatore, grazie alla trasparenza dei certificati.
+Gli altri enti di accreditamento, ricevuta la segnalazione, possono decidere di revocare il certificato dell'ente che ha effettuato la revoca, in modo tale che le altre università non si fidino più di esso. Questo meccanismo permette di difendersi da revoche illeggitime. 
+\newline Tuttavia, nel caso di emissioni di certificati falsi da parte dell'ente violato, il resto del sistema potrebbe non esserne a conoscenza fino a quando uno di questi certificati non viene utilizzato per certificare una credenziale. In questo caso, le università, che sono chiamate a validare la richiesta di certificazione nella blockchain, possono decidere di non accettare il certificato e segnalare l'ente di accreditamento.
 
-
-\subsection{Definizioni formali}
-In questa sezione riportiamo le definizioni formali delle proprietà precedentemente citate. 
-\newline 
-Lo schema di cifratura di riferimento utilizzato per le formalizzazione delle proprietà successive è $\Pi =\mathsf{(Gen,Enc,Dec)}$, dove: 
+\subsubsection{Violazione dell’università ospitante}
+Le operazioni che un attaccante può commettere una volta violata un'università ospitante sono:
 \begin{itemize}
-    \item $\mathsf{Gen}$ è l'algoritmo di generazione di un determinato numero di chiavi, necessario alla cifratura e decifratura dei messaggi, la cui sicurezza dipende dal parametro di sicurezza $n$.
-    \item $\mathsf{Enc}$ è l'algoritmo di cifratura, che produce un messaggio cifrato, detto ciphertext $c$, a partire da un messaggio in chiaro, detto plaintext $m$.
-    \item $\mathsf{Dec}$ è l'algoritmo di decifratura, che produce un messaggio in chiaro, a partire da un messaggio cifrato.
+    \item Emissione e certificazione di credenziali false
+    \item Revoca di credenziali valide
+    \item Accesso ad informazioni confidenziali
+    \item Accesso ai meccanismi della blockchain
+    \item Accesso ai meccanismi di autenticazione dello studente 
 \end{itemize}
-Con $\mathcal{A}$ indichiamo un attaccante 
+L'emissione e la certificazione di una credenziale falsa sono azioni che possono destare sospetto qualora il sistema percepisca variazioni rispetto alla normale attività dell'università ospitante. 
+Tuttavia, un'università violata potrebbe risultare indistinguibile da una legittima, per cui il sistema non è immediatamente in grado di rilevare tale violazione, fino a quando non venga segnalata.
+Allo stesso modo, anche l'accesso ai meccanismi della blockchain possono o meno essere percepiti, a seconda delle azioni che l'attaccante compie.
+\newline  Non è possibile cautelarsi da un attaccante che acceda alle credenziali degli studenti, siccome potrebbero venire archiviati dall'università per motivi legali. In base alle misura di sicurezza adottate dalla singola università, l'attacco potrebbe o meno avere successo. In tal caso, un suggerimento proponibile alle università è quello di cifrare le credenziali degli studenti, in modo tale che, anche se l'attaccante accedesse ad esse, non legga informazioni riservate.
+\subsubsection{Violazione dell’università di origine}
+Il seguente modello di attacco è simile al precedente, ma in questo caso l'università di origine è quella che riceve la credenziale dallo studente, e non quella che la certifica, sebbene abbia accesso agli stessi meccanismi. 
+\newline L'attaccante avrebbe accesso alle credenziali e ai meccanismi di validazione, per cui potrebbe validare credenziali altrimenti invalide, oppure revocare credenziali valide.
+Tuttavia, tale attacco sarebbe fine a se stesso, siccome l'università di origine segnalerebbe la violazione, e successivamente controllerebbe le crednziali validate durante tale fragente. 
+Infine, vi è comunque una possibile perdita di confidenzialità, siccome l'attaccante avrebbe accesso alle credenziali archiviate,  come spiegato nel modello precedente.
 
-\subsubsection{Confidenzialità}
-La confidenzialità è la proprietà che assicura l'accesso alle informazioni solamente a chi autorizzato. Un individuo non autorizzato non deve essere in grado di accedere ad alcuna informazione, neanche parziale. 
-\newline Si esprime la proprietà di confidenzialità tramite l'esperimento $\mathsf{Exp}_{\mathcal A,\Pi}^\mathsf{conf}(n)$,
+\subsubsection{Studente malevolo}
+Lo studente malevolo è che tenta di fornire una credenziale falsa, oppure insufficiente, verrebbe immediatamente rilevato: 
+\begin{itemize}
+    \item Se la credenziale non è certificata, l'università di origine non può validarla.
+    \item Se la credenziale è certificata, ma non rispetta gli standard definiti tra le università, l'università di origine non può validarla.
+    \item Se la credenziale è certificata, ma è stata revocata, l'università di origine non può validarla.
+    \item Se la credenziale è certificata, ma non contiene le informazioni richieste dall'università di origine, l'università di origine non può validarla.
+    \item Se la credenziale precedentemente certificata venisse alterata, l'università di origine non la validerebbe siccome non troverebbe il certificato associato ad essa.
+\end{itemize}
+
+
+\subsubsection{Intercettatore di comunicazioni dell'università ospitante}
+\subsubsection{Ascoltatore di comunicazioni dello studente}
+\subsubsection{Attacco con credenziale nota}
+
 
 Describe your methodology here.
 \newpage
