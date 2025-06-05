@@ -26,3 +26,4 @@ friendly
 digest
 ciphertext
 plaintext
+decifrature
