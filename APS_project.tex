@@ -247,7 +247,7 @@ Una volta che lo studente ha ottenuto la credenziale, ed eventualmente deciso qu
 \section{WP 3}
 \subsection{Introduzione alla sicurezza}
 Nella seguente sezione si discute come il sistema sia o meno in grado di difendersi dai threat model esposti nella prima sezione. Per ciascuno, ne si definiscono le proprietà che possono essere intaccate, come le si preservano, e una formalizzazione dei meccanismi di sicurezza del sistema.
-\newline Nella prima parte si introducono formalmente tali meccanismi, successivamente si esprimono alcuni attacchi sottoforma di esperimenti, e ne si discutono i restanti. Per ciascun attacco si mostra come il sistema sia o meno in grado di difendersi, o eventualmente i danni.
+\newline Nella prima parte si introducono formalmente tali meccanismi, successivamente si esprimono alcuni attacchi sotto forma di esperimenti, e ne si discutono i restanti. Per ciascun attacco si mostra come il sistema sia o meno in grado di difendersi, o eventualmente i danni.
 \subsection{Meccanismi di sicurezza}
 \subsubsection{Funzione di hash}
 Una funzione di hash $h$ è una one-way function, che determina un valore di lunghezza fissa, detto digest, a partire da un messaggio di lunghezza arbitraria. Questa funzione, deterministica, deve rispettare le seguenti proprietà:
@@ -277,7 +277,7 @@ Fin quando la chiave privata del mittente è segreta, ovvero nota solo ad egli, 
 \\[1em] La crittografia asimmetrica è utilizzata per garantire la sicurezza del canale tra l'università, l'ente di accreditamento e lo studente. In particolare, nel caso dello studente, viene utilizzata soltanto per condividere una chiave simmetrica, applicata durante tale sessione di comunicazione. Ciò è dovuto alla complessità computazionale degli algoritmi della crittografia asimmetrica, nel sistema essa viene utilizzata solo da attori con buone capacità di calcolo. 
 Lo studente, che invece ne è sprovvisto, deve affidarsi alla crittografia simmetrica per comunicare, utilizzando l'altra soltanto per la condivisione della chiave.
 \subsubsection{Blockchain}
-La blockchain è un ledger decentralizzato, formata come sequenza di blocchi immutabili, aggiungibili alla fine.
+La blockchain è un ledger decentralizzato, formata come sequenza di blocchi immutabili, inseribili alla fine.
 \paragraph{Interoperabilità} 
 Con gli smart contract appartenenti alla blockchain, le università sono in grado d'interagire con essa, attraverso un'interfaccia comune, la quale permette di generare, valida re e revocare certificazione di credenziali. 
 Le credenziali sono definite con un formato standard, il quale permette a ciascuna università di interpretarle correttamente.
@@ -295,7 +295,7 @@ Lo smart contract mette a disposizione un'interfaccia per la revoca di una certi
 \subsubsection{Violazione dell’ente di accreditamento}
 Per difendersi da un attaccante in grado di utilizzare l'ente di accreditamento per revocare certificati o emetterne di falsi, il sistema deve percepire tale violazione. 
 Quando un'università si vede revocato un certificato, si può segnalare tale evento ad altri enti di accreditamento ed università, i quali sono a conoscenza dell'ente revocatore, grazie alla trasparenza dei certificati.
-Gli altri enti di accreditamento, ricevuta la segnalazione, possono decidere di revocare il certificato dell'ente che ha effettuato la revoca, in modo tale che le altre università non si fidino più di esso. Questo meccanismo permette di difendersi da revoche illeggitime. 
+Gli altri enti di accreditamento, ricevuta la segnalazione, possono decidere di revocare il certificato dell'ente che ha effettuato la revoca, in modo tale che le altre università non si fidino più di esso. Questo meccanismo permette di difendersi da revoche illegittime. 
 \newline Tuttavia, nel caso di emissioni di certificati falsi da parte dell'ente violato, il resto del sistema potrebbe non esserne a conoscenza fino a quando uno di questi certificati non viene utilizzato per certificare una credenziale. In questo caso, le università, che sono chiamate a validare la richiesta di certificazione nella blockchain, possono decidere di non accettare il certificato e segnalare l'ente di accreditamento.
 
 \subsubsection{Violazione dell’università ospitante}
@@ -353,8 +353,6 @@ L'applicazione utilizzata dallo studente per manipolare la credenziale ed ottene
 \newline È ovvio che una soluzione del genere richiederebbe non solo un ulteriore accordo tra università, ma anche la necessità che l'applicazione sia accessibile universalmente. L'implementazione o meno di questa soluzione è un compromesso tra la sicurezza del sistema e la sua usabilità, siccome non è comunque possibile impedire allo studente di divulgare informazioni superflue, ma si può rendere difficile tale operazione, attraverso l'utilizzo di un'applicazione di facile usabilità.
 \newpage
 \section{WP 4}
-Describe your methodology here.
-
-
+Il codice sorgente del progetto è contenuto all'interno della repository: \newline\url{https://github.com/Dacu02/APS_project_G9}
 
 \end{document}
