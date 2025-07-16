@@ -203,7 +203,7 @@ Da qui si considera certificazione il blocco e il suo contenuto nel suo insieme.
 \newline Con informazione riguardante la chiave pubblica dell'università che ha generato il blocco, si intende una procedura che assicura l'autenticità e il non ripudio del suo contenuto.
 Quando l'università genera un blocco, cifra la radice del Merkle Tree mediante la sua chiave privata, e quando successivamente un'università desidera verificarne l'autenticità, decifra quel campo con la chiave pubblica di tale università, e si aspetta di ottenere lo stesso risultato.
 \subsubsection{Smart Contract e transazioni}
-Per automatizzare e semplificare i processi di caricamento e validazione di un certificato, si utilizza uno smart contract, il quale rappresenta un'interfaccia standard per le università. Lo smart contract si occupa di generare il blocco a seconda dei dati ricevuti dall'università, quando desidera emettere un certificato, i quali vengono inviati all'interno di un messaggio detto transazione.
+Per automatizzare e semplificare i processi di caricamento e validazione di una certificazione, si utilizza uno smart contract, il quale rappresenta un'interfaccia standard per le università. Lo smart contract si occupa di generare il blocco a seconda dei dati ricevuti dall'università, quando desidera emettere un certificato, i quali vengono inviati all'interno di un messaggio detto transazione.
 \newline Per garantire la proprietà di trasparenza, la transazione è pubblicamente visibile siccome è salvata nella blockchain, all'interno di questa vi sono, informazioni quali: l'indirizzo dell'università nella blockchain, il contenuto della richiesta e l'indirizzo di destinazione, il quale corrisponde a quello del contratto. 
 \newline Sempre per trasparenza, sia il codice che lo stato dello smart contract risiedono sulla blockchain, cosicché che tutti i partecipanti ne possano verificare il corretto funzionamento.
 \subsubsection{Revoca certificazione}
@@ -225,7 +225,7 @@ Gli utenti finali che accedono a questo sistema mediante le università sono gli
 \subsubsection{Autenticazione dello studente}
 Ciascuno studente deve essere in grado di dimostrare la propria identità all'università ospitante, o a quella di origine, senza tuttavia rivelare il meccanismo sottostante, e mediante l'utilizzo di un dispositivo con scarse risorse computazionali.
 \newline Innanzitutto, lo studente deve aprire una prima comunicazione con l'università, la quale possiede un certificato che le associa la propria chiave pubblica: lo studente ottiene il certificato mediante una CA e diventa in grado di comunicare con confidenzialità con l'università. Tuttavia, l'università non è ancora in grado di autenticare lo studente, poiché non possiede alcuna informazione riguardante esso, neanche può comunicare in segretezza con esso, siccome lo studente è sprovvisto di un certificato. Riguardo i certificati, se lo studente non conosce quello relativo alla sua università, può richiederlo a una CA, e conservarselo per le comunicazioni future. Tuttavia, per accertarsi che rimanga aggiornato, lo studente deve periodicamente controllare una eventuale revoca da parte della CA, in rete, siccome è comunque attraverso la rete che comunica con l'università.
-\newline Lo studente che desidera autenticarsi per la prima volta deve innanzitutto dimostrare la propria identità, ma successivamente può decidere una chiave di crittografia, con la quale stabilire una comunicazione sicura con l'università durante tale sessione. Una volta che lo studente possiede tale chiave, e la comunica la pubblica all'università, quest'ultima è in grado di cifrare i propri messaggi verso lo studente, che li può decifrare facilmente.
+\newline Lo studente che desidera autenticarsi per la prima volta deve innanzitutto dimostrare la propria identità, ma successivamente può decidere una chiave di crittografia, con la quale stabilire una comunicazione sicura con l'università durante tale sessione. Una volta che lo studente possiede tale chiave e la comunica all'università, quest'ultima è in grado di cifrare i propri messaggi verso lo studente, che li può decifrare facilmente.
 \newline La soluzione al problema di autenticazione è l'invio di un identificativo univoco, come un account email attraverso cui lo studente sia in grado di ricevere messaggi, e successivamente una password, utilizzata come mezzo di autenticazione. Sebbene sia semplice da implementare, questo meccanismo non è sicuro: è necessario affiancare infine a questo un timestamp, e magari anche la risposta a una challenge iniziata dall'università durante la fase di autenticazione.
 \newline Per rendere ancora più sicuro questo meccanismo, si potrebbe affiancare alla password anche un autenticatore sul dispositivo dello studente, come un applicazione che genera un codice temporaneo mono uso. Qualora lo studente debba perdere l'autenticatore, deve però identificarsi nuovamente, e può farlo solo recandosi di persona all'università se tale strumento è reso disponibile dall'università. Per ovviare a questo problema, l'università potrebbe anche fare uso di servizi terzi di autenticazione, cosiddetti Identity Provider. Strumenti del genere sono comuni qualora le università appartengano a un consorzio di università, e quindi condividano un Identity Provider comune, il quale permette di autenticare lo studente in maniera sicura.
 \newline L'università dovrà conservare le varie associazioni username password, per poter riconoscere dalle credenziali lo studente in futuro. La password non viene salvata in chiaro ma conservata con un hash combinato a un salt univoco per ciascuno studente.
@@ -354,5 +354,54 @@ L'applicazione utilizzata dallo studente per manipolare la credenziale ed ottene
 \newpage
 \section{WP 4}
 Il codice sorgente del progetto è contenuto all'interno della repository: \newline\url{https://github.com/Dacu02/APS_project_G9}
-
+\subsection{Class design}
+\subsection{Struttura implementazione}
+L'implementazione è suddivisa in diversi algoritmi, ciascuno dei quali collabora con gli altri, nel senso che produce dei risultati che possono essere utilizzati dagli altri algoritmi, ma opera in un contesto proprio, indipendente dagli altri.
+\\[1em]
+Ogni algoritmo effettua una determinata azione tra quelle descritte nel documento, simulando l'operato di uno o più università, studenti o enti di accreditamento. Le misure di sicurezza adottate in fase di progettazione vengono qui implementate attraverso algoritmi che possono essere parametrizzati sulla base del livello di sicurezza desiderato, e ne vengono misurate le tempistiche.
+\\
+La suddivisione della logica del progetto in algoritmi permette di testare singolarmente ciascuno di essi, e di verificare che il risultato ottenuto sia quello atteso. Inoltre, la modularità del codice permette di sostituire un algoritmo con uno più efficiente, senza dover modificare il resto del codice.
+\\[1em] Gli algoritmi principali, nel quale è distribuito il progetto, sono a loro volta suddivisi in base agli attori principali, eventualmente iniziatori dell'azione descritta mediante tale algoritmo.
+\subsection{Studente CAPISCI COME METTERE MEGLIO I PARAMETRI DI CIASCUN ALGORITMO}
+\subsubsection{Immatricolazione}
+L'algoritmo prende in ingresso le informazioni riguardanti lo studente, e simula la procedura d'iscrizione di uno studente presso un'università. Questa procedura richiede quindi che lo studente venga in possesso di un certificato dell'università, attraverso un ente di accreditamento, e che l'università ne registri nome utente e password in un database locale, in modo da poterne verificare l'identità dello studente durante il processo di autenticazione. E' compito dell'università inoltre aprire un fascicolo dello studente, nel quale vengono conservate le informazioni concernenti la carriera dello studente.
+\\
+I parametri di sicurezza individuati e modificabili sono:
+\begin{itemize}
+    \item La lunghezza delle chiavi pubbliche conservate all'interno degli enti di accreditamento, utilizzate per cifrare i messaggi diretti alle università.
+    \item La funzione di hash utilizzata per applicare l'hash sui messaggi cifrati.
+    \item La lunghezza della chiave di sessione utilizzata per cifrare i messaggi tra lo studente e l'università.
+    \item La funzione di hash utilizzata e la lunghezza del salt utilizzati per conservare le password degli studenti.
+    \end{itemize}
+\subsubsection{Autenticazione}
+L'algoritmo prende in ingresso lo studente, e simula la procedura di autenticazione dello studente presso un'università. Essa richiede che lo studente sia in possesso di un certificato dell'università, e che l'università ne verifichi l'identità attraverso le credenziali fornitele confrontandole con quelle conservate nel database locale. In questo caso, i parametri di sicurezza selezionati sono gli stessi presenti nell'algoritmo di immatricolazione.
+\subsubsection{Presentazione domanda per accesso a periodo di mobilità}
+L'algoritmo prende in ingresso lo studente, e simula la procedura di presentazione della domanda per accedere a un periodo di mobilità. Questa richiede che lo studente sia in possesso di un certificato dell'università di origine, delle credenziali di accesso e di un piano di studi da proporre. Una volta che lo studente le ha comunicate, citando anche l'università di destinazione alla quale è interessato, l'università di origine procede con l'accettazione o il rifiuto della domanda. Anche qui i parametri di sicurezza sono i medesimi dell'algoritmo di immatricolazione.
+\\[1em]
+In caso di esito positivo, l'università di origine deve inserire nel proprio fascicolo dello studente le informazioni sul periodo di mobilità, quali le attività accademiche da sostenere e l'università presso cui si svolgerà.
+% \subsubsection{Accesso alla carriera, rinuncia e ulteriori pratiche legali}
+% L'algoritmo è analogo a quello di autenticazione, tuttalpiù deve prendere in considerazione le pratiche effettuabili dallo studente durante il suo percorso accademico.
+\subsection{Università}
+\subsubsection{Registrazione}
+L'algoritmo prende in ingresso le informazioni riguardanti l'università, e simula la procedura di registrazione di un'università presso un ente di accreditamento. Questa procedura spesso avviene mediante canali sicuri alternativi, o persino di persona, per cui non vi sono particolari misure di sicurezza individuabili, se non la lunghezza della coppia di chiavi adottata dall'ente di accreditamento per produrre i certificati delle università.
+\subsubsection{Inserimento di esame in libretto}
+L'algoritmo prende in ingresso l'università, lo studente e l'esame da inserire nel libretto dello studente. Questa procedura è relativamente semplice, in quanto sono operazioni che non richiedono particolari misure di sicurezza, siccome è contemplata all'interno di un solo attore. Tuttavia è cruciale supportare questa operazione per i fini del progetto. Ovviamente, lo studente può essere sia iscritto all'università, che in mobilità presso essa.
+\subsection{Enti di accreditamento}
+\subsubsection{Aggiornamento periodico dei certificati?}
+\subsection{Di progetto}
+Gli algoritmi qui presentati riguardano la logica interna del progetto e sono utilizzati per simulare le operazioni nelle quali tutti, o quasi tutti, gli attori devono collaborare per raggiungere il risultato desiderato. 
+\subsubsection{Emissione \& certificazione credenziale}
+\subsubsection{Presentazione \& validazione credenziale}
+\subsubsection{Algoritmi di cifratura e decifratura}
+Rispetto agli altri algoritmi, questi non vengono utilizzati per simulare le operazioni effettuate dagli attori, ma per permetterle. Gli algoritmi di sicurezza vengono valutati sulla base delle prestazioni in termini di tempo, e sicurezza offerta, in base ai parametri di sicurezza configurati.
+\\[1em]
+La valutazione delle prestazioni sulla base del tempo che essi impiegano è di vitale importanza, siccome permette il confronto tra implementazioni e la scelta che, contestualizzata in merito al seguente progetto, risulta essere la migliore.
+\subsection{Tecnici}
+Alcuni algoritmi riguardano invece la manipolazione dei parametri utilizzati dagli altri algoritmi e dei risultati prodotti.
+\subsubsection{Rimozione dei file salvati}
+Questa funzionalità è utile per formattare lo stato del progetto e riportarlo alle condizioni originali, siano essi reativi alla logica degli attori, oppure relativi alle esecuzioni, ai risultati e così via.
+\subsubsection{Modifica dei parametri di sicurezza}
+Qui è possibile manipolare i vari parametri necessari agli algoritmi per funzionare, come la lunghezza delle chiavi, le funzioni di hash utilizzate e altri aspetti crittografici.
+\subsubsection{Visualizzazione dei tempi di esecuzione}
+La seguente funzionalità è estesa pressoché a tutti gli altri algoritmi, siccome permette di osservare la differenza in termini di prestazioni tra le varie implementazioni, considerandone i parametri di sicurezza configurati, e di confrontarle eventualmente. Ciò significa non solo considerare per ciascun algoritmo, e relative configurazioni, il tempo di esecuzione, ma anche archiviare il risultato e renderlo confrontabile con altre istanze e configurazioni differenti.
 \end{document}

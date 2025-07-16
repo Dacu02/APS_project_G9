@@ -1,0 +1,100 @@
+@startuml design
+class Message {
+    - content:str
+    - signature:str
+    + getContent():str
+    + getSignature():str
+}
+class Key {
+    - value:str
+    + getValue():str
+}
+
+Message <-- User
+Message <-- Encryption_Scheme
+abstract User{
+    + send(user:User, msg:Message)
+    + receive(user:User, msg:Message)
+    
+}
+class Student {
+}
+
+class University {
+    + register(student:Student)
+    - writeStudentData(student:Student)
+    - getStudentData(id:str)
+}
+
+class CA {
+    + publish(cert:Certificate):boolean
+    - writeCertificate(cert:Certificate)
+    + getCertificate(user:User):Certificate
+}
+
+class Credential {}
+
+
+class Certificate {
+    + getUser():User
+    + getKey():Key
+    
+}
+Certificate *-- User : -user
+Certificate *-- Key : -key
+
+class Smart_Contract {
+    - blockchain: Blockchain
+    - getMerkleTree(cred:Credential):MerkleTree
+    + certificateCredential(cred:Credential):boolean
+    + revocateCertification(cred:Credential, author:str)
+}
+Blockchain <-- Smart_Contract
+class Block {
+    - id:str
+    - author_signature:str
+    + getId()
+    + getAuthor():str
+
+}
+class Blockchain {
+    - validateBlock(block:Block):boolean
+    + addBlock(block:Block):boolean
+}
+Block <-- Blockchain
+PointerList *-- Blockchain : -chain
+
+class PointerList {}
+class LinkedList
+LinkedList <|-- PointerList
+interface Encryption_Scheme {
+    + {abstract} encrypt(msg:Message):Message
+    + {abstract} decrypt(msg:Message):Message
+    + {abstract} sign(msg:Message):Message
+    + {abstract} verify(msg:Message):boolean
+}
+
+abstract Symmetric_Scheme
+Symmetric_Scheme *-- Key : -key
+Asymmetric_Scheme *-- Key : -encryption_key
+Asymmetric_Scheme *-- Key : -decryption_key
+
+abstract Asymmetric_Scheme 
+
+Encryption_Scheme <|.. Symmetric_Scheme
+Encryption_Scheme <|.. Asymmetric_Scheme
+Key <-- Encryption_Scheme 
+User <|-- Student
+User <|-- University
+User <|-- CA
+User <|-- Smart_Contract
+
+User *-- Encryption_Scheme: - keys: dict(User, Encryption_Scheme)
+hide empty members
+class MerkleTree {
+    +{static} getMerkleTree(credential):MerkleTree
+}
+Block *-- MerkleTree : -credential
+@enduml
+
+
