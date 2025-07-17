@@ -1,44 +1,48 @@
-# Tutto il codice è generato 
+from blockchain.MerkleTree import MerkleTree
+
 
 class Block():
-    def __init__(self, index: int, previous_hash: str, timestamp: float, data: dict):
-        self.index = index
-        self.previous_hash = previous_hash
-        self.timestamp = timestamp
-        self.data = data
-        self.hash = self.calculate_hash()
+    """
+    Classe che rappresenta un blocco nella blockchain.
+    """
+    def __init__(self, prev_ID: str, author:str, merkle_or_ID:MerkleTree|str, delete_flag:bool=False):
+        self._prev_ID = prev_ID
+        self._author = author
+        self._delete_flag = delete_flag
+        self._merkle_or_ID = merkle_or_ID
+        self._ID = hash((self._prev_ID, self._author, self._merkle_or_ID, self._delete_flag)) #TODO Definisci il metodo di hash
 
-    def calculate_hash(self) -> str:
-        """
-            Calcola l'hash del blocco.
-        """
-        block_string = f"{self.index}{self.previous_hash}{self.timestamp}{self.data}"
-        return hashlib.sha256(block_string.encode()).hexdigest()
+    def get_prev_ID(self) -> str:
+        return self._prev_ID
 
-    def __str__(self) -> str:
-        return f"Block(Index: {self.index}, Previous Hash: {self.previous_hash}, Timestamp: {self.timestamp}, Data: {self.data}, Hash: {self.hash})"
+    def get_author(self) -> str:
+        return self._author
+
+    def get_delete_flag(self) -> bool:
+        return self._delete_flag
+
+    def get_merkle_or_ID(self) -> MerkleTree | str:
+        return self._merkle_or_ID
+
+    def get_ID(self) -> int:
+        return self._ID
+
     def save_on_json(self) -> dict:
-        """
-            Restituisce una rappresentazione JSON del blocco.
-        """
         return {
-            "index": self.index,
-            "previous_hash": self.previous_hash,
-            "timestamp": self.timestamp,
-            "data": self.data,
-            "hash": self.hash
+            'prev_ID': self._prev_ID,
+            'author': self._author,
+            'delete_flag': self._delete_flag,
+            'merkle_or_ID': self._merkle_or_ID if isinstance(self._merkle_or_ID, str) else self._merkle_or_ID.save_on_json(),
+            'ID': self._ID
         }
     
     @staticmethod
     def load_from_json(data: dict) -> 'Block':
-        """
-            Carica un blocco da una rappresentazione JSON.
-        """
-        return Block(
-            index=data["index"],
-            previous_hash=data["previous_hash"],
-            timestamp=data["timestamp"],
-            data=data["data"]
+        block = Block(
+            prev_ID=data['prev_ID'],
+            author=data['author'],
+            merkle_or_ID=data['merkle_or_ID'],
+            delete_flag=data['delete_flag']
         )
-    
-    
+        block._ID = data['ID']
+        return block

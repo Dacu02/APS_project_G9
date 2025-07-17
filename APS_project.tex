@@ -208,14 +208,14 @@ Per automatizzare e semplificare i processi di caricamento e validazione di una 
 \newline Sempre per trasparenza, sia il codice che lo stato dello smart contract risiedono sulla blockchain, cosicché che tutti i partecipanti ne possano verificare il corretto funzionamento.
 \subsubsection{Revoca certificazione}
 Riguardo la procedura di revoca di una certificazione, già presente sulla blockchain, lo smart contract mette a disposizione un'interfaccia di comunicazione per la gestione di tale eventualità.
-\newline Siccome non è possibile alterare un blocco una volta caricato, poiché renderebbe invalidi i puntatori hash e quindi la catena, si aggiunge allora un nuovo blocco, il quale scopo è quello di invalidare la certificazione. Questo blocco contiene le stesse informazioni contenute in quello della certificazione, più una flag di invalidità posta al valore di vero. L'ID di questo blocco sarà lo stesso di prima ma con un '1' alla fine, mentre il precedente terminerà per '0'.
+\newline Siccome non è possibile alterare un blocco una volta caricato, poiché renderebbe invalidi i puntatori hash e quindi la catena, si aggiunge allora un nuovo blocco, il quale scopo è quello di invalidare la certificazione. Questo blocco contiene le stesse informazioni contenute in quello della certificazione, più una flag di invalidità posta al valore di vero.
 \newline Per assicurare uniformità ai blocchi della catena, anche ai blocchi riguardanti la creazione della certificazione si include questa flag, posta al valore falso.
 \newline Le politiche di revoca di una certificazione sono due: 
 \begin{itemize}
     \item L'autore della certificazione è automaticamente in grado di revocarla, per cui si aggiunge all'interno di ogni blocco l'indirizzo dell'autore. Il contratto mette a disposizione questa tipologia di revoca.
     \item Un numero sufficiente di università decide di revocare la certificazione, qualora essa non rispetti determinati criteri oppure l'università autrice venga estromessa dal sistema. 
 \end{itemize}
-Ovviamente, perché sia possibile revocare una certificazione, è necessario che ne si conosca l'ID, il quale è univoco per ciascun blocco.
+Ovviamente, purché sia possibile revocare una certificazione, è necessario che ne si conosca l'ID del blocco che l'ha generata, il quale è univoco per ciascun blocco: lo smart contract utilizza il campo riservato al Merkle Tree per inserire il riferimento all'ID del blocco che viene revocato.
 \subsubsection{Meccanismo di validazione}
 Siccome generalmente nella blockchain, è il solo smart contract a generare blocchi, si potrebbe non intravedere la necessità della validazione dei blocchi. Tuttavia, tutti i partecipanti sarebbero in grado di generare dei blocchi, per cui è necessaria una procedura attraverso la quale le università siano in grado di decidere quali blocchi debbano essere salvati e quali no. 
 \newline Questa procedura richiede che almeno un certo numero, di tutte le università presenti nel sistema, acconsenta all'inserimento di tale blocco nella blockchain. Il numero esatto è un compromesso tra la sicurezza del sistema e la velocità di revoca, ed è fortemente dipendente dal numero di università presenti nel sistema.

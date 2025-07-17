@@ -52,6 +52,9 @@ class University(User):
     def __str__(self) -> str:
         return f"Università: {self._name}, Codice: {self._code}"
 
+    def get_name(self) -> str:
+        return self._name
+    
     def save_on_json(self) -> dict:
         dict = super().save_on_json()
         # dict["user_type"] = "University"

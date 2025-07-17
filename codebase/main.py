@@ -298,43 +298,49 @@ def pulizia():
         os.makedirs(DATA_DIRECTORY)
 
 
-def login_studente():
-    students, universities, CAs, _ = lettura_dati()
-    student_code = read_code("Inserisci il codice dello studente: ")
-    while student_code not in students:
-        print("Lo studente non esiste.")
-        student_code = read_code("Inserisci il codice dello studente: ")
-
-    university_code = read_code("Inserisci il codice dell'università: ")
-    while university_code not in universities:
-        print("L'università non esiste.")
-        university_code = read_code("Inserisci il codice dell'università: ")
+def certifica_universita():
+    """
+        Funzione per certificare un'università, richiede il nome della CA e dell'università.
+        L'università genera una coppia di chiavi, e chiede alla CA di pubblicare la propria chiave pubblica attraverso un certificato.
+    """
+    CAs = lettura_dati()[2]
+    universities = lettura_dati()[1]
 
     ca_name = input("Inserisci il nome della CA: ")
     while ca_name not in CAs:
         print("La CA non esiste.")
         ca_name = input("Inserisci il nome della CA: ")
 
-    print(f"Studente selezionato: {students[student_code].name} {students[student_code].surname}")
-    print(f"Università selezionata: {universities[university_code].name}")
-    print(f"CA selezionata: {CAs[ca_name].name}")
+    university_code = read_code("Inserisci il codice dell'università: ")
+    while university_code not in universities:
+        print("L'università non esiste.")
+        university_code = read_code("Inserisci il codice dell'università: ")
+
+    ca:CA = CAs[ca_name]
+    university:University = universities[university_code]
+
+    #* 1 L'università genera una coppia di chiavi
+    # university.generate_key_pair() #TODO Definisci il metodo generate_key_pair  
+    scheme: Asymmetric_Scheme = university._keys[self] # type: ignore #Todo ricorda di rimuovere questa riga quando implementi il metodo generate_key_pair
+    #* 2 L'università chiede alla CA di certificare la propria chiave pubblica
+    cert = ca.register_user_public_key(university, scheme)
+    
+    if cert is None:
+        raise ValueError(f"La CA {ca_name} non ha potuto certificare l'università {university_code}.")
+    
+    #* 3 La CA restituisce il certificato all'università
+    certificate = ca.get_user_certificate(university)
+    if certificate is None:
+        raise ValueError(f"La CA {ca_name} non ha emesso correttamente il certificato per l'università {university_code}.")
+
+    # ca.send(university, certificate)
+    university._receive(ca, certificate) 
+
+    print(f"L'università {university.get_name()} è stata certificata con successo dalla CA {ca.get_code()}.")
+
 
 if __name__ == "__main__":
     
-    
-    scheme:Symmetric_Scheme = Cipher_Block_Chaining()
-    test_dict = scheme.save_on_json()
-    loaded_scheme = Symmetric_Scheme.load_from_json(test_dict)
-    print("Test JSON:", test_dict)
-
-    userA = Student("Alice", "", "001")
-    userB = Student("Bob", "", "002")
-    userA.add_key(userB, scheme)
-    userB.add_key(userA, loaded_scheme)
-    userA.send(userB, Message("Ciao Bob! Come va?"))
-
-
-    exit()
     if len(sys.argv) < 2:
 
         print("Inserisci il nome di un algoritmo")
@@ -356,5 +362,7 @@ if __name__ == "__main__":
         crea_CA()
     elif command == "immatricola":
         immatricola()
+    elif command == "certifica_universita":
+        certifica_universita()
     else:
         print(f"Comando sconosciuto: {command}")

@@ -20,7 +20,7 @@ class User(ABC):
         """
 
         if not encrypt and not sign:
-            user.receive(self, message, decrypt=False, verify=False)
+            user._receive(self, message, decrypt=False, verify=False)
             return
         
         print(f"{self._code} invia a {user._code}: {message.get_content()}")
@@ -38,9 +38,9 @@ class User(ABC):
         print(f"{self._code} firma il messaggio: {mex.get_content()} con firma {mex.get_signature()}")
         print("Ha una firma?:", mex.get_signature() is not None)
 
-        user.receive(self, mex, decrypt=encrypt, verify=sign)
+        user._receive(self, mex, decrypt=encrypt, verify=sign)
 
-    def receive(self, user: "User", message: Message, decrypt: bool = True, verify: bool = True):
+    def _receive(self, user: "User", message: Message, decrypt: bool = True, verify: bool = True):
         """
             Riceve un messaggio da un altro utente.
             Se decrypt è True, il messaggio viene decifrato.

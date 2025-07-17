@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from communication.MAC_Algorithm import MAC_Algorithm
 from communication.Encryption_Scheme import Encryption_Scheme
 from communication.Message import Message
 from communication.Key import Key
@@ -25,10 +24,9 @@ class Symmetric_Scheme(Encryption_Scheme, ABC):
     def verify(self, message: Message) -> bool:
         pass
 
-    def __init__(self, key: Key | None = None, mac_algorithm: MAC_Algorithm | None = None):
+    def __init__(self, key: Key | None = None):
         super().__init__()
         self._key = key
-        self._mac_algorithm = mac_algorithm
 
     def get_key(self) -> Key | None:
         return self._key
@@ -48,9 +46,3 @@ class Symmetric_Scheme(Encryption_Scheme, ABC):
             else:
                 raise ValueError(f"Tipo di schema di crittografia sconosciuto: {name}")
         raise ValueError("Non implementato")
-
-    def set_MAC_algorithm(self, mac_algorithm: MAC_Algorithm) -> None:
-        """
-            Imposta l'algoritmo di autenticazione dei messaggi (MAC).
-        """
-        self._mac_algorithm = mac_algorithm
