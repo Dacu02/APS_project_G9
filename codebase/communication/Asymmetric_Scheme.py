@@ -47,8 +47,12 @@ class Asymmetric_Scheme(Encryption_Scheme, ABC):
     def load_from_json(data: dict) -> 'Asymmetric_Scheme':
         if "scheme_type" in data:
             name = data["scheme_type"]
-            #TODO in base al name passalo ad una classe specifica
-        raise ValueError("Non implementato")
+            if name == "Custom_Cipher":
+                from communication.Custom_Cipher import Custom_Cipher
+                return Custom_Cipher.load_from_json(data)
+            else:
+                raise ValueError(f"Tipo di schema di crittografia sconosciuto: {name}")
+        #raise ValueError("Non implementato")
 
     @abstractmethod
     def share_public_key(self) -> Asymmetric_Scheme | None:
