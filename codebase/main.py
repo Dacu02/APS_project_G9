@@ -5,11 +5,14 @@ import json
 from actors.Student import Student
 from actors.University import University
 from actors.CA import CA
+from codebase.communication.CustomCipher import Custom_Cipher
+from codebase.communication.Symmetric_Scheme import Symmetric_Scheme
 from communication.Message import Message
 from communication.Certificate import Certificate
 from communication.Asymmetric_Scheme import Asymmetric_Scheme
 from constants import DATA_DIRECTORY, STUDENTS_FOLDER, UNIVERSITIES_FOLDER, Activity, CAs_FOLDER, StudyPlan
 import sys
+import secrets
 data_dir = os.path.join(os.getcwd(), DATA_DIRECTORY)
 
 def lettura_dati() -> tuple[dict, dict, dict, dict]:
@@ -128,36 +131,56 @@ def immatricola():
         study_plan = input(f"Scegli un piano di studi tra {', '.join(study_plans.keys())}: ")
 
     student_initial_timestamp = time.time()
+    random_number = secrets.randbelow(10**6)  # Numero casuale tra 0 e 999999 non basato su timestamp
+
     message_data = {
         "name": student.get_name(),
         "surname": student.get_surname(),
         "code": student.get_code(),
         "timestamp": student_initial_timestamp,
         "text": "Richiesta di immatricolazione",
-        "study_plan": study_plan
+        "study_plan": study_plan,
+        # "email": "..." # Si potrebbe considerare in futuro l'utilizzo di una email come scenario 2FA
+        "nonce": random_number
     }
 
     message = Message(json.dumps(message_data))
-    student.send(university, message, sign=False)
+    student.send(university, message, sign=True)
     #* 4 L'università riceve il messaggio e lo decifra con la propria chiave privata,
     #* chiede quindi allo studente di definire una password con la quale potrà autenticarsi successivamente
     #* Inoltre, per evitare replay attack gli chiede di ripetere il timestamp originale
     uni_message = {
-        "text": "Benvenuto, per favore fornisci una password per autenticarti in futuro, inoltre, ripeti il timestamp originale e l'attuale",
+        "text": f"Benvenuto {message_data['name']} {message_data['surname']}, per favore fornisci una password per autenticarti in futuro, inoltre, ripeti il timestamp originale e l'attuale",
         "timestamp": message_data["timestamp"],
     }
-
     university.send(student, Message(json.dumps(uni_message)), encrypt=False, sign=True)
+
     #* 5 Lo studente riceve il messaggio e procede a definire una password
+    if uni_message['timestamp'] != message_data['timestamp']:
+        raise ValueError("Il timestamp del messaggio dell'università non corrisponde a quello originale, possibile replay attack.")
+    
     password = input("Inserisci una password per autenticarti all'università: ")
     while not password:
         print("La password non può essere vuota.")
         password = input("Inserisci una password per autenticarti all'università: ")
+    student.set_password(password, university) # Lo studente si ricorderà la password per usi futuri (viene salvata in student.json in chiaro a scopo didattico)
     #TODO Ricorda di scrivere la password in student.json
 
     password_message = {
         "password": password,
+        "timestamp": time.time(),
+        "nonce": random_number,
+        "text": "Password di immatricolazione"
     }
+
+    student.send(university, Message(json.dumps(password_message)), sign=True)
+    #* 6 L'università riceve la password e la salva nel proprio database, immatricolando lo studente
+
+    if password_message['nonce'] != random_number:
+        raise ValueError("Il numero casuale del messaggio dello studente non corrisponde a quello originale, possibile replay attack.")
+
+    university.enroll_student(student, password, study_plan)
+
 
 def read_code(prompt: str) -> str:
     """
@@ -296,6 +319,10 @@ def login_studente():
     print(f"CA selezionata: {CAs[ca_name].name}")
 
 if __name__ == "__main__":
+    
+    
+    scheme:Symmetric_Scheme = Custom_Cipher()
+    exit()
     if len(sys.argv) < 2:
 
         print("Inserisci il nome di un algoritmo")

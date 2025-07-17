@@ -1,11 +1,11 @@
 import hashlib
 import hmac
+import secrets
 from codebase.communication.Key import Key
 from communication.Symmetric_Scheme import Symmetric_Scheme
 from communication.Message import Message
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
-import constants as c
-import os 
+from constants import _IV_SIZE, _MAC_SIZE, KEY_LENGTH
 from cryptography.hazmat.primitives import padding,hashes,hmac
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 class Custom_Cipher(Symmetric_Scheme):
@@ -14,22 +14,24 @@ class Custom_Cipher(Symmetric_Scheme):
         Utilizza la libreria cryptography per crittografare e decrittografare i messaggi.
     """
 
-    
-
-    def __init__(self,seed):
+    def __init__(self, key:Key|None = None, IV:bytes|None = None):
         """
             Inizializza lo schema di crittografia Fernet con una chiave.
             Se la chiave non è fornita, ne genera una nuova.
         """
-        if seed is None:
-            key = os.urandom(c.KEY_LENGTH)
-        key = os.urandom(c.KEY_LENGTH,seed=seed)
-        key = Key(key)
-        self.IV = os.urandom(c._IV_SIZE,seed=seed)
+
+        if key is None:
+            key = Key(secrets.token_bytes(KEY_LENGTH))
+        self._key = key
+
+        if IV is None:
+            IV = secrets.token_bytes(_IV_SIZE)
+        self._IV = IV
+
         super().__init__(key)
         hkdf = HKDF(
             algorithm=hashes.SHA256(),
-            length=c.KEY_LENGTH,
+            length=KEY_LENGTH,
             salt=None,
             info=b'',
         )
@@ -44,12 +46,12 @@ class Custom_Cipher(Symmetric_Scheme):
         """
         padder = padding.PKCS7(algorithms.AES.block_size).padder()
         padded_data = padder.update(message.get_content().encode('utf-8')) + padder.finalize()
-        cipher = Cipher(algorithms.AES(self._encryption_key), modes.CBC(self.IV))
+        cipher = Cipher(algorithms.AES(self._encryption_key), modes.CBC(self._IV))
         encryptor = cipher.encryptor()
         ciphertext = encryptor.update(padded_data) + encryptor.finalize()
-        data_to_authenticate = self.IV + ciphertext
+        data_to_authenticate = self._IV + ciphertext
         mac = hmac.new(self._auth_key, data_to_authenticate, hashlib.sha256).digest()
-        new_content = (self.IV + ciphertext + mac).hex()
+        new_content = (self._IV + ciphertext + mac).hex()
         return Message(new_content,signature = None)
 
 
@@ -81,18 +83,18 @@ class Custom_Cipher(Symmetric_Scheme):
         
         
         
-    def verify(self, message: Message) -> Message:
+    def verify(self, message: Message) -> bool:
         """
             Metodo per verificare l'autenticità e integrità di un messaggio.
             In questo caso, la verifica è semplicemente la decrittografia del messaggio.
         """
         try: 
             payload = bytes.fromhex(message.get_content())
-            if len (payload) < c._IV_SIZE + c._MAC_SIZE:
+            if len (payload) < _IV_SIZE + _MAC_SIZE:
                 return False
-            mac_to_verify = payload[-c._MAC_SIZE:]
-            cipher = payload[c._IV_SIZE:-c._MAC_SIZE]
-            data_to_authenticate = payload[:c._IV_SIZE] + cipher
+            mac_to_verify = payload[-_MAC_SIZE:]
+            cipher = payload[_IV_SIZE:-_MAC_SIZE]
+            data_to_authenticate = payload[:_IV_SIZE] + cipher
             h = hmac.new(self._auth_key, data_to_authenticate, hashlib.sha256)
             return hmac.compare_digest(h.digest(), mac_to_verify)
         except ValueError:
