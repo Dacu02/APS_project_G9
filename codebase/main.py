@@ -323,10 +323,14 @@ if __name__ == "__main__":
     
     
     scheme:Symmetric_Scheme = Cipher_Block_Chaining()
+    test_dict = scheme.save_on_json()
+    loaded_scheme = Symmetric_Scheme.load_from_json(test_dict)
+    print("Test JSON:", test_dict)
+
     userA = Student("Alice", "", "001")
     userB = Student("Bob", "", "002")
     userA.add_key(userB, scheme)
-    userB.add_key(userA, scheme)
+    userB.add_key(userA, loaded_scheme)
     userA.send(userB, Message("Ciao Bob! Come va?"))
 
 

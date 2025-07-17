@@ -34,8 +34,8 @@ class Symmetric_Scheme(Encryption_Scheme, ABC):
         return self._key
     
     def save_on_json(self) -> dict:
-        data = super().save_on_json()
-        data["key"] = str(self._key)
+        data = {}
+        data["key"] = self._key.save_on_json() if self._key else None
         return data
 
     @staticmethod
@@ -43,7 +43,7 @@ class Symmetric_Scheme(Encryption_Scheme, ABC):
         if "scheme_type" in data:
             name = data["scheme_type"]
             if name == "Cipher_Block_Chaining":
-                from communication.CustomCipher import Cipher_Block_Chaining
+                from communication.Cipher_Block_Chaining import Cipher_Block_Chaining
                 return Cipher_Block_Chaining.load_from_json(data)
             else:
                 raise ValueError(f"Tipo di schema di crittografia sconosciuto: {name}")

@@ -107,6 +107,6 @@ class Cipher_Block_Chaining(Symmetric_Scheme):
     
     @staticmethod
     def load_from_json(data: dict) -> 'Cipher_Block_Chaining':
-        key = Key(bytes.fromhex(data["key"]))
+        key = Key.load_from_json(data["key"])
         IV = bytes.fromhex(data["IV"])
         return Cipher_Block_Chaining(key, IV)
