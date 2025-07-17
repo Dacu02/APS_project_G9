@@ -86,7 +86,7 @@ class User(ABC):
             Metodo per salvare l'utente su un dizionario, da cui poi si potrà generare un file JSON.
         """
         return {
-            "name": self._code,
+            "code": self._code,
             "keys": {user: scheme.save_on_json() for user, scheme in self._keys.items()}
         }
 
@@ -97,19 +97,18 @@ class User(ABC):
             Metodo astratto per caricare l'utente da un dizionario, ottenuto da un file JSON.
             Deve essere implementato dalle classi derivate.
         """
-        # from actors.Student import Student
-        # from actors.University import University
-        # from actors.CA import CA
-        # data["user_type"] = data.get("type", "User")
-        # if data["user_type"] == "Student":
-        #     return Student.load_from_json(data)
-        # elif data["user_type"] == "University":
-        #     return University.load_from_json(data)
-        # elif data["user_type"] == "CA":
-        #     return CA.load_from_json(data)
-        # else:
-        #     return User.load_from_json(data)
-        pass
+        from actors.Student import Student
+        from actors.University import University
+        from actors.CA import CA
+        user_type = data["user_type"]
+        if user_type == "Student":
+            return Student.load_from_json(data)
+        elif user_type == "University":
+            return University.load_from_json(data)
+        elif user_type == "CA":
+            return CA.load_from_json(data)
+        else:
+            raise ValueError(f"Tipo di utente sconosciuto: {user_type}")
 
     def add_key(self, user: "User", scheme: Encryption_Scheme):
         """

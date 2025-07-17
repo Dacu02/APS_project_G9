@@ -14,3 +14,4 @@ APS_project.toc
 APS_project.synctex(busy)
 *.pyc
 __pycache__/
+*.json

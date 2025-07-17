@@ -22,7 +22,7 @@ class Student(User):
     
     def save_on_json(self) -> dict:
         dict = super().save_on_json()
-        # dict["user_type"] = "Student"
+        dict["user_type"] = "Student"
         dict["name"] = self._name
         dict["surname"] = self._surname
         return dict
