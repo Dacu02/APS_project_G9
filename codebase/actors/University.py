@@ -1,3 +1,4 @@
+from datetime import date
 from typing import TypedDict
 from actors.Student import Student
 from communication.Asymmetric_Scheme import Asymmetric_Scheme
@@ -160,7 +161,16 @@ class University(User):
         else:
             raise ValueError(f"L'attività {activity_name} è già presente nell'università {self._name}.")
 
-    def agree_exchange_contract(self, student:Student, study_plan: StudyPlan):
+    def agree_exchange_contract(self, student:Student, destination_university: 'University', study_plan: StudyPlan, activities: list[Activity], internal_referrer: str):
+        """
+            Registra un contratto di scambio per uno studente.
+            Parametri:
+            - student: Lo studente che partecipa allo scambio.
+            - destination_university: L'università di destinazione dello scambio.
+            - study_plan: Il piano di studi dell'università di destinazione.
+            - activities: Le attività previste per lo scambio.
+            - internal_referrer: Il referente interno dell'università.
+        """
         serial_id = f"{student.get_code():03d}#{self._code:03d}"
         json_path = os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER, f"uni_{self._name}.json")
         with open(json_path, "r") as f:
@@ -169,17 +179,43 @@ class University(User):
             raise ValueError(f" [{self._name}] Lo studente {student.get_code()} non è iscritto all'università.")
         
         data[serial_id]["exchange_plan"] = {}
-
-            
-        data[serial_id]["exchange_plan"]['exams'] = study_plan
+        data[serial_id]["exchange_plan"]['destination_university'] = {'code':destination_university.get_code(), 'name':destination_university.get_name()}
+        data[serial_id]["exchange_plan"]['exams'] = {exam["name"]: exam["cfus"] for exam in study_plan}
+        data[serial_id]["exchange_plan"]['activities'] = {activity["name"]: activity["cfus"] for activity in activities}
+        data[serial_id]["exchange_plan"]['internal_referrer'] = internal_referrer
         with open(json_path, "w") as f:
             json.dump(data, f, indent=4)
 
-    def pass_exam(self, student: Student, exam_name: str, grade: float):
+    def accept_incoming_exchange(self, student: Student, incoming_university: 'University', incoming_serial_id: str, incoming_referrer: str, internal_referrer: str):
+        """
+            Accetta un contratto di scambio in arrivo per uno studente.
+            Parametri:
+            - student: Lo studente che partecipa al periodo all'estero.
+            - incoming_university: L'università di provenienza dello studente.
+            - incoming_serial_id: La matricola dello studente nell'università di provenienza.
+            - incoming_referrer: Il referente dell'università di provenienza.
+            - internal_referrer: Il referente interno dell'università.
+        """
+        serial_id = f"{student.get_code():03d}#{self._code:03d}"
+        json_path = os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER, f"uni_{self._name}.json")
+        with open(json_path, "r") as f:
+            data = json.load(f)
+
+        data[serial_id] = {
+            "incoming_university": {
+                "code": incoming_university.get_code(),
+                "name": incoming_university.get_name()
+            },
+            "incoming_serial_id": incoming_serial_id,
+            "incoming_referrer": incoming_referrer,
+            "internal_referrer": internal_referrer,
+            "exchange_start_period": date.today().isoformat()
+        }
+
+    def pass_exam(self, student: Student, results: ExamResult):
         """
             Registra il superamento di un esame da parte dello studente.
         """
-        pass #TODO CONTROLLA IL METODO
         serial_id = f"{student.get_code():03d}#{self._code:03d}"
         json_path = os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER, f"uni_{self._name}.json")
         with open(json_path, "r") as f:
@@ -190,8 +226,28 @@ class University(User):
         
         if "exams" not in data[serial_id]:
             data[serial_id]["exams"] = {}
-        
-        data[serial_id]["exams"][exam_name] = grade
-        
+
+        data[serial_id]["exams"][results["name"]] = results
+
         with open(json_path, "w") as f:
             json.dump(data, f, indent=4)
+
+    def pass_activity(self, student: Student, results: ActivityResult):
+        """
+            Registra il superamento di un'attività da parte dello studente.
+        """
+        serial_id = f"{student.get_code():03d}#{self._code:03d}"
+        json_path = os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER, f"uni_{self._name}.json")
+        with open(json_path, "r") as f:
+            data = json.load(f)
+        
+        if serial_id not in data:
+            raise ValueError(f" [{self._name}] Lo studente {student.get_code()} non è iscritto all'università.")
+        
+        if "activities" not in data[serial_id]:
+            data[serial_id]["activities"] = {}
+        
+        data[serial_id]["activities"][results["name"]] = results
+        
+        with open(json_path, "w") as f:
+            json.dump(data, f, indent=4)        

@@ -1,5 +1,5 @@
-
-
+from communication.Hash_Algorithm import Hash_Algorithm
+from constants import BLOCKCHAIN_HASH_ALGORITHM
 
 
 class MerkleTree():
@@ -27,10 +27,12 @@ class MerkleTree():
         def set_right(self, right: 'MerkleTree._Node | None'):
             self._right = right
 
-    def __init__(self, leaves_hashes: list[str]):
+    def __init__(self, leaves_to_hash: list[str], hash_algorithm: Hash_Algorithm = BLOCKCHAIN_HASH_ALGORITHM()):
         """
             Inizializza un Merkle Tree con i nodi foglia specificati.
         """
+        self._hash = hash_algorithm
+        leaves_hashes = [self._hash.hash(leaf) for leaf in leaves_to_hash if leaf is not None]
         if not leaves_hashes or len(leaves_hashes) == 0:
             return 
         leaves: list[MerkleTree._Node] = [MerkleTree._Node(leaf) for leaf in leaves_hashes]
@@ -58,7 +60,7 @@ class MerkleTree():
         right_hash = right_node.get_hash()
         if left_hash is None or right_hash is None:
             raise ValueError("I nodi figli devono avere un hash valido.")
-        node.set_hash(left_hash + right_hash) #TODO Definisci il metodo di hash
+        node.set_hash(self._hash.hash(left_hash + right_hash))
         return node
 
 
