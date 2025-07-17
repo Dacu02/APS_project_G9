@@ -1,15 +1,13 @@
 
 from abc import ABC, abstractmethod
-from communication.MAC_Algorithm import MAC_Algorithm
 from communication.Message import Message
 class Encryption_Scheme(ABC):
     """
         Classe astratta che rappresenta uno schema di crittografia.
         Gli schemi di crittografia devono implementare i metodi per crittografare e decrittografare i messaggi.
     """
-    def __init__(self, mac:MAC_Algorithm | None = None):
+    def __init__(self):
         super().__init__()
-        self._mac = mac
     
     @abstractmethod
     def encrypt(self, message: Message) -> Message:
