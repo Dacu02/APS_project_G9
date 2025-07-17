@@ -28,7 +28,6 @@ class CA(User):
         """
             Registra la chiave pubblica dell'utente.
         """
-        public_key_scheme = public_key_scheme
         self.add_key(user, public_key_scheme)
         file = os.path.join(DATA_DIRECTORY, CAs_FOLDER, f"ca_{self._code}.json")
         with open(file, "r") as f:
@@ -69,6 +68,18 @@ class CA(User):
             public_key_data = certificate.get("key", None)
             if public_key_data:
                 return Asymmetric_Scheme.load_from_json(public_key_data), certificate["signature"]
+        return None
+
+    def get_user_certificate(self, user: User) -> Certificate | None:
+        """
+            Restituisce il certificato dell'utente registrato.
+        """
+        file = os.path.join(DATA_DIRECTORY, CAs_FOLDER, f"ca_{self._code}.json")
+        with open(file, "r") as f:
+            data = json.load(f)
+        if user.get_code() in data:
+            certificate_data = data[user.get_code()]
+            return Certificate.load_from_json(certificate_data)
         return None
 
     def save_on_json(self) -> dict:

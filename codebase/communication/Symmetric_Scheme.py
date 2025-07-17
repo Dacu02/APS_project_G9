@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from communication.Hash_Algorithm import Hash_Algorithm
 from communication.Encryption_Scheme import Encryption_Scheme
 from communication.Message import Message
 from communication.Key import Key
@@ -36,5 +37,9 @@ class Symmetric_Scheme(Encryption_Scheme, ABC):
             "key": str(self._key)
         }
 
-    def load_on_json(self, data: dict):
-        self._key = Key.load_from_json(data["key"])
+    # @staticmethod
+    # def load_from_json(data: dict):
+    #     key = Key.load_from_json(data["key"])
+    #     if "hash" in data:
+    #         hash_algorithm = Hash_Algorithm.load_from_json(data["hash"])
+    #     return Symmetric_Scheme(key=key, hash=hash_algorithm)

@@ -42,17 +42,10 @@ class Asymmetric_Scheme(Encryption_Scheme, ABC):
             "public_key": self._public_key.save_on_json() if self._public_key else None
         }
     
-    def load_on_json(self, data: dict):
-        self._private_key = Key.load_from_json(data["private_key"])
-        self._public_key = Key.load_from_json(data["public_key"])
-
-    @abstractmethod
-    def hash(self, data:str) -> str:
-        """
-            Restituisce l'hash della stringa data.
-            Utilizza la chiave privata per calcolare l'hash.
-        """
-        pass
+    # @staticmethod
+    # def load_from_json(data: dict):
+    #     self._private_key = Key.load_from_json(data["private_key"])
+    #     self._public_key = Key.load_from_json(data["public_key"])
 
     @abstractmethod
     def share_public_key(self) -> Asymmetric_Scheme | None:

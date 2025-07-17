@@ -5,6 +5,7 @@ import json
 from actors.Student import Student
 from actors.University import University
 from actors.CA import CA
+from communication.Asymmetric_Scheme import Asymmetric_Scheme
 from constants import DATA_DIRECTORY, STUDENTS_FOLDER, UNIVERSITIES_FOLDER, Activity, CAs_FOLDER, StudyPlan
 import sys
 data_dir = os.path.join(os.getcwd(), DATA_DIRECTORY)
@@ -95,13 +96,19 @@ def immatricola():
         raise ValueError(f"La CA {ca_name} non ha una chiave pubblica registrata.")
 
     public_key = mex[0].share_public_key() # Root CA
+    if public_key is None:
+        raise ValueError(f"La CA {ca_name} non ha una chiave pubblica registrata.")
+
+    if not isinstance(public_key, Asymmetric_Scheme):
+        raise TypeError(f"La chiave pubblica della CA deve essere di tipo Asymmetric_Scheme, ma è di tipo {type(public_key)}")
+    
     #* 2 Lo studente utilizza la chiave pubblica della CA per verificare che certificato che riceve dalla CA sia valido
-
-
+    university_public_key = ca.get_user_certificate(university)
     # TODO La CA restituisce la chiave pubblica dell'università allo studente
     # TODO Lo studente registra la chiave pubblica dell'università alle sue chiavi
     # ? Lo studente potrebbe di tanto in tanto controllare che la chiave pubblica dell'università non sia cambiata
     # TODO 
+
 
 def read_code(prompt: str) -> str:
     """
@@ -113,6 +120,7 @@ def read_code(prompt: str) -> str:
         print("Il codice deve essere un numero di 3 cifre.")
         code = input(prompt)
     return code
+
 
 def crea_studente():
     students = lettura_dati()[0]
@@ -145,6 +153,7 @@ def crea_universita():
     with open(os.path.join(data_dir, UNIVERSITIES_FOLDER, "universities.json"), 'w') as f:
         json.dump({code: university.save_on_json() for code, university in universities.items()}, f, indent=4)
 
+
 def crea_piano_studi():
     universities:dict[str, University] = lettura_dati()[1]
     university_code = read_code("Inserisci il codice dell'università: ")
@@ -175,6 +184,7 @@ def crea_piano_studi():
     
     universities[university_code].add_study_plan(study_plan_name, study_plan)
 
+
 def crea_attivita():
     universities:dict[str, University] = lettura_dati()[1]
     university_code = read_code("Inserisci il codice dell'università: ")
@@ -204,8 +214,6 @@ def crea_CA():
     CAs[name] = ca
     with open(os.path.join(data_dir, CAs_FOLDER, "CAs.json"), 'w') as f:
         json.dump({name: ca.save_on_json() for name, ca in CAs.items()}, f, indent=4)
-
-
 
 
 def pulizia():
