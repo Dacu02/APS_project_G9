@@ -5,6 +5,8 @@ import json
 from actors.Student import Student
 from actors.University import University
 from actors.CA import CA
+from communication.Message import Message
+from communication.Certificate import Certificate
 from communication.Asymmetric_Scheme import Asymmetric_Scheme
 from constants import DATA_DIRECTORY, STUDENTS_FOLDER, UNIVERSITIES_FOLDER, Activity, CAs_FOLDER, StudyPlan
 import sys
@@ -103,12 +105,59 @@ def immatricola():
         raise TypeError(f"La chiave pubblica della CA deve essere di tipo Asymmetric_Scheme, ma è di tipo {type(public_key)}")
     
     #* 2 Lo studente utilizza la chiave pubblica della CA per verificare che certificato che riceve dalla CA sia valido
-    university_public_key = ca.get_user_certificate(university)
-    # TODO La CA restituisce la chiave pubblica dell'università allo studente
-    # TODO Lo studente registra la chiave pubblica dell'università alle sue chiavi
-    # ? Lo studente potrebbe di tanto in tanto controllare che la chiave pubblica dell'università non sia cambiata
-    # TODO 
+    uni_cert = ca.get_user_certificate(university)
+    if uni_cert is None:
+        raise ValueError(f"La CA {ca_name} non ha un certificato registrato per l'università {university_name}.")
+    if not isinstance(uni_cert, Certificate):
+        raise TypeError(f"Il certificato dell'università deve essere di tipo Certificate, ma è di tipo {type(uni_cert)}")
+    
+    if not public_key.verify(uni_cert):
+        raise ValueError(f"Il certificato dell'università {university_name} non è valido: la firma non corrisponde.")
+    print("Certificato dell'università verificato con successo.")
+    uni_public_key = uni_cert.read_key()
 
+
+    #* 3 Lo studente si salva la chiave pubblica dell'università e la utilizza per comunicare con essa
+    student.add_key(university, uni_public_key)
+    study_plans = university.get_study_plans()
+    if study_plans is None or len(study_plans) == 0:
+        raise ValueError("L'università non ha piani di studio disponibili.")
+    study_plan = input(f"Scegli un piano di studi tra {', '.join(study_plans.keys())}: ")
+    while study_plan not in study_plans:
+        print(f"Il piano di studi {study_plan} non esiste nell'università {university_name}.")
+        study_plan = input(f"Scegli un piano di studi tra {', '.join(study_plans.keys())}: ")
+
+    student_initial_timestamp = time.time()
+    message_data = {
+        "name": student.get_name(),
+        "surname": student.get_surname(),
+        "code": student.get_code(),
+        "timestamp": student_initial_timestamp,
+        "text": "Richiesta di immatricolazione",
+        "study_plan": study_plan
+    }
+
+    message = Message(json.dumps(message_data))
+    student.send(university, message, sign=False)
+    #* 4 L'università riceve il messaggio e lo decifra con la propria chiave privata,
+    #* chiede quindi allo studente di definire una password con la quale potrà autenticarsi successivamente
+    #* Inoltre, per evitare replay attack gli chiede di ripetere il timestamp originale
+    uni_message = {
+        "text": "Benvenuto, per favore fornisci una password per autenticarti in futuro, inoltre, ripeti il timestamp originale e l'attuale",
+        "timestamp": message_data["timestamp"],
+    }
+
+    university.send(student, Message(json.dumps(uni_message)), encrypt=False, sign=True)
+    #* 5 Lo studente riceve il messaggio e procede a definire una password
+    password = input("Inserisci una password per autenticarti all'università: ")
+    while not password:
+        print("La password non può essere vuota.")
+        password = input("Inserisci una password per autenticarti all'università: ")
+    #TODO Ricorda di scrivere la password in student.json
+
+    password_message = {
+        "password": password,
+    }
 
 def read_code(prompt: str) -> str:
     """

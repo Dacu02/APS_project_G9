@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from communication.Hash_Algorithm import Hash_Algorithm
+from communication.MAC_Algorithm import MAC_Algorithm
 from communication.Encryption_Scheme import Encryption_Scheme
 from communication.Message import Message
 from communication.Key import Key
@@ -25,21 +25,28 @@ class Symmetric_Scheme(Encryption_Scheme, ABC):
     def verify(self, message: Message) -> bool:
         pass
 
-    def __init__(self, key: Key | None = None):
+    def __init__(self, key: Key | None = None, mac_algorithm: MAC_Algorithm | None = None):
         super().__init__()
         self._key = key
+        self._mac_algorithm = mac_algorithm
 
     def get_key(self) -> Key | None:
         return self._key
     
     def save_on_json(self) -> dict:
-        return {
-            "key": str(self._key)
-        }
+        data = super().save_on_json()
+        data["key"] = str(self._key)
+        return data
 
-    # @staticmethod
-    # def load_from_json(data: dict):
-    #     key = Key.load_from_json(data["key"])
-    #     if "hash" in data:
-    #         hash_algorithm = Hash_Algorithm.load_from_json(data["hash"])
-    #     return Symmetric_Scheme(key=key, hash=hash_algorithm)
+    @staticmethod
+    def load_from_json(data: dict) -> 'Symmetric_Scheme':
+        if "scheme_type" in data:
+            name = data["scheme_type"]
+            #TODO in base al name passalo ad una classe specifica
+        raise ValueError("Non implementato")
+
+    def set_MAC_algorithm(self, mac_algorithm: MAC_Algorithm) -> None:
+        """
+            Imposta l'algoritmo di autenticazione dei messaggi (MAC).
+        """
+        self._mac_algorithm = mac_algorithm
