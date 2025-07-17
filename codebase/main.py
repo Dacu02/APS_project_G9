@@ -5,8 +5,9 @@ import json
 from actors.Student import Student
 from actors.University import University
 from actors.CA import CA
-from codebase.communication.CustomCipher import Custom_Cipher
-from codebase.communication.Symmetric_Scheme import Symmetric_Scheme
+from communication.User import User
+from communication.Cipher_Block_Chaining import Cipher_Block_Chaining
+from communication.Symmetric_Scheme import Symmetric_Scheme
 from communication.Message import Message
 from communication.Certificate import Certificate
 from communication.Asymmetric_Scheme import Asymmetric_Scheme
@@ -321,7 +322,14 @@ def login_studente():
 if __name__ == "__main__":
     
     
-    scheme:Symmetric_Scheme = Custom_Cipher()
+    scheme:Symmetric_Scheme = Cipher_Block_Chaining()
+    userA = Student("Alice", "", "001")
+    userB = Student("Bob", "", "002")
+    userA.add_key(userB, scheme)
+    userB.add_key(userA, scheme)
+    userA.send(userB, Message("Ciao Bob! Come va?"))
+
+
     exit()
     if len(sys.argv) < 2:
 

@@ -12,3 +12,5 @@ APS_project.toc
 *.gz
 .DS_Store
 APS_project.synctex(busy)
+*.pyc
+__pycache__/

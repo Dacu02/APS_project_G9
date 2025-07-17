@@ -5,8 +5,8 @@ STUDENTS_FOLDER = "students"
 UNIVERSITIES_FOLDER = "universities"
 CAs_FOLDER = "CAs"
 KEY_LENGTH = 32  # Lunghezza della chiave in byte (256 bit)
-_IV_SIZE = 16 # 128 bit
-_MAC_SIZE = 32 #256 bit per HMAC-SHA256
+IV_SIZE = 16 # 128 bit
+MAC_SIZE = 32 #256 bit per HMAC-SHA256
 
 
 class Exam(TypedDict):

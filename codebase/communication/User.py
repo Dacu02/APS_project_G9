@@ -18,7 +18,7 @@ class User(ABC):
             Se encrypt è True, il messaggio viene cifrato.
             Se sign è True, il messaggio preserva la proprietà di integrità.
         """
-        
+
         if not encrypt and not sign:
             user.receive(self, message, decrypt=False, verify=False)
             return
@@ -36,6 +36,8 @@ class User(ABC):
         mex = scheme.encrypt(message) if encrypt else message
         mex = scheme.sign(mex) if sign else mex
         print(f"{self._code} firma il messaggio: {mex.get_content()} con firma {mex.get_signature()}")
+        print("Ha una firma?:", mex.get_signature() is not None)
+
         user.receive(self, mex, decrypt=encrypt, verify=sign)
 
     def receive(self, user: "User", message: Message, decrypt: bool = True, verify: bool = True):
@@ -44,7 +46,6 @@ class User(ABC):
             Se decrypt è True, il messaggio viene decifrato.
             Se verify è True, viene verificata la proprietà di integrità.
         """
-
         if not decrypt and not verify:
             print(f"{self._code} riceve il messaggio {message.get_content()} senza decifrare o verificare la firma.")
             return
@@ -62,9 +63,9 @@ class User(ABC):
 
         mex = scheme.decrypt(message) if decrypt else message
 
-        if mex.get_signature() is not None and verify:
-            print(f"{self._code} verifica la firma: {mex.get_signature()}")
-            if scheme.verify(mex):
+        if message.get_signature() is not None and verify:
+            print(f"{self._code} verifica la firma: {message.get_signature()}")
+            if scheme.verify(message):
                 print(f"{self._code} firma verificata con successo")
             else:
                 print(f"{self._code} firma non valida, messaggio rigettato")

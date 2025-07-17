@@ -42,7 +42,11 @@ class Symmetric_Scheme(Encryption_Scheme, ABC):
     def load_from_json(data: dict) -> 'Symmetric_Scheme':
         if "scheme_type" in data:
             name = data["scheme_type"]
-            #TODO in base al name passalo ad una classe specifica
+            if name == "Cipher_Block_Chaining":
+                from communication.CustomCipher import Cipher_Block_Chaining
+                return Cipher_Block_Chaining.load_from_json(data)
+            else:
+                raise ValueError(f"Tipo di schema di crittografia sconosciuto: {name}")
         raise ValueError("Non implementato")
 
     def set_MAC_algorithm(self, mac_algorithm: MAC_Algorithm) -> None:

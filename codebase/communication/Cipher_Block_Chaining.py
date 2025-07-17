@@ -1,14 +1,14 @@
 import hashlib
 import hmac
 import secrets
-from codebase.communication.Key import Key
+from communication.Key import Key
 from communication.Symmetric_Scheme import Symmetric_Scheme
 from communication.Message import Message
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
-from constants import _IV_SIZE, _MAC_SIZE, KEY_LENGTH
-from cryptography.hazmat.primitives import padding,hashes,hmac
+from constants import IV_SIZE, MAC_SIZE, KEY_LENGTH
+from cryptography.hazmat.primitives import padding, hashes, hmac as crypto_hmac
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-class Custom_Cipher(Symmetric_Scheme):
+class Cipher_Block_Chaining(Symmetric_Scheme):
     """
         Classe che implementa lo schema di crittografia Fernet.
         Utilizza la libreria cryptography per crittografare e decrittografare i messaggi.
@@ -25,7 +25,7 @@ class Custom_Cipher(Symmetric_Scheme):
         self._key = key
 
         if IV is None:
-            IV = secrets.token_bytes(_IV_SIZE)
+            IV = secrets.token_bytes(IV_SIZE)
         self._IV = IV
 
         super().__init__(key)
@@ -36,15 +36,15 @@ class Custom_Cipher(Symmetric_Scheme):
             info=b'',
         )
         derived_keys = hkdf.derive(self._key.get_key())
-        self._encryption_key = derived_keys[:self._AES_KEY_SIZE]
-        self._auth_key = derived_keys[self._AES_KEY_SIZE:]
+        self._encryption_key = derived_keys[:KEY_LENGTH]
+        self._auth_key = derived_keys[KEY_LENGTH:]
             
     def encrypt(self, message: Message) -> Message:
         """
             Metodo per crittografare un messaggio.
             Utilizza la chiave Fernet per crittografare il messaggio.
         """
-        padder = padding.PKCS7(algorithms.AES.block_size).padder()
+        padder = padding.PKCS7(algorithms.AES.block_size).padder() # type: ignore
         padded_data = padder.update(message.get_content().encode('utf-8')) + padder.finalize()
         cipher = Cipher(algorithms.AES(self._encryption_key), modes.CBC(self._IV))
         encryptor = cipher.encryptor()
@@ -63,22 +63,21 @@ class Custom_Cipher(Symmetric_Scheme):
         if not self.verify(message):
             raise ValueError("Il messaggio non è autentico o è stato manomesso.")
         data = bytes.fromhex(message.get_content())
-        ciphertext = data[c._IV_SIZE:-c._MAC_SIZE]
-        cipher = Cipher(algorithms.AES(self._encryption_key), modes.CBC(data[:c._IV_SIZE]))
+        ciphertext = data[IV_SIZE:-MAC_SIZE]
+        cipher = Cipher(algorithms.AES(self._encryption_key), modes.CBC(data[:IV_SIZE]))
         decryptor = cipher.decryptor()
         padded_data = decryptor.update(ciphertext) + decryptor.finalize()
-        unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
+        unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder() # type: ignore
         plaintext = unpadder.update(padded_data) + unpadder.finalize()
         return Message(plaintext.decode('utf-8'))
-       
-    
+
     def sign(self, message: Message) -> Message:
         """
             Metodo per applicare le proprietà di autenticità e integrità al messaggio.
             In questo caso, la firma è semplicemente la crittografia del messaggio.
         """
         content_bytes = message.get_content().encode('utf-8')
-        mac = hmac.new(self._auth_key, content_bytes, hashlib.sha256).digest()
+        mac = hmac.new(self._auth_key, content_bytes, hashlib.sha256).digest().hex()
         return Message(message.get_content(),signature=mac)
         
         
@@ -90,14 +89,24 @@ class Custom_Cipher(Symmetric_Scheme):
         """
         try: 
             payload = bytes.fromhex(message.get_content())
-            if len (payload) < _IV_SIZE + _MAC_SIZE:
+            if len (payload) < IV_SIZE + MAC_SIZE:
                 return False
-            mac_to_verify = payload[-_MAC_SIZE:]
-            cipher = payload[_IV_SIZE:-_MAC_SIZE]
-            data_to_authenticate = payload[:_IV_SIZE] + cipher
+            mac_to_verify = payload[-MAC_SIZE:]
+            cipher = payload[IV_SIZE:-MAC_SIZE]
+            data_to_authenticate = payload[:IV_SIZE] + cipher
             h = hmac.new(self._auth_key, data_to_authenticate, hashlib.sha256)
             return hmac.compare_digest(h.digest(), mac_to_verify)
         except ValueError:
             return False
 
+    def save_on_json(self) -> dict:
+        data = super().save_on_json()
+        data['IV'] = self._IV.hex()
+        data['scheme_type'] = "Cipher_Block_Chaining"
+        return data
     
+    @staticmethod
+    def load_from_json(data: dict) -> 'Cipher_Block_Chaining':
+        key = Key(bytes.fromhex(data["key"]))
+        IV = bytes.fromhex(data["IV"])
+        return Cipher_Block_Chaining(key, IV)
