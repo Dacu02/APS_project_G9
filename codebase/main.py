@@ -1,3 +1,4 @@
+from math import e
 import time
 import os
 import json
@@ -72,19 +73,29 @@ def lettura_dati() -> tuple[dict, dict, dict, dict]:
 
     return students, universities, CAs, configurazione
 
-def immatricola():
+def immatricola(args:list[str]=[]):
     students, universities, CAs, configurazione = lettura_dati()
-    student_name = input("Inserisci il nome dello studente: ")
+    if len(args) > 0:
+        student_name = args[0]
+    else:
+        student_name = input("Inserisci il nome dello studente: ")
     while student_name not in students:
         print("Lo studente non esiste.")
         student_name = input("Inserisci il nome dello studente: ")
     
-    university_name = input("Inserisci il nome dell'università: ")
+    if len(args) > 1:
+        university_name = args[1]
+    else:
+        university_name = input("Inserisci il nome dell'università: ")
     while university_name not in universities:
         print("L'università non esiste.")
         university_name = input("Inserisci il nome dell'università: ")
 
-    ca_name = input("Inserisci il nome della CA: ")
+    
+    if len(args) > 2:
+        ca_name = args[2]
+    else:
+        ca_name = input("Inserisci il nome della CA: ")
     while ca_name not in CAs:
         print("La CA non esiste.")
         ca_name = input("Inserisci il nome di una CA dove la chiave pubblica dell'università è registrata, o premi invio per prenderne una disponibile")
@@ -126,7 +137,10 @@ def immatricola():
     study_plans = university.get_study_plans()
     if study_plans is None or len(study_plans) == 0:
         raise ValueError("L'università non ha piani di studio disponibili.")
-    study_plan = input(f"Scegli un piano di studi tra {', '.join(study_plans.keys())}: ")
+    if len(args) > 3:
+        study_plan = args[3]
+    else:
+        study_plan = input(f"Scegli un piano di studi tra {', '.join(study_plans.keys())}: ")
     while study_plan not in study_plans:
         print(f"Il piano di studi {study_plan} non esiste nell'università {university_name}.")
         study_plan = input(f"Scegli un piano di studi tra {', '.join(study_plans.keys())}: ")
@@ -160,7 +174,10 @@ def immatricola():
     if uni_message['timestamp'] != message_data['timestamp']:
         raise ValueError("Il timestamp del messaggio dell'università non corrisponde a quello originale, possibile replay attack.")
     
-    password = input("Inserisci una password per autenticarti all'università: ")
+    if len(args) > 4:
+        password = args[4]
+    else:
+        password = input("Inserisci una password per autenticarti all'università: ")
     while not password:
         print("La password non può essere vuota.")
         password = input("Inserisci una password per autenticarti all'università: ")
@@ -183,26 +200,36 @@ def immatricola():
     university.enroll_student(student, password, study_plan)
 
 
-def read_code(prompt: str) -> str:
+def read_code(prompt: str, input_str:str|None=None) -> str:
     """
         Funzione per leggere un codice da input, con un prompt personalizzato.
         Ritorna il codice inserito.
     """
-    code = input(prompt)
+    if input_str:
+        code = input_str
+    else:
+        code = input(prompt)
     while not code.isdigit() or len(code) != 3:
         print("Il codice deve essere un numero di 3 cifre.")
         code = input(prompt)
     return code
 
 
-def crea_studente():
+def crea_studente(args:list[str]=[]):
     students = lettura_dati()[0]
-    code = read_code("Inserisci il codice dello studente: ")
+    code = read_code("Inserisci il codice dello studente: ", args[0] if len(args) > 0 else None)
     while code in students:
         print("Lo studente esiste già.")
         code = read_code("Inserisci il codice dello studente: ")
-    name = input("Inserisci il nome dello studente: ")
-    surname = input("Inserisci il cognome dello studente: ")
+    if len(args) > 1:
+        name = args[1]
+    else:
+        name = input("Inserisci il nome dello studente: ")
+
+    if len(args) > 2:
+        surname = args[2]
+    else:
+        surname = input("Inserisci il cognome dello studente: ")
 
     print("Studente creato con successo.")
     student = Student(name, surname, code)
@@ -211,14 +238,17 @@ def crea_studente():
         json.dump({code: student.save_on_json() for code, student in students.items()}, f, indent=4)
 
 
-def crea_universita():
+def crea_universita(args:list[str]=[]):
     universities:dict[str, University] = lettura_dati()[1]
-    code = read_code("Inserisci il codice dell'università: ")
+    code = read_code("Inserisci il codice dell'università: ", args[0] if len(args) > 0 else None)
     while code in universities:
         print("L'università esiste già.")
         code = read_code("Inserisci il codice dell'università: ")
     
-    name = input("Inserisci il nome dell'università: ")
+    if len(args) > 1:
+        name = args[1]
+    else:
+        name = input("Inserisci il nome dell'università: ")
     
     print("Università creata con successo.")
     university = University(name, code)
@@ -227,24 +257,38 @@ def crea_universita():
         json.dump({code: university.save_on_json() for code, university in universities.items()}, f, indent=4)
 
 
-def crea_piano_studi():
+def crea_piano_studi(args:list[str]=[]):
     universities:dict[str, University] = lettura_dati()[1]
-    university_code = read_code("Inserisci il codice dell'università: ")
+    university_code = read_code("Inserisci il codice dell'università: ", args[0] if len(args) > 0 else None)
     while university_code not in universities:
         print("L'università non esiste.")
         university_code = read_code("Inserisci il codice dell'università: ")
     
-    study_plan_name = input("Inserisci il nome del piano di studi: ")
+    if len(args) > 1:
+        study_plan_name = args[1]
+    else:
+        study_plan_name = input("Inserisci il nome del piano di studi: ")
+
     while study_plan_name in universities[university_code].get_study_plans():
         print("Il piano di studi esiste già.")
         study_plan_name = input("Inserisci il nome del piano di studi: ")
 
+    i = 2
     study_plan = []
     while True:
-        course_name = input("Inserisci il nome del corso (o premi invio per terminare): ")
+        if len(args) > i:
+            course_name = args[i] # Esce in automatico se args[i] = ""
+            i+=1
+        else:
+            course_name = input("Inserisci il nome del corso (o premi invio per terminare): ")
         if not course_name:
             break
-        course_credit = input("Inserisci il numero di crediti del corso: ")
+
+        if len(args) > i:
+            course_credit = args[i]
+            i+=1
+        else:
+            course_credit = input("Inserisci il numero di crediti del corso: ")
         while not course_credit.isdigit():
             print("Il numero di crediti deve essere un numero.")
             course_credit = input("Inserisci il numero di crediti del corso: ")
@@ -258,15 +302,22 @@ def crea_piano_studi():
     universities[university_code].add_study_plan(study_plan_name, study_plan)
 
 
-def crea_attivita():
+def crea_attivita(args:list[str]=[]):
     universities:dict[str, University] = lettura_dati()[1]
-    university_code = read_code("Inserisci il codice dell'università: ")
+    university_code = read_code("Inserisci il codice dell'università: ", args[0] if len(args) > 0 else None)
     while university_code not in universities:
         print("L'università non esiste.")
         university_code = read_code("Inserisci il codice dell'università: ")
 
-    activity_name = input("Inserisci il nome dell'attività: ")
-    activity_credit = input("Inserisci il numero di crediti dell'attività: ")
+    if len(args) > 1:
+        activity_name = args[1]
+    else:
+        activity_name = input("Inserisci il nome dell'attività: ")
+
+    if len(args) > 2:
+        activity_credit = args[2]
+    else:
+        activity_credit = input("Inserisci il numero di crediti dell'attività: ")
     while not activity_credit.isdigit():
         print("Il numero di crediti deve essere un numero.")
         activity_credit = input("Inserisci il numero di crediti dell'attività: ")
@@ -275,9 +326,12 @@ def crea_attivita():
 
     universities[university_code].add_activity(activity)
 
-def crea_CA():
+def crea_CA(args:list[str]=[]):
     CAs = lettura_dati()[2]
-    name = input("Inserisci il nome della CA: ")
+    if len(args) > 0:
+        name = args[0]
+    else:
+        name = input("Inserisci il nome della CA: ")
     while name in CAs:
         print("La CA esiste già.")
         name = input("Inserisci il nome della CA: ")
@@ -298,20 +352,22 @@ def pulizia():
         os.makedirs(DATA_DIRECTORY)
 
 
-def certifica_universita():
+def certifica_universita(args:list[str]=[]):
     """
         Funzione per certificare un'università, richiede il nome della CA e dell'università.
         L'università genera una coppia di chiavi, e chiede alla CA di pubblicare la propria chiave pubblica attraverso un certificato.
     """
     CAs = lettura_dati()[2]
     universities = lettura_dati()[1]
-
-    ca_name = input("Inserisci il nome della CA: ")
+    if len(args) > 0:
+        ca_name = args[0]
+    else:
+        ca_name = input("Inserisci il nome della CA: ")
     while ca_name not in CAs:
         print("La CA non esiste.")
         ca_name = input("Inserisci il nome della CA: ")
 
-    university_code = read_code("Inserisci il codice dell'università: ")
+    university_code = read_code("Inserisci il codice dell'università: ", args[1] if len(args) > 1 else None)
     while university_code not in universities:
         print("L'università non esiste.")
         university_code = read_code("Inserisci il codice dell'università: ")
@@ -371,18 +427,18 @@ if __name__ == "__main__":
     if command == "pulizia":
         pulizia()
     elif command == "crea_studente":
-        crea_studente()
+        crea_studente(list(sys.argv[2:]))
     elif command == "crea_universita":
-        crea_universita()
+        crea_universita(list(sys.argv[2:]))
     elif command == "crea_piano_studi":
-        crea_piano_studi()
+        crea_piano_studi(list(sys.argv[2:]))
     elif command == "crea_attivita":
-        crea_attivita()
+        crea_attivita(list(sys.argv[2:]))
     elif command == "crea_CA":
-        crea_CA()
+        crea_CA(list(sys.argv[2:]))
     elif command == "immatricola":
-        immatricola()
+        immatricola(list(sys.argv[2:]))
     elif command == "certifica_universita":
-        certifica_universita()
+        certifica_universita(list(sys.argv[2:]))
     else:
         print(f"Comando sconosciuto: {command}")
