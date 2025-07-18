@@ -423,8 +423,7 @@ def certifica_universita(args:list[str]=[]):
     if certificate is None:
         raise ValueError(f"La CA {ca_name} non ha emesso correttamente il certificato per l'università {university_code}.")
 
-    # ca.send(university, certificate)
-    university._receive(ca, certificate) 
+    ca.send(university, certificate, authority=True)
 
     print(f"L'università {university.get_name()} è stata certificata con successo dalla CA {ca.get_code()}.")
 

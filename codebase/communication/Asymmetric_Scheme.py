@@ -26,6 +26,14 @@ class Asymmetric_Scheme(Encryption_Scheme, ABC):
     def verify(self, message: Message) -> bool:
         pass
 
+    @abstractmethod
+    def authority_sign(self, message: Message) -> Message:
+        """
+            Firma il messaggio utilizzando la chiave privata dell'utente.
+            Utilizzato per garantire l'autenticità del messaggio.
+        """
+        pass
+
     def __init__(self, private_key: Key|None = None, public_key: Key|None = None):
         super().__init__()
         self._private_key = private_key

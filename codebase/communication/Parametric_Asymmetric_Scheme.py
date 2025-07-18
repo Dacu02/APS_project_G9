@@ -144,6 +144,21 @@ class Parametric_Asymmetric_Scheme(Asymmetric_Scheme):
         except Exception:
             return False
 
+
+    def authority_sign(self, message: Message) -> Message:
+        """
+        Firma il messaggio utilizzando la chiave privata dell'utente.
+        Utilizzato per garantire l'autenticità del messaggio.
+        """
+        if self._rsa_private_key is None:
+            raise ValueError("Encryption failed: RSA private key is not initialized.")
+        ciphertext = self._rsa_private_key.sign(
+                message.get_content().encode('utf-8'),
+                self._encryption_padding,
+                algorithm=self._hash_algorithm
+            )
+        return Message(ciphertext.hex(), signature=None)
+
     def share_public_key(self) -> 'Parametric_Asymmetric_Scheme':
         if self._public_key is None:
             raise ValueError("Public Key (Key object) is not set and cannot be shared.")

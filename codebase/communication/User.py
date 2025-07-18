@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from communication.Asymmetric_Scheme import Asymmetric_Scheme
 from communication.Message import Message
 from communication.Encryption_Scheme import Encryption_Scheme
 class User(ABC):
@@ -13,12 +14,25 @@ class User(ABC):
         self._last_message:Message
         # Dizionario che associa gli utenti agli schemi di crittografia
 
-    def send(self, user: "User", message: Message, encrypt: bool = True, sign: bool = True):
+    def send(self, user: "User", message: Message, encrypt: bool = True, sign: bool = True, authority: bool = False):
         """
             Invia un messaggio ad un altro utente.
-            Se encrypt è True, il messaggio viene cifrato.
-            Se sign è True, il messaggio preserva la proprietà di integrità.
+            Parametri:
+            - user: L'utente destinatario del messaggio.
+            - message: Il messaggio da inviare.
+            - encrypt: Se True, il messaggio viene cifrato.
+            - sign: Se True, il messaggio viene firmato.
+            - authority: Se True, il messaggio viene inviato preservando la proprietà di autenticità attraverso la cifratura mediante chiave privata. Authority prevale su encrypt e sign.
         """
+
+        if authority:
+            scheme = self._keys.get(self._code)
+            if scheme is None or not isinstance(scheme, Asymmetric_Scheme):
+                raise ValueError(f"[{self._code}] Chiave di crittografia non trovata per l'utente {self._code}")
+
+            mex = scheme.authority_sign(message)
+            print(f"{self._code} cifra e firma il messaggio: {message.get_content()} con la propria chiave privata")
+            user._receive(self, mex, decrypt=False, verify=True)
 
         if not encrypt and not sign:
             user._receive(self, message, decrypt=False, verify=False)
@@ -44,9 +58,13 @@ class User(ABC):
     def _receive(self, user: "User", message: Message, decrypt: bool = True, verify: bool = True):
         """
             Riceve un messaggio da un altro utente.
-            Se decrypt è True, il messaggio viene decifrato.
-            Se verify è True, viene verificata la proprietà di integrità.
+            Parametri:
+            - user: L'utente mittente del messaggio.
+            - message: Il messaggio ricevuto.
+            - decrypt: Se True, il messaggio viene decifrato.
+            - verify: Se True, viene verificata la proprietà di integrità.
         """
+
         if not decrypt and not verify:
             print(f"{self._code} riceve il messaggio {message.get_content()} senza decifrare o verificare la firma.")
             return
