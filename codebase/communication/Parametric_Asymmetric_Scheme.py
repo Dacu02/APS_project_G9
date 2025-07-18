@@ -20,7 +20,8 @@ class Parametric_Asymmetric_Scheme(Asymmetric_Scheme):
         public_exponent: int = 65537,
         hash_algorithm_class=hashes.SHA256,
         encryption_padding_class=padding.OAEP,
-        signing_padding_class=padding.PSS
+        signing_padding_class=padding.PSS,
+        only_public: bool = False
     ):
         """
         Inizializza lo schema RSA.
@@ -54,7 +55,7 @@ class Parametric_Asymmetric_Scheme(Asymmetric_Scheme):
 
         super().__init__(private_key, public_key)
 
-        if private_key is not None:
+        if self._private_key is not None:
             try:
                 self._rsa_private_key = serialization.load_pem_private_key(private_key.get_key(), password=None)
                 self._rsa_public_key = self._rsa_private_key.public_key()
@@ -83,6 +84,10 @@ class Parametric_Asymmetric_Scheme(Asymmetric_Scheme):
             self._public_key = Key(self._rsa_public_key.public_bytes(
                 encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo
             ))
+
+        if only_public:
+            self._rsa_private_key = None
+            self._private_key = None
 
     def encrypt(self, message: Message) -> Message:
         if self._rsa_public_key is None:
@@ -148,17 +153,19 @@ class Parametric_Asymmetric_Scheme(Asymmetric_Scheme):
             public_exponent=self._public_exponent,
             hash_algorithm_class=self._hash_algorithm_class,
             encryption_padding_class=self._encryption_padding_class,
-            signing_padding_class=self._signing_padding_class
+            signing_padding_class=self._signing_padding_class,
+            only_public=True
         )
 
     @staticmethod
     def load_from_json(data: dict) -> 'Parametric_Asymmetric_Scheme':
 
 
-        private_key = Key.load_from_json(data["private_key"]) 
-        public_key = Key.load_from_json(data["public_key"]) 
+        only_public = "private_key" not in data
 
-        
+        private_key = Key.load_from_json(data["private_key"]) if not only_public else None
+        public_key = Key.load_from_json(data["public_key"])
+
         key_size = data.get("key_size", 2048)
         public_exponent = data.get("public_exponent", 65537)
         hash_name = data.get("hash_algorithm", "SHA256")
@@ -171,8 +178,8 @@ class Parametric_Asymmetric_Scheme(Asymmetric_Scheme):
         sign_padding_class = getattr(padding, sign_padding_name)
 
         return Parametric_Asymmetric_Scheme(
-            private_key,
-            public_key,
+            private_key=private_key,
+            public_key=public_key,
             key_size=key_size,
             public_exponent=public_exponent,
             hash_algorithm_class=hash_class,

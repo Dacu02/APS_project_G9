@@ -1,8 +1,8 @@
-from datetime import date
+from datetime import date, timedelta
 from typing import TypedDict
 from actors.Student import Student
 from communication.Asymmetric_Scheme import Asymmetric_Scheme
-from constants import DATA_DIRECTORY, UNIVERSITIES_FOLDER, Activity, ActivityResult, Exam, ExamResult, StudyPlan
+from constants import CREDENTIAL_PERIOD_DAYS, DATA_DIRECTORY, UNIVERSITIES_FOLDER, Activity, ActivityResult, Credential, Exam, ExamResult, StudyPlan, EXCHANGE_DEFAULT_PERIOD_DAYS
 from communication.Encryption_Scheme import Encryption_Scheme
 from communication.User import User
 import os
@@ -18,6 +18,7 @@ class StudentData(TypedDict):
     password: str
     salt: str
     exchange_plan: dict[str, Exam | Activity] | None
+    credential: Credential | None
 
 
 class University(User):
@@ -48,7 +49,11 @@ class University(User):
         json_path = os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER, f"uni_{self._name}.json")
         if not os.path.exists(json_path):
             with open(json_path, "w") as f:
-                f.write("{}")
+                json.dump({}, f, indent=4)
+        else:
+            with open(json_path, "r") as f:
+                data = json.load(f)
+            self._students = {code: stud for code, stud in data.get("students", {}).items()}
 
     def __str__(self) -> str:
         return f"Università: {self._name}, Codice: {self._code}"
@@ -62,7 +67,6 @@ class University(User):
         dict["study_plans"] = self._study_plans
         dict["activities"] = self._activities
         dict["name"] = self._name
-        dict['students'] = json.dumps(self._students)
         return dict
 
     def get_study_plans(self) -> dict[str, StudyPlan]:
@@ -91,6 +95,7 @@ class University(User):
             Iscrive uno studente all'università con un piano di studi specificato.
             Parametri:
             - student: Lo studente da iscrivere.
+            - password: La password da associare allo studente.
             - study_plan: Il nome piano di studi a cui lo studente si immatricola
         """
         json_path = os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER, f"uni_{self._name}.json")
@@ -117,13 +122,35 @@ class University(User):
             "passed_activities": {},
             "password": scheme.hash(password),
             "salt": student.get_name() + student.get_surname(), # Per semplicità si considera la concatenazione del nome e cognome come salt
-            "exchange_plan": None
+            "exchange_plan": None,
+            "credential": None
         }
 
         data['students'][serial_id] = student_data
 
         with open(json_path, "w") as f:
             json.dump(data, f, indent=4)
+
+    def check_password(self, student: Student, password: str) -> bool:
+        """
+            Verifica la password dello studente.
+            Parametri:
+            - student: Lo studente di cui verificare la password.
+            - password: La password da verificare.
+        """
+        serial_id = f"{student.get_code():03d}#{self._code:03d}"
+        if serial_id not in self._students:
+            raise ValueError(f"Lo studente {student.get_code()} non è iscritto all'università {self._name}.")
+        
+        student_data = self._students[serial_id]
+        stored_password = student_data.get("password")
+        # salt = student_data.get("salt", "") # TODO Implementa il salt
+        
+        scheme = self._keys.get(self._code)
+        if scheme is None or not isinstance(scheme, Asymmetric_Scheme):
+            raise ValueError("L'università non possiede uno schema crittografico asimmetrico.")
+        
+        return scheme.hash(password) == stored_password
 
     def add_study_plan(self, plan_name: str, study_plan: StudyPlan):
         """
@@ -186,7 +213,7 @@ class University(User):
         with open(json_path, "w") as f:
             json.dump(data, f, indent=4)
 
-    def accept_incoming_exchange(self, student: Student, incoming_university: 'University', incoming_serial_id: str, incoming_referrer: str, internal_referrer: str):
+    def accept_incoming_exchange(self, student: Student, incoming_university: 'University', incoming_serial_id: str, incoming_referrer: str, internal_referrer: str, exchange_period_days: int = EXCHANGE_DEFAULT_PERIOD_DAYS):
         """
             Accetta un contratto di scambio in arrivo per uno studente.
             Parametri:
@@ -209,7 +236,8 @@ class University(User):
             "incoming_serial_id": incoming_serial_id,
             "incoming_referrer": incoming_referrer,
             "internal_referrer": internal_referrer,
-            "exchange_start_period": date.today().isoformat()
+            "exchange_period_start": date.today().isoformat(),
+            "exchange_period_end": (date.today() + timedelta(days=exchange_period_days)).isoformat()
         }
 
     def pass_exam(self, student: Student, results: ExamResult):
@@ -250,4 +278,47 @@ class University(User):
         data[serial_id]["activities"][results["name"]] = results
         
         with open(json_path, "w") as f:
-            json.dump(data, f, indent=4)        
+            json.dump(data, f, indent=4)
+
+    def get_student_credential(self, student:Student) -> Credential:
+        serial_id = f"{student.get_code():03d}#{self._code:03d}"
+
+        if serial_id not in self._students:
+            raise ValueError(f" [{self._name}] Lo studente {student.get_code()} non è iscritto all'università.")
+        if serial_id in self._students and not "incoming_university" in self._students[serial_id]:
+            raise ValueError(f" [{self._name}] Lo studente {student.get_code()} non è in mobilità.")
+        
+        student_data = self._students[serial_id]
+        incoming_uni_serial_id = student_data.get("incoming_serial_id")
+        if not incoming_uni_serial_id:
+            raise ValueError(f" [{self._name}] Lo studente {student.get_code()} non ha un ID di mobilità in entrata.")
+
+        temp = self._students[serial_id]['credential']
+        if temp:
+            expiration_date = temp.get("expiration_date")
+            if expiration_date and date.fromisoformat(expiration_date) >= date.today():
+                return temp
+
+        passed_exams:list[ExamResult] = student_data.get("exams", {})
+        passed_activities:list[ActivityResult] = student_data.get("activities", {})
+
+        credential: Credential = {
+            "internal_serial_id": f"{student.get_code():03d}#{incoming_uni_serial_id:03d}",
+            "external_serial_id": serial_id,
+            "name": student_data.get("name"),
+            "surname": student_data.get("surname"),
+            "internal_referrer": student_data.get("incoming_referrer", None),
+            "external_referrer": student_data.get("internal_referrer", None),
+            "external_university": self._name,
+            "external_university_code": self._code,
+            "emission_date": date.today().isoformat(),
+            "expiration_date": (date.today() + timedelta(days=CREDENTIAL_PERIOD_DAYS)).isoformat(),
+            "exchange_period_start": student_data.get("exchange_period_start", None),
+            "exchange_period_end": student_data.get("exchange_period_end", None),
+            "exams_results": passed_exams,
+            "activities_results": passed_activities,
+        }
+
+        self._students[serial_id]["credential"] = credential
+
+        return credential

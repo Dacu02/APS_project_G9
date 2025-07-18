@@ -1,7 +1,7 @@
 import hashlib
-from communication.Hash_Algorithm import HashAlgorithm
+from communication.Hash_Algorithm import Hash_Algorithm
 
-class GenericHashAlgorithm(HashAlgorithm):
+class Generic_Hash_Algorithm(Hash_Algorithm):
     """
     Implementazione generica di un algoritmo di hash.
     Utilizza la libreria hashlib per supportare vari algoritmi di hash.
@@ -16,7 +16,7 @@ class GenericHashAlgorithm(HashAlgorithm):
         Raises:
             ValueError: Se l'algoritmo specificato non è supportato da hashlib.
         """
-        self.algorithm_name = algorithm_name
+        self._algorithm_name = algorithm_name
         if algorithm_name not in hashlib.algorithms_available:
             raise ValueError(f"Algoritmo di hash '{algorithm_name}' non supportato.")
         self.hasher = hashlib.new(algorithm_name)
@@ -39,17 +39,17 @@ class GenericHashAlgorithm(HashAlgorithm):
         Returns:
             Il nome dell'algoritmo.
         """
-        return self.algorithm_name
+        return self._algorithm_name
     def save_on_json(self) -> dict:
         """
         Restituisce una rappresentazione JSON dell'algoritmo, includendo il suo nome.
         """
         return {
-            "class": "GenericHashAlgorithm",
+            "class": "Generic_Hash_Algorithm",
             "algorithm_name": self._algorithm_name
         }
     @staticmethod
-    def load_from_json(data: dict) -> 'GenericHashAlgorithm':
+    def load_from_json(data: dict) -> 'Generic_Hash_Algorithm':
         """
         Carica un algoritmo di hash da una rappresentazione JSON.
 
@@ -62,6 +62,6 @@ class GenericHashAlgorithm(HashAlgorithm):
         algorithm_name = data.get("algorithm_name")
         if not algorithm_name:
             raise ValueError("Dati JSON non validi: 'algorithm_name' mancante.")
-        return GenericHashAlgorithm(algorithm_name)
+        return Generic_Hash_Algorithm(algorithm_name)
 
     

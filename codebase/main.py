@@ -1,3 +1,4 @@
+from ast import Param
 from math import e
 import time
 import os
@@ -12,7 +13,7 @@ from communication.Certificate import Certificate
 from communication.Asymmetric_Scheme import Asymmetric_Scheme
 from communication.Symmetric_Scheme import Symmetric_Scheme
 from communication.Parametric_Asymmetric_Scheme import Parametric_Asymmetric_Scheme
-from constants import DATA_DIRECTORY, STUDENTS_FOLDER, UNIVERSITIES_FOLDER, Activity, CAs_FOLDER, Credential, RANDOM_NUMBER_MAX
+from constants import DATA_DIRECTORY, STUDENTS_FOLDER, UNIVERSITIES_FOLDER, Activity, CAs_FOLDER, Credential, RANDOM_NUMBER_MAX, MAXIMUM_TIMESTAMP_DIFFERENCE
 import sys
 import secrets
 data_dir = os.path.join(os.getcwd(), DATA_DIRECTORY)
@@ -167,6 +168,11 @@ def immatricola(args:list[str]=[]):
     received_message = university.get_last_message()
     received_data = json.loads(received_message.get_content())
     received_nonce_challenge = received_data["nonce"]
+    received_timestamp = received_data["timestamp"]
+    # Controlla che la differenza del timestamp non superi la costante MAXIMUM_TIMESTAMP_DIFFERENCE
+    if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
+        raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
+
     uni_message = {
         "text": f"Benvenuto {received_data['name']} {received_data['surname']}, per favore fornisci una password per autenticarti in futuro, inoltre, ripeti il timestamp originale e l'attuale",
         "nonce": received_data["timestamp"],
@@ -179,6 +185,9 @@ def immatricola(args:list[str]=[]):
     received_data = json.loads(received_message.get_content())
     if received_data['nonce'] != received_data['timestamp']:
         raise ValueError("Il timestamp del messaggio dell'università non corrisponde a quello originale, possibile replay attack.")
+    received_timestamp = received_data['timestamp']
+    if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
+        raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
     
     if len(args) > 4:
         password = args[4]
@@ -201,6 +210,9 @@ def immatricola(args:list[str]=[]):
     #* 6 L'università riceve la password e la salva nel proprio database, immatricolando lo studente
     received_message = university.get_last_message()
     received_data = json.loads(received_message.get_content())
+    received_timestamp = received_data['timestamp']
+    if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
+        raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
     if received_data['nonce'] != received_nonce_challenge:
         raise ValueError("Il numero casuale del messaggio dello studente non corrisponde a quello originale, possibile replay attack.")
 
@@ -346,8 +358,14 @@ def crea_CA(args:list[str]=[]):
     print("CA creata con successo.")
     ca = CA(name)
     CAs[name] = ca
+
+    #* La CA genera una coppia di chiavi per sé e per i certificati
+    scheme = Parametric_Asymmetric_Scheme()
+    ca.add_key(ca, scheme)
+
     with open(os.path.join(data_dir, CAs_FOLDER, "CAs.json"), 'w') as f:
         json.dump({name: ca.save_on_json() for name, ca in CAs.items()}, f, indent=4)
+
 
 
 def pulizia():
@@ -383,10 +401,19 @@ def certifica_universita(args:list[str]=[]):
     university:University = universities[university_code]
 
     #* 1 L'università genera una coppia di chiavi
-    # university.generate_key_pair() #TODO Definisci il metodo generate_key_pair  
-    scheme: Asymmetric_Scheme = university._keys[self] # type: ignore #Todo ricorda di rimuovere questa riga quando implementi il metodo generate_key_pair
+
+    scheme: Asymmetric_Scheme = Parametric_Asymmetric_Scheme()
+    public_key = scheme.share_public_key()
+    university.add_key(university, scheme)
+    university.add_key(ca, ca._keys[ca._code].share_public_key()) # type: ignore 
+
+    # Si immagina che l'università conosca già la CA sulla quale vuole certificare
+    # la chiave pubblica e che comunichi attraverso altri mezzi alternativi sicuri
+
+
     #* 2 L'università chiede alla CA di certificare la propria chiave pubblica
-    cert = ca.register_user_public_key(university, scheme)
+    cert = ca.register_user_public_key(university, public_key)
+    ca.add_key(university, public_key)
     
     if cert is None:
         raise ValueError(f"La CA {ca_name} non ha potuto certificare l'università {university_code}.")
@@ -401,125 +428,151 @@ def certifica_universita(args:list[str]=[]):
 
     print(f"L'università {university.get_name()} è stata certificata con successo dalla CA {ca.get_code()}.")
 
-    def emetti_credenziale(args:list[str]=[]):
-        """
-            Funzione per emettere una credenziale di uno studente in mobilità iscritto ad un'università ospitante.
-        """
-        students = lettura_dati()[0]
-        universities = lettura_dati()[1]
+def emetti_credenziale(args:list[str]=[]):
+    """
+        Funzione per emettere una credenziale di uno studente in mobilità iscritto ad un'università ospitante.
+    """
+    students = lettura_dati()[0]
+    universities = lettura_dati()[1]
 
-        university_code = read_code("Inserisci il codice dell'università ospitante: ", args[0] if len(args) > 0 else None)
-        while university_code not in universities:
-            print("L'università ospitante non esiste.")
-            university_code = read_code("Inserisci il codice dell'università ospitante: ")
-        
-        student_code = read_code("Inserisci il codice dello studente: ", args[1] if len(args) > 1 else None)
-        while student_code not in students:
-            print("Lo studente non esiste.")
-            student_code = read_code("Inserisci il codice dello studente: ")
+    university_code = read_code("Inserisci il codice dell'università ospitante: ", args[0] if len(args) > 0 else None)
+    while university_code not in universities:
+        print("L'università ospitante non esiste.")
+        university_code = read_code("Inserisci il codice dell'università ospitante: ")
+    
+    student_code = read_code("Inserisci il codice dello studente: ", args[1] if len(args) > 1 else None)
+    while student_code not in students:
+        print("Lo studente non esiste.")
+        student_code = read_code("Inserisci il codice dello studente: ")
 
-        #TODO Implementa la comunicazione per della credenziale attraverso l'autenticiazione
+    #TODO Implementa la comunicazione per della credenziale attraverso l'autenticiazione
 
-        credenziale:Credential = universities[university_code].issue_credential(students[student_code])
+    credenziale:Credential = universities[university_code].issue_credential(students[student_code])
 
-    def autenticazione(args:list[str]=[]):
-        """
-            Funzione per autenticare uno studente.
-        """
-        students = lettura_dati()[0]
-        universities = lettura_dati()[1]
+def autenticazione(args:list[str]=[]):
+    """
+        Funzione per autenticare uno studente.
+    """
+    students = lettura_dati()[0]
+    universities = lettura_dati()[1]
 
-        university_code = read_code("Inserisci il codice dell'università ospitante: ", args[0] if len(args) > 0 else None)
-        while university_code not in universities:
-            print("L'università ospitante non esiste.")
-            university_code = read_code("Inserisci il codice dell'università ospitante: ")
+    university_code = read_code("Inserisci il codice dell'università ospitante: ", args[0] if len(args) > 0 else None)
+    while university_code not in universities:
+        print("L'università ospitante non esiste.")
+        university_code = read_code("Inserisci il codice dell'università ospitante: ")
 
-        student_code = read_code("Inserisci il codice dello studente: ", args[1] if len(args) > 1 else None)
-        while student_code not in students:
-            print("Lo studente non esiste.")
-            student_code = read_code("Inserisci il codice dello studente: ")
+    student_code = read_code("Inserisci il codice dello studente: ", args[1] if len(args) > 1 else None)
+    while student_code not in students:
+        print("Lo studente non esiste.")
+        student_code = read_code("Inserisci il codice dello studente: ")
 
-        if len(args) > 2:
-            password = args[2]
-        else:
-            password = input("Inserisci la password dello studente: ")
-        while not password:
-            print("La password non può essere vuota.")
-            password = input("Inserisci la password dello studente: ")
-        print(f"Password inserita per lo studente {student_code}: {password}")
+    if len(args) > 2:
+        password = args[2]
+    else:
+        password = input("Inserisci la password dello studente: ")
+    while not password:
+        print("La password non può essere vuota.")
+        password = input("Inserisci la password dello studente: ")
+    print(f"Password inserita per lo studente {student_code}: {password}")
 
-        student:Student = students[student_code]
-        university:University = universities[university_code]
+    student:Student = students[student_code]
+    university:University = universities[university_code]
 
-        #* 1 Lo studente invia una richiesta di autenticazione, con nounce e timestamp come da protocollo
-        random_number = secrets.randbelow(RANDOM_NUMBER_MAX)  # Numero casuale tra 0 e 999999 non basato su timestamp
-        student_initial_timestamp = time.time()
-        request_auth_mex = {
-            "name": student.get_name(),
-            "surname": student.get_surname(),
-            "code": student.get_code(),
-            "timestamp": student_initial_timestamp,
-            "text": "Richiesta di immatricolazione",
-            "nonce": random_number
-        }
-        request_auth = Message(json.dumps(request_auth_mex))
-        student.send(university, request_auth, sign=True)
-        
-        #* 2 L'università riceve il messaggio e lo decifra con la propria chiave privata, risponde di autenticarsi con il nounce
-        uni_message = {
-            "text": f"Benvenuto {request_auth_mex['name']} {request_auth_mex['surname']}, per favore fornisci una password per autenticarti in futuro, inoltre, ripeti il timestamp originale e l'attuale",
-            "nonce": request_auth_mex["timestamp"],
-            "timestamp": time.time()
-        }
-        
-        university.send(student, Message(json.dumps(uni_message)), encrypt=False, sign=True)
+    student_initial_timestamp = time.time()
+    random_number = secrets.randbelow(RANDOM_NUMBER_MAX)  # Numero casuale tra 0 e 999999 non basato su timestamp
+    #* 1 Lo studente invia un messaggio all'università con il proprio nome, cognome, codice, timestamp e un numero casuale
+    message_data = {
+        "name": student.get_name(),
+        "surname": student.get_surname(),
+        "code": student.get_code(),
+        "timestamp": student_initial_timestamp,
+        "text": "Richiesta di autenticazione",
+        "nonce": random_number
+    }
 
-        #* 5 Lo studente riceve il messaggio e procede a definire una password
-        if uni_message['timestamp'] != request_auth_mex['timestamp']:
-            raise ValueError("Il timestamp del messaggio dell'università non corrisponde a quello originale, possibile replay attack.")
-        
-        if len(args) > 4:
-            password = args[4]
-        else:
-            password = input("Inserisci una password per autenticarti all'università: ")
-        while not password:
-            print("La password non può essere vuota.")
-            password = input("Inserisci una password per autenticarti all'università: ")
-        student.set_password(password, university) # Lo studente si ricorderà la password per usi futuri (viene salvata in student.json in chiaro a scopo didattico)
-        #TODO Ricorda di scrivere la password in student.json
+    message = Message(json.dumps(message_data))
+    student.send(university, message, sign=True)
+    #* 2 L'università riceve il messaggio e lo decifra con la propria chiave privata,
+    #* chiede quindi allo studente di inserire la password per autenticarsi
+    #* Inoltre, per evitare replay attack gli chiede di ripetere il timestamp originale
+    received_message = university.get_last_message()
+    received_data = json.loads(received_message.get_content())
+    received_timestamp = received_data['timestamp']
+    if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
+        raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
+    
+    received_nonce_challenge = received_data["nonce"]
+    uni_message = {
+        "text": f"Benvenuto {received_data['name']} {received_data['surname']}, per favore fornisci una password per autenticarti, inoltre, ripeti il timestamp originale e l'attuale",
+        "nonce": received_data["timestamp"],
+        "timestamp": time.time()
+    }
+    university.send(student, Message(json.dumps(uni_message)), encrypt=False, sign=True)
 
-        password_message = {
-            "password": password,
-            "timestamp": time.time(),
-            "nonce": random_number,
-            "text": "Password di immatricolazione"
-        }
+    #* 3 Lo studente riceve il messaggio e procede a inserire la password
+    received_message = student.get_last_message()
+    received_data = json.loads(received_message.get_content())
+    received_timestamp = received_data['timestamp']
+    if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
+        raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
+    if received_data['nonce'] != received_data['timestamp']:
+        raise ValueError("Il timestamp del messaggio dell'università non corrisponde a quello originale, possibile replay attack.")
 
-        student.send(university, Message(json.dumps(password_message)), sign=True)
+    student_scheme = Parametric_Symmetric_Scheme()
+    password_message = {
+        "password": student.get_password(university),
+        "timestamp": time.time(),
+        "nonce": random_number,
+        "text": "Password di autenticazione",
+        "scheme": student_scheme.save_on_json()
+    }
+    student.send(university, Message(json.dumps(password_message)), sign=True)
+    student.add_key(university, student_scheme)
+    #* 4 L'università riceve la password e la verifica confrontandola con quella salvata nel proprio database
+    received_message = university.get_last_message()
+    received_data = json.loads(received_message.get_content())
+    received_timestamp = received_data['timestamp']
+    if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
+        raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
+    if received_data['nonce'] != received_nonce_challenge:
+        raise ValueError("Il numero casuale del messaggio dello studente non corrisponde a quello originale, possibile replay attack.")
+    check = university.check_password(student, received_data["password"])
+    if not check:
+        raise ValueError("Password errata, impossibile autenticare lo studente.")
+    print(f"Autenticazione dello studente {student.get_name()} {student.get_surname()} ({student.get_code()}) avvenuta con successo.")
+    
+    #* 5 L'università risponde allo studente con un messaggio di autenticazione avvenuta con successo con attraverso la nuova chiave
+    auth_message = {
+        "text": f"Autenticazione avvenuta con successo {student.get_name()} {student.get_surname()} ({student.get_code()})",
+        "timestamp": time.time(),
+    }
+    uni_scheme = Parametric_Symmetric_Scheme.load_from_json(received_data.get("scheme"))
+    university.add_key(student, uni_scheme)
+    university.send(student, Message(json.dumps(auth_message)), encrypt=True, sign=True)
 
 if __name__ == "__main__":
 
-    # Genera due utenti (studenti) e falli comunicare
+    # # Genera due utenti (studenti) e falli comunicare
 
-    # Crea due studenti di esempio
-    student1 = Student("Alice", "Rossi", "101")
-    student2 = Student("Bob", "Bianchi", "102")
+    # # Crea due studenti di esempio
+    # student1 = Student("Alice", "Rossi", "101")
+    # student2 = Student("Bob", "Bianchi", "102")
 
 
-    # Crea uno schema simmetrico per cifrare il messaggio
-    scheme:Asymmetric_Scheme = Parametric_Asymmetric_Scheme() # Parametric_Asymmetric_Scheme è un esempio di implementazione di uno schema asimmetrico parametrico
-    student1.add_key(student2, scheme)
-    student2.add_key(student1, Parametric_Asymmetric_Scheme.load_from_json(scheme.save_on_json())) # Condivide la chiave pubblica con Bob
+    # # Crea uno schema simmetrico per cifrare il messaggio
+    # scheme:Asymmetric_Scheme = Parametric_Asymmetric_Scheme() # Parametric_Asymmetric_Scheme è un esempio di implementazione di uno schema asimmetrico parametrico
+    # student1.add_key(student2, scheme)
+    # student2.add_key(student1, Parametric_Asymmetric_Scheme.load_from_json(scheme.save_on_json())) # Condivide la chiave pubblica con Bob
 
-    # Crea un messaggio da Alice a Bob
-    message = Message("Ciao Bob, sono Alice!")
-    student1.send(student2, message, sign=True)
+    # # Crea un messaggio da Alice a Bob
+    # message = Message("Ciao Bob, sono Alice!")
+    # student1.send(student2, message, sign=True)
 
     
-    # Crea un messaggio di risposta da Bob ad Alice
-    reply = Message("Ciao Alice, piacere di conoscerti!")
-    student2.send(student1, reply, sign=True)
-    exit()
+    # # Crea un messaggio di risposta da Bob ad Alice
+    # reply = Message("Ciao Alice, piacere di conoscerti!")
+    # student2.send(student1, reply, sign=True)
+    # exit()
     if len(sys.argv) < 2:
 
         print("Inserisci il nome di un algoritmo")

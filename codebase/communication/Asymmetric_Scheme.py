@@ -47,12 +47,13 @@ class Asymmetric_Scheme(Encryption_Scheme, ABC):
     def load_from_json(data: dict) -> 'Asymmetric_Scheme':
         if "scheme_type" in data:
             name = data["scheme_type"]
-            if name == "Custom_Cipher":
-                from communication.Custom_Cipher import Custom_Cipher
-                return Custom_Cipher.load_from_json(data)
+            if name == "Parametric_Asymmetric_Scheme":
+                from communication.Parametric_Asymmetric_Scheme import Parametric_Asymmetric_Scheme
+                return Parametric_Asymmetric_Scheme.load_from_json(data)
             else:
                 raise ValueError(f"Tipo di schema di crittografia sconosciuto: {name}")
-        #raise ValueError("Non implementato")
+        else:
+            raise ValueError("Schema non leggibile")
 
     @abstractmethod
     def share_public_key(self) -> Asymmetric_Scheme | None:

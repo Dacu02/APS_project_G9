@@ -38,5 +38,13 @@ class Student(User):
         return student
     
     def set_password(self, password: str, user:User):
+        """
+            Imposta la password dello studente per l'utente specificato.
+        """
         self._passwords[user.get_code()] = password
 
+    def get_password(self, user:User) -> str:
+        """
+            Restituisce la password dello studente per l'utente specificato.
+        """
+        return self._passwords.get(user.get_code(), "")

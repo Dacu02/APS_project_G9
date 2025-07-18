@@ -27,6 +27,26 @@ class MerkleTree():
         def set_right(self, right: 'MerkleTree._Node | None'):
             self._right = right
 
+        def _validate(self, hash_alg:Hash_Algorithm) -> bool:
+            if not self or not self.get_hash():
+                return False
+            
+            hash_function = hash_alg.hash
+            left = self.get_left()
+            right = self.get_right()
+
+            if left and right:
+                left_hash = left.get_hash()
+                right_hash = right.get_hash()
+                if left_hash is None or right_hash is None:
+                    return False
+                return (hash_function(left_hash + right_hash) == self.get_hash()) and left._validate(hash_alg) and right._validate(hash_alg)
+            elif not left and not right:
+                return self.get_hash() is not None
+            else:
+                return False
+
+
     def __init__(self, leaves_to_hash: list[str], hash_algorithm: Hash_Algorithm = BLOCKCHAIN_HASH_ALGORITHM()):
         """
             Inizializza un Merkle Tree con i nodi foglia specificati.
@@ -94,3 +114,12 @@ class MerkleTree():
     
     def get_root(self) -> _Node | None:
         return self._root
+    
+    def validate(self) -> bool:
+        """
+            Controlla che il Merkle Tree sia valido.
+            Un Merkle Tree è valido se la radice ha un hash e tutti i nodi hanno figli validi.
+        """
+        if not self._root or not self._root.get_hash():
+            return False
+        return self._root._validate(self._hash)

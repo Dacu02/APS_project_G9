@@ -5,7 +5,7 @@ from communication.Asymmetric_Scheme import Asymmetric_Scheme
 from communication.Message import Message
 
 class CertificateContent(TypedDict):
-    key: str
+    key: dict
     timestamp: str
 
 

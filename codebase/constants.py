@@ -1,7 +1,7 @@
 from datetime import date
 from typing import TypeAlias, TypedDict
 
-from communication.GenericHashAlgorithm import GenericHashAlgorithm
+from communication.Generic_Hash_Algorithm import Generic_Hash_Algorithm
 
 DATA_DIRECTORY = "data"
 STUDENTS_FOLDER = "students"
@@ -10,8 +10,11 @@ CAs_FOLDER = "CAs"
 KEY_LENGTH = 32  # Lunghezza della chiave in byte (256 bit)
 IV_SIZE = 16 # 128 bit
 MAC_SIZE = 32 #256 bit per HMAC-SHA256
-BLOCKCHAIN_HASH_ALGORITHM = lambda : GenericHashAlgorithm("SHA256")
+BLOCKCHAIN_HASH_ALGORITHM = lambda : Generic_Hash_Algorithm("SHA256")
 RANDOM_NUMBER_MAX = 10**6
+MAXIMUM_TIMESTAMP_DIFFERENCE = 60  # Un minuto in secondi
+EXCHANGE_DEFAULT_PERIOD_DAYS = 120 # 120 giorni di scambio predefiniti
+CREDENTIAL_PERIOD_DAYS = 365 # 365 giorni di validità della credenziale
 
 class Exam(TypedDict):
     """
@@ -67,10 +70,10 @@ class Credential(TypedDict):
     external_university_code: str
     internal_referrer: str
     external_referrer: str
-    emission_date: date
-    expiration_date: date
-    exchange_period_start: date
-    exchange_period_end: date
+    emission_date: str
+    expiration_date: str
+    exchange_period_start: str
+    exchange_period_end: str
     exams_results: list[ExamResult]
     activities_results: list[ActivityResult]
 

@@ -19,12 +19,12 @@ class CA(User):
         json_path = os.path.join(DATA_DIRECTORY, CAs_FOLDER, f"ca_{self._code}.json")
         if not os.path.exists(json_path):
             with open(json_path, "w") as f:
-                f.write("{}")
+                json.dump({}, f)
                 
     def __str__(self):
         return f"CA: {self._code}"
     
-    def register_user_public_key(self, user: User, public_key_scheme: Asymmetric_Scheme):
+    def register_user_public_key(self, user: User, public_key_scheme: Asymmetric_Scheme) -> Certificate:
         """
             Registra la chiave pubblica dell'utente.
         """
@@ -39,22 +39,18 @@ class CA(User):
         if not isinstance(scheme, Asymmetric_Scheme):
             raise TypeError(f"[{self._code}] La chiave di crittografia non è di tipo Asymmetric_Scheme")
         
-        key_string = public_key_scheme.get_public_key()
-        if not isinstance(key_string, Key):
-            raise TypeError(f"[{self._code}] La chiave pubblica deve essere di tipo Key, ma è di tipo {type(key_string)}")
-        
-        key_string = key_string.save_on_json().get("key")
-        if not isinstance(key_string, str):
-            raise TypeError(f"[{self._code}] La chiave pubblica deve essere una stringa, ma è di tipo {type(key_string)}")
 
         certificate:CertificateContent = {
-            "key": key_string,
+            "key": scheme.save_on_json(),
             "timestamp": datetime.datetime.now().isoformat(),
         }
 
         cert = Certificate(certificate, scheme)
         data[user.get_code()] = cert.save_on_json()
-        json.dump(data, f, indent=4)
+        with open(file, "w") as f:
+            json.dump(data, f, indent=4)
+
+        return cert
 
     def get_user_public_key(self, user: User) -> tuple[Asymmetric_Scheme, str] | None:
         """
