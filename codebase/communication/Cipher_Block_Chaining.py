@@ -12,6 +12,7 @@ class Cipher_Block_Chaining(Symmetric_Scheme):
     """
         Classe che implementa lo schema di crittografia Fernet.
         Utilizza la libreria cryptography per crittografare e decrittografare i messaggi.
+        ! Deprecata, è stata sostituita da Parametric_Symmetric_Scheme come caso di default
     """
 
     def __init__(self, key:Key|None = None, IV:bytes|None = None):

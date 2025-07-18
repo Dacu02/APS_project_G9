@@ -5,13 +5,13 @@ import json
 from actors.Student import Student
 from actors.University import University
 from actors.CA import CA
-from communication.User import User
+from communication.Parametric_Symmetric_Scheme import Parametric_Symmetric_Scheme
 from communication.Cipher_Block_Chaining import Cipher_Block_Chaining
-from communication.Symmetric_Scheme import Symmetric_Scheme
 from communication.Message import Message
 from communication.Certificate import Certificate
 from communication.Asymmetric_Scheme import Asymmetric_Scheme
-from constants import DATA_DIRECTORY, STUDENTS_FOLDER, UNIVERSITIES_FOLDER, Activity, CAs_FOLDER, StudyPlan
+from communication.Symmetric_Scheme import Symmetric_Scheme
+from constants import DATA_DIRECTORY, STUDENTS_FOLDER, UNIVERSITIES_FOLDER, Activity, CAs_FOLDER
 import sys
 import secrets
 data_dir = os.path.join(os.getcwd(), DATA_DIRECTORY)
@@ -340,7 +340,27 @@ def certifica_universita():
 
 
 if __name__ == "__main__":
+
+    # Genera due utenti (studenti) e falli comunicare
+
+    # Crea due studenti di esempio
+    student1 = Student("Alice", "Rossi", "101")
+    student2 = Student("Bob", "Bianchi", "102")
+
+
+    # Crea uno schema simmetrico per cifrare il messaggio
+    scheme:Symmetric_Scheme = Parametric_Symmetric_Scheme()
+    student1.add_key(student2, scheme)
+    student2.add_key(student1, Parametric_Symmetric_Scheme.load_from_json(scheme.save_on_json()))
+
+    # Crea un messaggio da Alice a Bob
+    message = Message("Ciao Bob, sono Alice!")
+    student1.send(student2, message, sign=True)
     
+    # Crea un messaggio di risposta da Bob ad Alice
+    reply = Message("Ciao Alice, piacere di conoscerti!")
+    student2.send(student1, reply, sign=True)
+    exit()
     if len(sys.argv) < 2:
 
         print("Inserisci il nome di un algoritmo")
