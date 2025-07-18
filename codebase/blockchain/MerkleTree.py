@@ -91,3 +91,6 @@ class MerkleTree():
         tree = MerkleTree([])
         tree._root = MerkleTree._dict_to_node(data)
         return tree
+    
+    def get_root(self) -> _Node | None:
+        return self._root

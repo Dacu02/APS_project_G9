@@ -1,4 +1,6 @@
 from blockchain.Block import Block
+from communication.Hash_Algorithm import Hash_Algorithm
+from constants import BLOCKCHAIN_HASH_ALGORITHM
 
 
 class Blockchain():
@@ -6,12 +8,13 @@ class Blockchain():
         Classe che rappresenta una blockchain.
     """
 
-    def __init__(self):
+    def __init__(self, hash_algorithm:Hash_Algorithm=BLOCKCHAIN_HASH_ALGORITHM()):
         """
             Inizializza una blockchain vuota.
         """
 
         self._blocks: list[Block] = []
+        self._hashing = hash_algorithm
 
     def add_block(self, block: Block) -> None:
         """
@@ -77,3 +80,9 @@ class Blockchain():
             block = Block.load_from_json(block_data)
             blockchain.add_block(block)
         return blockchain
+    
+    def get_hashing_algorithm(self) -> Hash_Algorithm:
+        """
+            Restituisce l'algoritmo di hashing utilizzato dalla blockchain.
+        """
+        return self._hashing

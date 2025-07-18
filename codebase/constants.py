@@ -11,7 +11,7 @@ KEY_LENGTH = 32  # Lunghezza della chiave in byte (256 bit)
 IV_SIZE = 16 # 128 bit
 MAC_SIZE = 32 #256 bit per HMAC-SHA256
 BLOCKCHAIN_HASH_ALGORITHM = Hash_Algorithm
-
+RANDOM_NUMBER_MAX = 10**6
 
 class Exam(TypedDict):
     """

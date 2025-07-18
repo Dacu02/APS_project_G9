@@ -1,16 +1,29 @@
 from blockchain.MerkleTree import MerkleTree
+from communication.Hash_Algorithm import Hash_Algorithm
+from constants import BLOCKCHAIN_HASH_ALGORITHM
 
 
 class Block():
     """
     Classe che rappresenta un blocco nella blockchain.
     """
-    def __init__(self, prev_ID: str, author:str, merkle_or_ID:MerkleTree|str, delete_flag:bool=False):
+    def __init__(self, prev_ID: str, author:str, merkle_or_ID:MerkleTree|str, delete_flag:bool=False, hashing_algorithm:Hash_Algorithm = BLOCKCHAIN_HASH_ALGORITHM()):
         self._prev_ID = prev_ID
         self._author = author
         self._delete_flag = delete_flag
         self._merkle_or_ID = merkle_or_ID
-        self._ID = hash((self._prev_ID, self._author, self._merkle_or_ID, self._delete_flag)) #TODO Definisci il metodo di hash
+        
+        if isinstance(merkle_or_ID, MerkleTree):
+            root = merkle_or_ID.get_root()
+            if root:
+                string_merkle = root.get_hash()
+                if not string_merkle:
+                    raise ValueError("Hash della radice del Merkle Tree non valido")
+            else:
+                string_merkle = ""
+        else:
+            string_merkle = merkle_or_ID
+        self._ID = hashing_algorithm.hash(self._prev_ID + self._author + string_merkle + str(self._delete_flag))
 
     def get_prev_ID(self) -> str:
         return self._prev_ID
@@ -24,7 +37,7 @@ class Block():
     def get_merkle_or_ID(self) -> MerkleTree | str:
         return self._merkle_or_ID
 
-    def get_ID(self) -> int:
+    def get_ID(self) -> str:
         return self._ID
 
     def save_on_json(self) -> dict:

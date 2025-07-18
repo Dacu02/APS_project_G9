@@ -10,6 +10,7 @@ class User(ABC):
         super().__init__()
         self._code = code
         self._keys: dict[str, Encryption_Scheme] = {}
+        self._last_message:Message
         # Dizionario che associa gli utenti agli schemi di crittografia
 
     def send(self, user: "User", message: Message, encrypt: bool = True, sign: bool = True):
@@ -51,6 +52,7 @@ class User(ABC):
             return
 
         print(f"{self._code} riceve: {message.get_content()}")
+        self._last_message = message
             
         if user.get_code() not in self._keys: # Se l'utente non ha una chiave per l'utente mittente, controlla se ha una propria chiave
             if self._keys.get(self.get_code()) is not None:
@@ -115,3 +117,10 @@ class User(ABC):
             Aggiunge una chiave di crittografia per un utente specifico.
         """
         self._keys[user.get_code()] = scheme
+
+
+    def get_last_message(self) -> Message:
+        """
+            Restituisce l'ultimo messaggio ricevuto dall'utente.
+        """
+        return self._last_message
