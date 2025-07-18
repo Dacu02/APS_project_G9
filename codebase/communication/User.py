@@ -52,7 +52,6 @@ class User(ABC):
             return
 
         print(f"{self._code} riceve: {message.get_content()}")
-        self._last_message = message
             
         if user.get_code() not in self._keys: # Se l'utente non ha una chiave per l'utente mittente, controlla se ha una propria chiave
             if self._keys.get(self.get_code()) is not None:
@@ -75,7 +74,9 @@ class User(ABC):
             print(f"{self._code} non ha una firma da verificare o la verifica non è richiesta")
         
         print(f"{self._code} ha aperto il messaggio: {mex.get_content()}")
-        pass
+        
+        self._last_message = message
+
 
     def get_code(self) -> str:
         """
