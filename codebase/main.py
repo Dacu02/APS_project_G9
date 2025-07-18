@@ -164,15 +164,20 @@ def immatricola(args:list[str]=[]):
     #* 4 L'università riceve il messaggio e lo decifra con la propria chiave privata,
     #* chiede quindi allo studente di definire una password con la quale potrà autenticarsi successivamente
     #* Inoltre, per evitare replay attack gli chiede di ripetere il timestamp originale
+    received_message = university.get_last_message()
+    received_data = json.loads(received_message.get_content())
+    received_nonce_challenge = received_data["nonce"]
     uni_message = {
-        "text": f"Benvenuto {message_data['name']} {message_data['surname']}, per favore fornisci una password per autenticarti in futuro, inoltre, ripeti il timestamp originale e l'attuale",
-        "nonce": message_data["timestamp"],
+        "text": f"Benvenuto {received_data['name']} {received_data['surname']}, per favore fornisci una password per autenticarti in futuro, inoltre, ripeti il timestamp originale e l'attuale",
+        "nonce": received_data["timestamp"],
         "timestamp": time.time()
     }
     university.send(student, Message(json.dumps(uni_message)), encrypt=False, sign=True)
 
     #* 5 Lo studente riceve il messaggio e procede a definire una password
-    if uni_message['nonce'] != message_data['timestamp']:
+    received_message = student.get_last_message()
+    received_data = json.loads(received_message.get_content())
+    if received_data['nonce'] != received_data['timestamp']:
         raise ValueError("Il timestamp del messaggio dell'università non corrisponde a quello originale, possibile replay attack.")
     
     if len(args) > 4:
@@ -194,8 +199,9 @@ def immatricola(args:list[str]=[]):
 
     student.send(university, Message(json.dumps(password_message)), sign=True)
     #* 6 L'università riceve la password e la salva nel proprio database, immatricolando lo studente
-
-    if password_message['nonce'] != random_number:
+    received_message = university.get_last_message()
+    received_data = json.loads(received_message.get_content())
+    if received_data['nonce'] != received_nonce_challenge:
         raise ValueError("Il numero casuale del messaggio dello studente non corrisponde a quello originale, possibile replay attack.")
 
     university.enroll_student(student, password, study_plan)
