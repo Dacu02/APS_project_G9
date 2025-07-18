@@ -12,6 +12,7 @@ from communication.Message import Message
 from communication.Certificate import Certificate
 from communication.Asymmetric_Scheme import Asymmetric_Scheme
 from communication.Symmetric_Scheme import Symmetric_Scheme
+from communication.Parametric_Asymmetric_Scheme import Parametric_Asymmetric_Scheme
 from constants import DATA_DIRECTORY, STUDENTS_FOLDER, UNIVERSITIES_FOLDER, Activity, CAs_FOLDER
 import sys
 import secrets
@@ -405,13 +406,14 @@ if __name__ == "__main__":
 
 
     # Crea uno schema simmetrico per cifrare il messaggio
-    scheme:Symmetric_Scheme = Parametric_Symmetric_Scheme()
+    scheme:Asymmetric_Scheme = Parametric_Asymmetric_Scheme() # Parametric_Asymmetric_Scheme è un esempio di implementazione di uno schema asimmetrico parametrico
     student1.add_key(student2, scheme)
-    student2.add_key(student1, Parametric_Symmetric_Scheme.load_from_json(scheme.save_on_json()))
+    student2.add_key(student1, Parametric_Asymmetric_Scheme.load_from_json(scheme.save_on_json())) # Condivide la chiave pubblica con Bob
 
     # Crea un messaggio da Alice a Bob
     message = Message("Ciao Bob, sono Alice!")
     student1.send(student2, message, sign=True)
+
     
     # Crea un messaggio di risposta da Bob ad Alice
     reply = Message("Ciao Alice, piacere di conoscerti!")
