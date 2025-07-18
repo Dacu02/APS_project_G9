@@ -10,9 +10,10 @@ class User(ABC):
     def __init__(self, code: str):
         super().__init__()
         self._code = code
+        
+        # Dizionario che associa gli utenti agli schemi di crittografia
         self._keys: dict[str, Encryption_Scheme] = {}
         self._last_message:Message
-        # Dizionario che associa gli utenti agli schemi di crittografia
 
     def send(self, user: "User", message: Message, encrypt: bool = True, sign: bool = True, authority: bool = False):
         """
@@ -131,11 +132,14 @@ class User(ABC):
         else:
             raise ValueError(f"Tipo di utente sconosciuto: {user_type}")
 
-    def add_key(self, user: "User", scheme: Encryption_Scheme):
+    def add_key(self, user: "User", scheme: Encryption_Scheme|None):
         """
             Aggiunge una chiave di crittografia per un utente specifico.
         """
-        self._keys[user.get_code()] = scheme
+        if not scheme:
+            del self._keys[user.get_code()]
+        else:
+            self._keys[user.get_code()] = scheme
 
 
     def get_last_message(self) -> Message:

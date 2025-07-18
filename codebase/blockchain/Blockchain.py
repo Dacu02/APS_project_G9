@@ -86,3 +86,17 @@ class Blockchain():
             Restituisce l'algoritmo di hashing utilizzato dalla blockchain.
         """
         return self._hashing
+    
+    def next(self, block:Block) -> Block|None:
+        """
+            Restituisce il blocco successivo nella blockchain.
+            Se non esiste, restituisce None.
+        """
+        if not self._blocks:
+            return None
+        
+        for i in range(len(self._blocks) - 1):
+            if self._blocks[i] == block:
+                return self._blocks[i + 1]
+        
+        return None

@@ -1,3 +1,4 @@
+from cycler import V
 from communication.Hash_Algorithm import Hash_Algorithm
 from constants import BLOCKCHAIN_HASH_ALGORITHM
 
@@ -46,6 +47,17 @@ class MerkleTree():
             else:
                 return False
 
+        def _validate_leaf(self, hash_leaf:str):
+            """
+                Controlla se il nodo corrente è una foglia e se il suo hash corrisponde a quello della foglia specificata.
+            """
+            left_node = self.get_left()
+            right_node = self.get_right()
+            if not left_node and not right_node:
+                return self.get_hash() == hash_leaf
+            elif left_node and right_node:
+                return left_node._validate_leaf(hash_leaf) or right_node._validate_leaf(hash_leaf)
+            raise ValueError("Il nodo non è una foglia né è intero e l'albero non è valido")
 
     def __init__(self, leaves_to_hash: list[str], hash_algorithm: Hash_Algorithm = BLOCKCHAIN_HASH_ALGORITHM()):
         """
@@ -123,3 +135,21 @@ class MerkleTree():
         if not self._root or not self._root.get_hash():
             return False
         return self._root._validate(self._hash)
+
+    def validate_leafs(self, leafs: list[str]) -> bool:
+        """
+            Controlla che le foglie specificate siano valide nel Merkle Tree.
+            Parametri:
+            - leafs: lista di stringhe che rappresentano le foglie, hashate, da verificare se appartengono tutte all'albero
+        """
+        if not leafs:
+            return False
+        
+        root = self.get_root()
+        if not root or not root.get_hash():
+            raise ValueError("Il Merkle Tree non è valido o non ha una radice.")
+        
+        for leaf in leafs:
+            if not root._validate_leaf(leaf):
+                return False
+        return True

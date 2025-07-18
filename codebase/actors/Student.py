@@ -1,3 +1,5 @@
+import json
+from constants import Credential
 from communication.Encryption_Scheme import Encryption_Scheme
 from communication.User import User
 class Student(User):
@@ -10,6 +12,8 @@ class Student(User):
         self._surname = surname
         self._name = name
         self._passwords = {}
+        self._credential:Credential|None = None
+        self._credential_ID: str | None = None
 
     def get_name(self):
         return self._name
@@ -25,6 +29,8 @@ class Student(User):
         dict["user_type"] = "Student"
         dict["name"] = self._name
         dict["surname"] = self._surname
+        dict["credential"] = json.dumps(self._credential)
+        dict["credential_ID"] = self._credential_ID
         return dict
     
     @staticmethod
@@ -33,6 +39,8 @@ class Student(User):
         surname = data["surname"]
         code = data["code"]
         student = Student(name, surname, code)
+        student._credential = json.loads(data.get("credential", "{}"))
+        student._credential_ID = data.get("credential_ID", None)
         #"keys": {user.get_name(): self._keys[user].save_on_json() for user in self._keys.keys()}
         student._keys = {key: Encryption_Scheme.load_from_json(value) for key, value in data.get("keys", {}).items()}
         return student
@@ -48,3 +56,18 @@ class Student(User):
             Restituisce la password dello studente per l'utente specificato.
         """
         return self._passwords.get(user.get_code(), "")
+    
+    def save_credential(self, credential:Credential, credential_ID: str) -> None:
+        """
+            Salva la credenziale dello studente.
+        """
+        self._credential = credential
+        self._credential_ID = credential_ID
+
+    def get_credential_data(self) -> tuple[Credential, str]:
+        """
+            Restituisce la credenziale dello studente e il suo ID.
+        """
+        if self._credential is None or self._credential_ID is None:
+            raise ValueError("Credenziale non impostata.")
+        return self._credential, self._credential_ID

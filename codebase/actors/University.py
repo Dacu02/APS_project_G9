@@ -19,6 +19,7 @@ class StudentData(TypedDict):
     salt: str
     exchange_plan: dict[str, Exam | Activity] | None
     credential: Credential | None
+    credential_ID: str | None
 
 
 class University(User):
@@ -123,7 +124,8 @@ class University(User):
             "password": scheme.hash(password),
             "salt": student.get_name() + student.get_surname(), # Per semplicità si considera la concatenazione del nome e cognome come salt
             "exchange_plan": None,
-            "credential": None
+            "credential": None,
+            "credential_ID": None
         }
 
         data['students'][serial_id] = student_data
@@ -322,3 +324,65 @@ class University(User):
         self._students[serial_id]["credential"] = credential
 
         return credential
+
+    def set_credential_id(self, student:Student, ID:str) -> None:
+        """
+            Imposta l'ID della credenziale per uno studente.
+            Parametri:
+            - student: Lo studente di cui impostare l'ID della credenziale.
+            - ID: L'ID da impostare.
+        """
+        serial_id = f"{student.get_code():03d}#{self._code:03d}"
+        if serial_id not in self._students:
+            raise ValueError(f" [{self._name}] Lo studente {student.get_code()} non è iscritto all'università.")
+        
+        self._students[serial_id]["credential_ID"] = ID
+
+    def get_credential_id(self, student:Student) -> str|None:
+        """
+            Ottiene l'ID della credenziale per uno studente.
+            Parametri:
+            - student: Lo studente di cui ottenere l'ID della credenziale.
+        """
+        serial_id = f"{student.get_code():03d}#{self._code:03d}"
+        if serial_id not in self._students:
+            raise ValueError(f" [{self._name}] Lo studente {student.get_code()} non è iscritto all'università.")
+        
+        return self._students[serial_id]["credential_ID"]
+
+    def check_matching(self, student: Student, credential: Credential) -> bool:
+        """
+            Verifica se la credenziale dello studente corrisponde a quella dell'università.
+            Parametri:
+            - student: Lo studente di cui verificare la credenziale.
+            - credential: La credenziale da verificare.
+        """
+        serial_id = f"{student.get_code():03d}#{self._code:03d}"
+        if serial_id not in self._students:
+            raise ValueError(f" [{self._name}] Lo studente {student.get_code()} non è iscritto all'università.")
+        
+        credential_exams_list = credential.get("exams_results", [])
+        credential_activities_list = credential.get("activities_results", [])
+        credential_destination_university = credential.get("external_university", None)
+
+        exchange_plan = self._students[serial_id].get("exchange_plan", {})
+
+        if not exchange_plan:
+            raise ValueError(f" [{self._name}] Lo studente {student.get_code()} non ha un piano di scambio registrato.")
+        
+        if exchange_plan.get("destination_university", {}).get("name") != credential_destination_university:
+            raise ValueError(f" [{self._name}] La destinazione dello scambio non corrisponde alla credenziale dello studente {student.get_code()}.")
+
+        exchange_exams = exchange_plan.get("exams", {})
+        exchange_activities = exchange_plan.get("activities", {})
+
+        for exam in credential_exams_list:
+            if exam not in exchange_exams:
+                raise ValueError(f" [{self._name}] L'esame {exam} non è presente nel piano di scambio dello studente {student.get_code()}.")
+
+        for activity in credential_activities_list:
+            if activity not in exchange_activities:
+                raise ValueError(f" [{self._name}] L'attività {activity} non è presente nel piano di scambio dello studente {student.get_code()}.")
+            
+        return True
+        # Se tutte le verifiche sono superate, la credenziale è valida
