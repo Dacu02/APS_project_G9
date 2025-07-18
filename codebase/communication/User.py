@@ -75,7 +75,7 @@ class User(ABC):
         
         print(f"{self._code} ha aperto il messaggio: {mex.get_content()}")
         
-        self._last_message = message
+        self._last_message = mex
 
 
     def get_code(self) -> str:
