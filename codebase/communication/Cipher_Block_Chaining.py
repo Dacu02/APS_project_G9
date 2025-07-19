@@ -5,7 +5,7 @@ from communication.Key import Key
 from communication.Symmetric_Scheme import Symmetric_Scheme
 from communication.Message import Message
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
-from constants import IV_SIZE, MAC_SIZE, KEY_LENGTH
+from constants import IV_SIZE, MAC_SIZE, SYMMETRIC_KEY_LENGTH
 from cryptography.hazmat.primitives import padding, hashes, hmac as crypto_hmac
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 class Cipher_Block_Chaining(Symmetric_Scheme):
@@ -22,7 +22,7 @@ class Cipher_Block_Chaining(Symmetric_Scheme):
         """
 
         if key is None:
-            key = Key(secrets.token_bytes(KEY_LENGTH))
+            key = Key(secrets.token_bytes(SYMMETRIC_KEY_LENGTH))
         self._key = key
 
         if IV is None:
@@ -32,13 +32,13 @@ class Cipher_Block_Chaining(Symmetric_Scheme):
         super().__init__(key)
         hkdf = HKDF(
             algorithm=hashes.SHA256(),
-            length=KEY_LENGTH,
+            length=SYMMETRIC_KEY_LENGTH,
             salt=None,
             info=b'',
         )
         derived_keys = hkdf.derive(self._key.get_key())
-        self._encryption_key = derived_keys[:KEY_LENGTH]
-        self._auth_key = derived_keys[KEY_LENGTH:]
+        self._encryption_key = derived_keys[:SYMMETRIC_KEY_LENGTH]
+        self._auth_key = derived_keys[SYMMETRIC_KEY_LENGTH:]
             
     def encrypt(self, message: Message) -> Message:
         """

@@ -72,3 +72,6 @@ class Student(User):
         if self._credential is None or self._credential_ID is None:
             raise ValueError("Credenziale non impostata.")
         return self._credential, self._credential_ID
+    
+    def get_label(self) -> str:
+        return self._name + " " + self._surname

@@ -1,12 +1,10 @@
 import json
 import os
 from communication.Certificate import Certificate, CertificateContent
-from communication.Key import Key
 from communication.Asymmetric_Scheme import Asymmetric_Scheme
 from constants import DATA_DIRECTORY, CAs_FOLDER
 from communication.Encryption_Scheme import Encryption_Scheme
 from communication.User import User
-from communication.Message import Message
 import datetime
 
 
@@ -50,7 +48,21 @@ class CA(User):
 
         return cert
 
-    def get_user_public_key(self, user: User) -> tuple[Asymmetric_Scheme, str] | None:
+    def get_public_key(self) -> Asymmetric_Scheme:
+        """
+            Restituisce la chiave pubblica della CA.
+        """
+        if self._code in self._keys:
+            scheme = self._keys[self._code]
+            if not isinstance(scheme, Asymmetric_Scheme):
+                raise TypeError(f"[{self._code}] La chiave di crittografia non è di tipo Asymmetric_Scheme")
+            pk = scheme.share_public_key()
+            if not pk:
+                raise ValueError(f"[{self._code}] Chiave pubblica non trovata per la CA {self._code}")
+            return pk
+        raise ValueError(f"[{self._code}] Chiave pubblica non trovata per la CA {self._code}")
+
+    def _get_user_public_key(self, user: User) -> tuple[Asymmetric_Scheme, str] | None:
         """
             Restituisce la chiave pubblica dell'utente registrato, salvata nel certificato.
         """

@@ -8,16 +8,22 @@ UNIVERSITIES_FOLDER = "universities"
 BLOCKCHAIN_FOLDER = "blockchain"
 EXPERIMENTS_FOLDER = "experiments"
 CAs_FOLDER = "CAs"
-KEY_LENGTH = 32  # Lunghezza della chiave in byte (256 bit)
+
+SYMMETRIC_KEY_LENGTH = 32  # Lunghezza della chiave in byte
 IV_SIZE = 16 # 128 bit
 MAC_SIZE = 32 #256 bit per HMAC-SHA256
+
+ASYMMETRIC_KEY_LENGTH = 256  # Lunghezza della chiave in byte
+
 BLOCKCHAIN_HASH_ALGORITHM = lambda : Generic_Hash_Algorithm("SHA256")
 RANDOM_NUMBER_MAX = 10**6
-MAXIMUM_TIMESTAMP_DIFFERENCE = 60  # Un minuto in secondi
+MAXIMUM_TIMESTAMP_DIFFERENCE = 120  # Due minuti in secondi
 EXCHANGE_DEFAULT_PERIOD_DAYS = 120 # 120 giorni di scambio predefiniti
 CREDENTIAL_PERIOD_DAYS = 365 # 365 giorni di validità della credenziale
 BLACKLIST_THRESHOLD = 4  # Soglia per considerare un'università nella blacklist (25% delle università)
 
+PRINT_MAX_LENGTH = -1
+DECORATION_CHARACTERS = 51  # Numero di caratteri per la decorazione nei messaggi
 
 class Exam(TypedDict):
     """

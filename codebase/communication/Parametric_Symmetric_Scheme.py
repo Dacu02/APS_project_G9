@@ -7,7 +7,7 @@ from communication.Message import Message
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.kdf import hkdf
 
-from constants import IV_SIZE, MAC_SIZE, KEY_LENGTH
+from constants import IV_SIZE, MAC_SIZE, SYMMETRIC_KEY_LENGTH
 from cryptography.hazmat.primitives import padding, hashes, hmac as crypto_hmac
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 class Parametric_Symmetric_Scheme(Symmetric_Scheme):
@@ -30,7 +30,7 @@ class Parametric_Symmetric_Scheme(Symmetric_Scheme):
         kdf_info: bytes = b'',
         IV_size: int = IV_SIZE,
         MAC_size: int = MAC_SIZE,
-        key_length: int = KEY_LENGTH,
+        key_length: int = SYMMETRIC_KEY_LENGTH,
     ):
 
         """
@@ -158,7 +158,6 @@ class Parametric_Symmetric_Scheme(Symmetric_Scheme):
         data['hash_algorithm'] = self._hash_algorithm.name
         data['kdf_class'] = self._kdf_class.__name__
         data['padding_scheme'] = self._padding_scheme.__name__
-
         return data
     
     @staticmethod
@@ -172,7 +171,7 @@ class Parametric_Symmetric_Scheme(Symmetric_Scheme):
         padding_scheme = getattr(padding, data["padding_scheme"])
         IV_size = data.get("IV_size", IV_SIZE)
         MAC_size = data.get("MAC_size", MAC_SIZE)
-        key_length = data.get("key_length", KEY_LENGTH)
+        key_length = data.get("key_length", SYMMETRIC_KEY_LENGTH)
 
         return Parametric_Symmetric_Scheme(
             key=key,

@@ -1,3 +1,4 @@
+from constants import ASYMMETRIC_KEY_LENGTH
 from communication.Asymmetric_Scheme import Asymmetric_Scheme
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
@@ -16,7 +17,7 @@ class Parametric_Asymmetric_Scheme(Asymmetric_Scheme):
         self,
         private_key: Key | None = None,
         public_key: Key | None = None,
-        key_size: int = 2048,
+        key_size: int = ASYMMETRIC_KEY_LENGTH * 8,
         public_exponent: int = 65537,
         hash_algorithm_class=hashes.SHA256,
         encryption_padding_class=padding.OAEP,
@@ -98,7 +99,6 @@ class Parametric_Asymmetric_Scheme(Asymmetric_Scheme):
                 self._encryption_padding
             )
         return Message(ciphertext.hex(), signature=None)
-
     def decrypt(self, message: Message) -> Message:
         if self._rsa_private_key is None:
             raise ValueError("Decryption failed: RSA private key is not initialized.")
@@ -113,7 +113,7 @@ class Parametric_Asymmetric_Scheme(Asymmetric_Scheme):
             raise ValueError(f"Decryption failed: Ciphertext invalid, key mismatch, or padding error. Original error: {e}") from e
         except Exception as e:
             raise ValueError(f"An unexpected error occurred during decryption: {e}") from e
-
+    
     def sign(self, message: Message) -> Message:
         if self._rsa_private_key is None:
             raise ValueError("Signing failed: RSA private key is not initialized.")
@@ -144,21 +144,6 @@ class Parametric_Asymmetric_Scheme(Asymmetric_Scheme):
             return False
         except Exception:
             return False
-
-
-    def authority_sign(self, message: Message) -> Message:
-        """
-        Firma il messaggio utilizzando la chiave privata dell'utente.
-        Utilizzato per garantire l'autenticità del messaggio.
-        """
-        if self._rsa_private_key is None:
-            raise ValueError("Encryption failed: RSA private key is not initialized.")
-        ciphertext = self._rsa_private_key.sign(
-                message.get_content().encode('utf-8'),
-                self._signing_padding,
-                algorithm=self._hash_algorithm
-            )
-        return Message(message.get_content(), signature=ciphertext.hex())
 
     def share_public_key(self) -> 'Parametric_Asymmetric_Scheme':
         if self._public_key is None:

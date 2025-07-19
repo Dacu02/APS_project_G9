@@ -54,7 +54,7 @@ class Encryption_Scheme(ABC):
         # Gli import interni evitano errori di dipendenza circolare
         from communication.Symmetric_Scheme import Symmetric_Scheme
         from communication.Asymmetric_Scheme import Asymmetric_Scheme 
-        if "private_key" not in data or "public_key" not in data:
+        if "private_key" not in data and "public_key" not in data:
             if "key" not in data:
                 raise ValueError("[Encryption_Scheme] Dati incompleti per il caricamento dello schema di crittografia")
             else:

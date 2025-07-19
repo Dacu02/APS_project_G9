@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 
+
 class Hash_Algorithm(ABC):
     """
         Classe astratta che rappresenta un algoritmo di hash.
@@ -21,9 +22,9 @@ class Hash_Algorithm(ABC):
         pass
 
     @staticmethod
-    @abstractmethod
     def load_from_json(data: dict) -> "Hash_Algorithm":
+        from communication.Generic_Hash_Algorithm import Generic_Hash_Algorithm
         """
             Carica un algoritmo di hash da una rappresentazione JSON.
         """
-        pass
+        return Generic_Hash_Algorithm.load_from_json(data)

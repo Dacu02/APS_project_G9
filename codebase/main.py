@@ -14,7 +14,7 @@ from communication.Certificate import Certificate
 from communication.Asymmetric_Scheme import Asymmetric_Scheme
 from communication.Symmetric_Scheme import Symmetric_Scheme
 from communication.Parametric_Asymmetric_Scheme import Parametric_Asymmetric_Scheme
-from constants import BLOCKCHAIN_FOLDER, DATA_DIRECTORY, STUDENTS_FOLDER, UNIVERSITIES_FOLDER, Activity, CAs_FOLDER, RANDOM_NUMBER_MAX, MAXIMUM_TIMESTAMP_DIFFERENCE, Credential, StudyPlan, stringify_credential_dicts
+from constants import BLOCKCHAIN_FOLDER, BLOCKCHAIN_HASH_ALGORITHM, DATA_DIRECTORY, STUDENTS_FOLDER, UNIVERSITIES_FOLDER, Activity, CAs_FOLDER, RANDOM_NUMBER_MAX, MAXIMUM_TIMESTAMP_DIFFERENCE, Credential, StudyPlan, stringify_credential_dicts
 import sys
 import secrets
 data_dir = os.path.join(os.getcwd(), DATA_DIRECTORY)
@@ -87,6 +87,11 @@ def lettura_dati() -> tuple[dict, dict, dict, dict]:
         students = json.load(f)
     with open(os.path.join(data_dir, UNIVERSITIES_FOLDER, "universities.json"), 'r') as f:
         universities = json.load(f)
+        private_uni_file = os.path.join(data_dir, UNIVERSITIES_FOLDER, "uni_.json")
+        if os.path.exists(private_uni_file):
+            with open(private_uni_file, 'r') as f_priv:
+                private_universities = json.load(f_priv)
+                universities.update(private_universities)
     with open(os.path.join(data_dir, CAs_FOLDER, "CAs.json"), 'r') as f:
         CAs = json.load(f)
     with open(os.path.join(data_dir, "config.json"), 'r') as f:
@@ -104,6 +109,18 @@ def lettura_dati() -> tuple[dict, dict, dict, dict]:
     return students, universities, CAs, configurazione
 
 def immatricola(args:list[str]=[]):
+    """
+        Algoritmo di immatricolazione dello studente presso l'università. Lo studente deve fornire una password per autenticarsi in futuro.
+        Tutti i messaggi in uscita dallo studente vengono cifrati con la chiave pubblica dell'università, quelli in entrata vengono solo firmati con la chiave privata dell'università.
+        L'università deve essere certificata da una CA, e lo studente deve conoscere la chiave pubblica della CA per verificare il certificato dell'università.
+        Args:
+            - arg1: Codice dello studente
+            - arg2: Codice dell'università
+            - arg3: Nome della CA
+            - arg4: Piano di studi scelto
+            - arg5: Password scelta dallo studente
+
+    """
     students, universities, CAs, configurazione = lettura_dati()
     if len(args) > 0:
         student_name = args[0]
@@ -138,17 +155,10 @@ def immatricola(args:list[str]=[]):
     ca:CA = CAs[ca_name]
     
     #* 1 Lo studente cerca la chiave pubblica dell'università dalla CA, ha prima bisogno della chiave pubblica della CA
-    mex = ca.get_user_public_key(ca)
-    if mex is None:
-        raise ValueError(f"La CA {ca_name} non ha una chiave pubblica registrata.")
-
-    public_key = mex[0].share_public_key() # Root CA
+    public_key = ca.get_public_key()
     if public_key is None:
         raise ValueError(f"La CA {ca_name} non ha una chiave pubblica registrata.")
 
-    if not isinstance(public_key, Asymmetric_Scheme):
-        raise TypeError(f"La chiave pubblica della CA deve essere di tipo Asymmetric_Scheme, ma è di tipo {type(public_key)}")
-    
     #* 2 Lo studente utilizza la chiave pubblica della CA per verificare che certificato che riceve dalla CA sia valido
     uni_cert = ca.get_user_certificate(university)
     if uni_cert is None:
@@ -190,21 +200,20 @@ def immatricola(args:list[str]=[]):
     }
 
     message = Message(json.dumps(message_data))
-    student.send(university, message, sign=True)
+    student.send(university, message, sign=False)
     #* 4 L'università riceve il messaggio e lo decifra con la propria chiave privata,
     #* chiede quindi allo studente di definire una password con la quale potrà autenticarsi successivamente
     #* Inoltre, per evitare replay attack gli chiede di ripetere il timestamp originale
     received_message = university.get_last_message()
     received_data = json.loads(received_message.get_content())
-    received_nonce_challenge = received_data["nonce"]
-    received_timestamp = received_data["timestamp"]
+    first_received_timestamp = received_data["timestamp"]
     # Controlla che la differenza del timestamp non superi la costante MAXIMUM_TIMESTAMP_DIFFERENCE
-    if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
+    if abs(time.time() - first_received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
         raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
 
     uni_message = {
         "text": f"Benvenuto {received_data['name']} {received_data['surname']}, per favore fornisci una password per autenticarti in futuro, inoltre, ripeti il timestamp originale e l'attuale",
-        "nonce": received_data["timestamp"],
+        "nonce": received_data["nonce"],
         "timestamp": time.time()
     }
     university.send(student, Message(json.dumps(uni_message)), encrypt=False, sign=True)
@@ -212,8 +221,8 @@ def immatricola(args:list[str]=[]):
     #* 5 Lo studente riceve il messaggio e procede a definire una password
     received_message = student.get_last_message()
     received_data = json.loads(received_message.get_content())
-    if received_data['nonce'] != received_data['timestamp']:
-        raise ValueError("Il timestamp del messaggio dell'università non corrisponde a quello originale, possibile replay attack.")
+    if received_data['nonce'] != random_number:
+        raise ValueError("Il nonce non corrisponde a quello inviato, possibile replay attack.")
     received_timestamp = received_data['timestamp']
     if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
         raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
@@ -233,19 +242,19 @@ def immatricola(args:list[str]=[]):
     password_message = {
         "password": password,
         "timestamp": time.time(),
-        "nonce": random_number,
+        "nonce": student_initial_timestamp,
         "text": "Password di immatricolazione"
     }
 
-    student.send(university, Message(json.dumps(password_message)), sign=True)
+    student.send(university, Message(json.dumps(password_message)), sign=False)
     #* 6 L'università riceve la password e la salva nel proprio database, immatricolando lo studente
     received_message = university.get_last_message()
     received_data = json.loads(received_message.get_content())
-    received_timestamp = received_data['timestamp']
+    received_timestamp = received_data['nonce']
     if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
         raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
-    if received_data['nonce'] != received_nonce_challenge:
-        raise ValueError("Il numero casuale del messaggio dello studente non corrisponde a quello originale, possibile replay attack.")
+    if received_timestamp != first_received_timestamp:
+        raise ValueError("Il timestamp ricevuto non corrisponde a quello originale, possibile replay attack.")
 
     university.enroll_student(student, password, study_plan)
 
@@ -301,7 +310,7 @@ def crea_universita(args:list[str]=[]):
         name = input("Inserisci il nome dell'università: ")
     
     print("Università creata con successo.")
-    university = University(name, code)
+    university = University(name, code, BLOCKCHAIN_HASH_ALGORITHM())
     universities[code] = university
     with open(os.path.join(data_dir, UNIVERSITIES_FOLDER, "universities.json"), 'w') as f:
         json.dump({code: university.save_on_json() for code, university in universities.items()}, f, indent=4)
@@ -403,7 +412,11 @@ def pulizia():
     if os.path.exists(DATA_DIRECTORY):
         for filename in os.listdir(DATA_DIRECTORY):
             file_path = os.path.join(DATA_DIRECTORY, filename)
-            os.remove(file_path)
+            for subdir, _, files in os.walk(file_path):
+                for file in files:
+                    file_to_remove = os.path.join(subdir, file)
+                    if os.path.isfile(file_to_remove):
+                        os.remove(file_to_remove)
     else:
         os.makedirs(DATA_DIRECTORY)
 
@@ -436,7 +449,9 @@ def certifica_universita(args:list[str]=[]):
     scheme: Asymmetric_Scheme = Parametric_Asymmetric_Scheme()
     public_key = scheme.share_public_key()
     university.add_key(university, scheme)
-    university.add_key(ca, ca._keys[ca._code].share_public_key()) # type: ignore 
+    university.add_key(ca, ca.get_public_key()) 
+
+
 
     # Si immagina che l'università conosca già la CA sulla quale vuole certificare
     # la chiave pubblica e che comunichi attraverso altri mezzi alternativi sicuri
@@ -454,16 +469,21 @@ def certifica_universita(args:list[str]=[]):
     if certificate is None:
         raise ValueError(f"La CA {ca_name} non ha emesso correttamente il certificato per l'università {university_code}.")
 
-    ca.send(university, certificate, authority=True)
+    ca.send(university, certificate, encrypt=False)
 
     print(f"L'università {university.get_name()} è stata certificata con successo dalla CA {ca.get_code()}.")
+
+    # Salva le chiavi aggiornate della CA e dell'università nei rispettivi file JSON
+    with open(os.path.join(data_dir, UNIVERSITIES_FOLDER, "universities.json"), 'w') as f:
+        json.dump({code: uni.save_on_json() for code, uni in universities.items()}, f, indent=4)
+    with open(os.path.join(data_dir, CAs_FOLDER, "CAs.json"), 'w') as f:
+        json.dump({name: ca_obj.save_on_json() for name, ca_obj in CAs.items()}, f, indent=4)
 
 def autenticazione(args:list[str]=[]):
     """
         Funzione per autenticare uno studente.
     """
-    students = lettura_dati()[0]
-    universities = lettura_dati()[1]
+    students, universities = lettura_dati()[0:2]
 
     university_code = read_code("Inserisci il codice dell'università ospitante: ", args[0] if len(args) > 0 else None)
     while university_code not in universities:
@@ -500,14 +520,14 @@ def autenticazione(args:list[str]=[]):
     }
 
     message = Message(json.dumps(message_data))
-    student.send(university, message, sign=True)
+    student.send(university, message, sign=False)
     #* 2 L'università riceve il messaggio e lo decifra con la propria chiave privata,
     #* chiede quindi allo studente di inserire la password per autenticarsi
     #* Inoltre, per evitare replay attack gli chiede di ripetere il timestamp originale
     received_message = university.get_last_message()
     received_data = json.loads(received_message.get_content())
-    received_timestamp = received_data['timestamp']
-    if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
+    first_received_timestamp = received_data['timestamp']
+    if abs(time.time() - first_received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
         raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
     
     received_nonce_challenge = received_data["nonce"]
@@ -524,8 +544,9 @@ def autenticazione(args:list[str]=[]):
     received_timestamp = received_data['timestamp']
     if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
         raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
-    if received_data['nonce'] != received_data['timestamp']:
+    if received_data['nonce'] != first_received_timestamp:
         raise ValueError("Il timestamp del messaggio dell'università non corrisponde a quello originale, possibile replay attack.")
+
 
     student_scheme = Parametric_Symmetric_Scheme()
     password_message = {
@@ -533,10 +554,10 @@ def autenticazione(args:list[str]=[]):
         "timestamp": time.time(),
         "nonce": random_number,
         "text": "Password di autenticazione",
-        "scheme": student_scheme.save_on_json()
+        # "scheme": student_scheme.save_on_json()
     }
-    student.send(university, Message(json.dumps(password_message)), sign=True)
-    student.add_key(university, student_scheme)
+    student.send(university, Message(json.dumps(password_message)), sign=False)
+    # student.add_key(university, student_scheme)
     #* 4 L'università riceve la password e la verifica confrontandola con quella salvata nel proprio database
     received_message = university.get_last_message()
     received_data = json.loads(received_message.get_content())
@@ -552,13 +573,93 @@ def autenticazione(args:list[str]=[]):
     
     #* 5 L'università risponde allo studente con un messaggio di autenticazione avvenuta con successo con attraverso la nuova chiave
     auth_message = {
-        "text": f"Autenticazione avvenuta con successo {student.get_name()} {student.get_surname()} ({student.get_code()})",
+        "text": f"Autenticazione avvenuta con successo {student.get_name()} {student.get_surname()} ({student.get_code()}). Inviami uno schema simmetrico casuale a partire dal nonce inviato",
         "timestamp": time.time(),
     }
-    uni_scheme = Parametric_Symmetric_Scheme.load_from_json(received_data.get("scheme"))
-    university.add_key(student, uni_scheme)
-    university.send(student, Message(json.dumps(auth_message)), encrypt=True, sign=True)
-    print("Lo studente si è autenticato con successo, comunicazione cifrata stabilita.")
+    
+    # university.add_key(student, uni_scheme)
+    university.send(student, Message(json.dumps(auth_message)), encrypt=False, sign=True)
+    print("Lo studente si è autenticato con successo, comunicazione cifrata da stabilire.")
+
+
+    # Comunicazione delle componenti della chiave TCP style
+    sender_k = received_nonce_challenge
+    receiver_k = received_nonce_challenge
+    sender_data = student_scheme.save_on_json()
+    receiver_data = {}
+
+    for key, value in sender_data.items():
+        data_message = {
+            "field": key,
+            "value": value,
+            "timestamp": time.time(),
+            "nonce": sender_k
+        }
+        student.send(university, Message(json.dumps(data_message)), encrypt=True, sign=False)
+
+        received_data = university.get_last_message()
+        received_data = json.loads(received_data.get_content())
+
+        if abs(time.time() - received_data['timestamp']) > MAXIMUM_TIMESTAMP_DIFFERENCE:
+            raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
+
+        if received_data['nonce'] != receiver_k:
+            raise ValueError("Il numero di pacchetto del messaggio dello studente non corrisponde a quello originale, possibile replay attack.")
+
+
+        received_key = received_data['field']
+        received_value = received_data['value']
+        receiver_data[received_key] = received_value
+
+        response_message = {
+            "nonce": receiver_k,
+            "timestamp": time.time(),
+        }
+        university.send(student, Message(json.dumps(response_message)), encrypt=False, sign=True)
+
+        received_data = student.get_last_message()
+        received_data = json.loads(received_data.get_content())
+
+        if received_data['nonce'] != sender_k:
+            raise ValueError("Il numero di pacchetto del messaggio dello studente non corrisponde a quello originale, possibile replay attack.")
+        
+        if abs(time.time() - received_data['timestamp']) > MAXIMUM_TIMESTAMP_DIFFERENCE:
+            raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
+
+        sender_k += 1
+        receiver_k += 1
+
+    uni_scheme = Parametric_Symmetric_Scheme.load_from_json(receiver_data)
+    student.add_key(university, uni_scheme) 
+    university.add_key(student, uni_scheme) 
+    print(f"Chiave simmetrica condivisa tra lo studente {student.get_name()} e l'università {university.get_name()} stabilita con successo.")
+
+    # Invia un messaggio di test cifrato con il nuovo schema simmetrico
+    test_message = {
+        "text": "Test della comunicazione cifrata con il nuovo schema simmetrico.",
+        "timestamp": time.time()
+    }
+    university.send(student, Message(json.dumps(test_message)), encrypt=True, sign=True)
+    print("Messaggio di test cifrato inviato dallo studente all'università.")
+
+    # Lo studente riceve e decifra il messaggio di test
+    received_message = student.get_last_message()
+    received_data = json.loads(received_message.get_content())
+
+    # Salva le nuove chiavi simmetriche nei rispettivi file JSON
+
+    with open(os.path.join(data_dir, STUDENTS_FOLDER, "students.json"), 'r') as f:
+        students_data = json.load(f)
+    with open(os.path.join(data_dir, UNIVERSITIES_FOLDER, "universities.json"), 'r') as f:
+        universities_data = json.load(f)    
+
+    students_data[student_code] = student.save_on_json()
+    universities_data[university_code] = university.save_on_json()
+
+    with open(os.path.join(data_dir, STUDENTS_FOLDER, "students.json"), 'w') as f:
+        json.dump(students_data, f, indent=4)
+    with open(os.path.join(data_dir, UNIVERSITIES_FOLDER, "universities.json"), 'w') as f:
+        json.dump(universities_data, f, indent=4)
 
 def logout(args:list[str]=[]):
     """
@@ -584,13 +685,29 @@ def logout(args:list[str]=[]):
     student.add_key(university, None)  # Rimuove dallo studente la chiave dell'università
     university.add_key(student, None)  # Rimuove dall'università la chiave dello studente
 
+        # Salva le nuove chiavi simmetriche nei rispettivi file JSON
+
+    with open(os.path.join(data_dir, STUDENTS_FOLDER, "students.json"), 'r') as f:
+        students_data = json.load(f)
+    with open(os.path.join(data_dir, UNIVERSITIES_FOLDER, "universities.json"), 'r') as f:
+        universities_data = json.load(f)    
+
+    students_data[student_code] = student.save_on_json()
+    universities_data[university_code] = university.save_on_json()
+
+    with open(os.path.join(data_dir, STUDENTS_FOLDER, "students.json"), 'w') as f:
+        json.dump(students_data, f, indent=4)
+    with open(os.path.join(data_dir, UNIVERSITIES_FOLDER, "universities.json"), 'w') as f:
+        json.dump(universities_data, f, indent=4)
+
+
+
 def domanda_mobilita(args:list[str]=[]):
     """
         Funzione per inviare una domanda di mobilità dello studente.
         Lo studente deve essere autenticato presso l'università ospitante.
     """
-    students = lettura_dati()[0]
-    universities = lettura_dati()[1]
+    students, universities = lettura_dati()[0:2]
 
     university_code = read_code("Inserisci il codice dell'università: ", args[0] if len(args) > 0 else None)
     while university_code not in universities:
@@ -608,6 +725,7 @@ def domanda_mobilita(args:list[str]=[]):
         student_code = read_code("Inserisci il codice dello studente: ")
 
     autenticazione([university_code, student_code] + args[3:])  # Assicura che lo studente sia autenticato prima di inviare la domanda
+    students, universities = lettura_dati()[0:2]
     student:Student = students[student_code]
     university:University = universities[university_code]
     initial_nonce = secrets.randbelow(RANDOM_NUMBER_MAX)
@@ -656,12 +774,16 @@ def domanda_mobilita(args:list[str]=[]):
     #* 1 Lo studente invia la domanda di mobilità all'università
     request_message = {
         "timestamp": time.time(),
-        "text": "Richiesta di mobilità",
+        # "text": "Richiesta di mobilità",
         "nonce": initial_nonce,
         "destination_university": destination_university_code,
         "study_plan": study_plan,
         "activities": activities
     }
+
+    if isinstance(student._keys[university.get_code()], Asymmetric_Scheme):
+        raise ValueError("Lo studente non ha una chiave simmetrica condivisa con l'università, impossibile inviare la domanda di mobilità.")
+
     request_message = Message(json.dumps(request_message))
     student.send(university, request_message, sign=True)
 
@@ -677,6 +799,7 @@ def domanda_mobilita(args:list[str]=[]):
     dest_uni:University = universities[destination_university]
     if len(args) > i:
         internal_ref = args[i]
+        i+=1
     else:
         internal_ref = input("Inserisci il nome e cognome del referente interno dell'università: ")
     while not internal_ref.strip():
@@ -708,12 +831,14 @@ def domanda_mobilita(args:list[str]=[]):
         raise ValueError(f"La CA {ca_name} non ha un certificato registrato per l'università {university}.")
     dest_uni.add_key(university, cert.read_key())
 
+    plan_tuples = [(name, cfu) for course in received_data['study_plan'] for name, cfu in course.items()]
+    activities_tuples = [(name, cfu) for activity in received_data['activities'] for name, cfu in activity.items()]
 
     check_plan_availability = {
         "timestamp": time.time(),
-        "study_plan": received_data['study_plan'],
-        "activities": received_data['activities'],
-        "text": "Verifica disponibilità piano di studi per la mobilità",
+        'SP': plan_tuples,
+        'ACT': activities_tuples,
+        # "text": "Verifica disponibilità piano di studi per la mobilità",
         "internal_ref": internal_ref,
     }
 
@@ -727,8 +852,17 @@ def domanda_mobilita(args:list[str]=[]):
     if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
         raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
     
-    received_study_plan = received_data['study_plan']
-    received_activities = received_data['activities']
+    received_tuples_study_plan = received_data['SP']
+    received_tuples_activities = received_data['ACT']
+
+    received_study_plan = []
+    for name, cfu in received_tuples_study_plan:
+        received_study_plan.append({"name": name, "cfus": cfu})
+
+    received_activities = []
+    for name, cfu in received_tuples_activities:
+        received_activities.append({"name": name, "cfus": cfu})
+
     received_ref = received_data["internal_ref"]
 
     response = True
@@ -742,7 +876,7 @@ def domanda_mobilita(args:list[str]=[]):
 
     response_message = {
         "timestamp": time.time(),
-        "text": f"Piano di studi {'non' if not response else ''} disponibile per la mobilità",
+        "text": f"Piano di studi {'non' if not response else ''} e\' disponibile per la mobilita\'",
         "result": response
     }
 
@@ -754,20 +888,18 @@ def domanda_mobilita(args:list[str]=[]):
 
     availability = received_data['result']
 
-    print(f"Il piano di studi {'non' if not availability else ''} è disponibile per la mobilità.")
+    print(f"Il piano di studi {'non' if not availability else ''} e\' disponibile per la mobilita\'.")
     uni_response = {
         "timestamp": time.time(),
-        "text": f"Il piano di studi {'non' if not availability else ''} è disponibile per la mobilità.",
+        "text": f"Il piano di studi {'non' if not availability else ''} e\' disponibile per la mobilita\'.",
         "nonce": received_nonce,
     }
     university.send(student, Message(json.dumps(uni_response)), sign=True)
 
-    logout([student.get_code(), university.get_code()])
+    logout([university.get_code(), student.get_code()])
     
     if not availability:
         return
-
-
 
     #* 5 Le università preparano le condizioni per l'accordo di mobilità
     university.agree_exchange_contract(student, dest_uni, received_study_plan, received_activities, internal_ref)
@@ -781,7 +913,6 @@ def domanda_mobilita(args:list[str]=[]):
         external_ref = input("Inserisci il nome e cognome del referente esterno dell'università ospitante: ")
     dest_uni.accept_incoming_exchange(student, university, f"{student.get_code()}#{university.get_code()}", received_ref, external_ref)
 
-    logout([student.get_code(), university.get_code()])
 
 def emetti_credenziale(args:list[str]=[]):
     """
@@ -801,6 +932,7 @@ def emetti_credenziale(args:list[str]=[]):
         student_code = read_code("Inserisci il codice dello studente: ")
 
     autenticazione([university_code, student_code] + args[2:])  # Assicura che lo studente sia autenticato prima di emettere la credenziale
+    students, universities = lettura_dati()[0:2]
     student:Student = students[student_code]
     university:University = universities[university_code]
 
@@ -978,6 +1110,7 @@ def presenta_credenziale(args:list[str]=[]):
     credential, credential_ID = student.get_credential_data()
 
     autenticazione([university_code, student_code] + args[2:])  # Assicura che lo studente sia autenticato prima di validare la credenziale
+    students, universities = lettura_dati()[0:2]
 
     #* 1 Lo studente effettua la divulgazione selettiva della propria credenziale
     new_credential = divulga_credenziale(credential, args[3:]) if len(args) > 3 else divulga_credenziale(credential)
@@ -1089,14 +1222,21 @@ def presenta_credenziale(args:list[str]=[]):
 # ALGORITMI DI SIMULAZIONE DEGLI ATTACCHI
 
 if __name__ == "__main__":
+    pulizia()
     crea_universita(["001", "Unitest"])
     crea_CA(["CA1"])
     certifica_universita(["CA1", "001"])
-    crea_studente(["001", "Mario", "Rossi"])
-    crea_piano_studi(["001", "Informatica", "Programmazione", "6", "Sistemi Operativi", "6", ""])
+    crea_piano_studi(["001", "Informatica", "Programmazione", "6", "Sistemi Operativi", "6", "Fisica", "3", "Analisi", "3", ""])
     crea_universita(["002", "UniExt"])
+    crea_piano_studi(["002", "Matematica", "Fisica", "6", "Analisi", "6", ""])
     certifica_universita(["CA1", "002"])
-    
+    crea_attivita(["001", "Ricerca", "3"])
+    crea_attivita(["002", "Ricerca", "3"])
+
+    crea_studente(["010", "Mario", "Rossi"])
+    immatricola(["010", "001", "CA1", "Informatica", "TEST_PW"])
+    domanda_mobilita(["001", "002", "010", "TEST_PW", "Analisi", "3", "", "Ricerca", "3", "", "R_INT", "CA1"])
+
     exit(0)
 
     if len(sys.argv) < 2:
@@ -1127,3 +1267,4 @@ if __name__ == "__main__":
         presenta_credenziale(list(sys.argv[2:]))
     else:
         print(f"Comando sconosciuto: {command}")
+
