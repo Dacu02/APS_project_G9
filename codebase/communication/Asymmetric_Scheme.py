@@ -46,10 +46,10 @@ class Asymmetric_Scheme(Encryption_Scheme, ABC):
         return self._public_key
     
     def save_on_json(self) -> dict:
-        dict = {}
-        dict["private_key"] = self._private_key.save_on_json() if self._private_key else None
-        dict["public_key"] = self._public_key.save_on_json() if self._public_key else None
-        return dict
+        data = {}
+        data["private_key"] = self._private_key.save_on_json() if self._private_key else None
+        data["public_key"] = self._public_key.save_on_json() if self._public_key else None
+        return data
 
     @staticmethod
     def load_from_json(data: dict) -> 'Asymmetric_Scheme':

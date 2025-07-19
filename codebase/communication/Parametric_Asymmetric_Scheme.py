@@ -53,9 +53,13 @@ class Parametric_Asymmetric_Scheme(Asymmetric_Scheme):
         self._rsa_private_key: rsa.RSAPrivateKey | None = None
         self._rsa_public_key: rsa.RSAPublicKey | None = None
 
+        self._only_public = only_public
+        self._private_key = private_key if not only_public else None
+        
         super().__init__(private_key, public_key)
+        self._only_public = only_public
 
-        if self._private_key is not None:
+        if self._private_key is not None and not only_public:
             try:
                 self._rsa_private_key = serialization.load_pem_private_key(private_key.get_key(), password=None)
                 self._rsa_public_key = self._rsa_private_key.public_key()
@@ -74,20 +78,17 @@ class Parametric_Asymmetric_Scheme(Asymmetric_Scheme):
             self._rsa_private_key = rsa.generate_private_key(
                 public_exponent=self._public_exponent,
                 key_size=self._key_size
-            )
+            ) if not only_public else None
             self._rsa_public_key = self._rsa_private_key.public_key()
 
             self._private_key = Key(self._rsa_private_key.private_bytes(
                 encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.PKCS8,
                 encryption_algorithm=serialization.NoEncryption()
-            ))
+            )) if not only_public else None
             self._public_key = Key(self._rsa_public_key.public_bytes(
                 encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo
             ))
 
-        if only_public:
-            self._rsa_private_key = None
-            self._private_key = None
 
     def encrypt(self, message: Message) -> Message:
         if self._rsa_public_key is None:
@@ -176,7 +177,7 @@ class Parametric_Asymmetric_Scheme(Asymmetric_Scheme):
     def load_from_json(data: dict) -> 'Parametric_Asymmetric_Scheme':
 
 
-        only_public = "private_key" not in data
+        only_public = "private_key" not in data or data["private_key"] is None
 
         private_key = Key.load_from_json(data["private_key"]) if not only_public else None
         public_key = Key.load_from_json(data["public_key"])
@@ -200,12 +201,14 @@ class Parametric_Asymmetric_Scheme(Asymmetric_Scheme):
             hash_algorithm_class=hash_class,
             encryption_padding_class=enc_padding_class,
             signing_padding_class=sign_padding_class,
+            only_public=only_public
         )
 
     def save_on_json(self) -> dict:
         data = super().save_on_json()
         data["scheme_type"] = "Parametric_Asymmetric_Scheme"
-
+        if self._only_public:
+            del data["private_key"] # A solo scopo estetico
         data["key_size"] = self._key_size
         data["public_exponent"] = self._public_exponent
         data["hash_algorithm"] = self._hash_algorithm_class.__name__

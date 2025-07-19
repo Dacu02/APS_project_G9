@@ -10,17 +10,17 @@ class CertificateContent(TypedDict):
 
 
 class Certificate(Message):
-    def __init__(self, content: CertificateContent, scheme: Asymmetric_Scheme):
+    def __init__(self, content: CertificateContent, scheme_or_signature: Asymmetric_Scheme|str):
         """
             Classe che rappresenta un certificato, estende la classe Message.
             Contiene il contenuto del certificato e una firma obbligatoria.
         """
         super().__init__(json.dumps(content))
-        signed = scheme.sign(self)
-        if not isinstance(signed, Message):
-            raise TypeError(f"Il certificato deve essere un'istanza di Message, ma è di tipo {type(signed)}")
-
-        self._signature = signed.get_signature()
+        if isinstance(scheme_or_signature, Asymmetric_Scheme):
+            signed = scheme_or_signature.sign(self)
+            self._signature = signed.get_signature()
+        else:
+            self._signature = scheme_or_signature
 
     def verify_signature(self, public_key: Asymmetric_Scheme) -> bool:
         return public_key.verify(self)
@@ -55,7 +55,4 @@ class Certificate(Message):
         """
         content = data["content"]
         signature = data["signature"]
-        scheme = Asymmetric_Scheme.load_from_json(content["key"])
-        cert = Certificate(content, scheme)
-        cert._signature = signature
-        return cert
+        return Certificate(content, signature)

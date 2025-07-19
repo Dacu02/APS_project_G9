@@ -38,13 +38,11 @@ class CA(User):
             raise ValueError(f"[{self._code}] Chiave di crittografia non trovata per la CA {self._code}")
         if not isinstance(scheme, Asymmetric_Scheme):
             raise TypeError(f"[{self._code}] La chiave di crittografia non è di tipo Asymmetric_Scheme")
-        
 
         certificate:CertificateContent = {
-            "key": scheme.save_on_json(),
+            "key": public_key_scheme.save_on_json(),
             "timestamp": datetime.datetime.now().isoformat(),
         }
-
         cert = Certificate(certificate, scheme)
         data[user.get_code()] = cert.save_on_json()
         with open(file, "w") as f:
@@ -83,7 +81,6 @@ class CA(User):
             Metodo per salvare la CA su un dizionario, da cui poi si potrà generare un file JSON.
         """
         dict = super().save_on_json()
-        # dict["user_type"] = "CA"
         return dict
     
     @staticmethod
