@@ -18,6 +18,7 @@ class StudentData(TypedDict):
     password: str
     salt: str
     exchange_plan: dict[str, Exam | Activity] | None
+    exchange_plan_data: dict | None
     credential: Credential | None
     credential_ID: str | None
 
@@ -108,7 +109,8 @@ class University(User):
 
         if 'students' not in data.keys():
             data['students'] = {}
-        if serial_id in data['students'].keys():
+
+        if serial_id in self._students:
             raise ValueError(f"Lo studente {student_id} è già iscritto all'università {self._name}.")
 
         scheme = self._keys.get(self._code)
@@ -124,12 +126,13 @@ class University(User):
             "password": scheme.hash(password),
             "salt": student.get_name() + student.get_surname(), # Per semplicità si considera la concatenazione del nome e cognome come salt
             "exchange_plan": None,
+            "exchange_plan_data": None,
             "credential": None,
-            "credential_ID": None
+            "credential_ID": None,
         }
 
-        data['students'][serial_id] = student_data
-
+        self._students[serial_id] = student_data
+        data[serial_id] = student_data
         with open(json_path, "w") as f:
             json.dump(data, f, indent=4)
 
@@ -206,12 +209,15 @@ class University(User):
             data = json.load(f)
         if serial_id not in data:
             raise ValueError(f" [{self._name}] Lo studente {student.get_code()} non è iscritto all'università.")
-        
-        data[serial_id]["exchange_plan"] = {}
-        data[serial_id]["exchange_plan"]['destination_university'] = {'code':destination_university.get_code(), 'name':destination_university.get_name()}
-        data[serial_id]["exchange_plan"]['exams'] = {exam["name"]: exam["cfus"] for exam in study_plan}
-        data[serial_id]["exchange_plan"]['activities'] = {activity["name"]: activity["cfus"] for activity in activities}
-        data[serial_id]["exchange_plan"]['internal_referrer'] = internal_referrer
+
+        self._students[serial_id]["exchange_plan_data"] = {
+            "destination_university": {'code': destination_university.get_code(), 'name': destination_university.get_name()},
+            "exams": {exam["name"]: exam["cfus"] for exam in study_plan},
+            "activities": {activity["name"]: activity["cfus"] for activity in activities},
+            "internal_referrer": internal_referrer
+        }
+
+        data[serial_id] = self._students[serial_id]
         with open(json_path, "w") as f:
             json.dump(data, f, indent=4)
 
@@ -227,10 +233,12 @@ class University(User):
         """
         serial_id = f"{student.get_code():03d}#{self._code:03d}"
         json_path = os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER, f"uni_{self._name}.json")
+
+
         with open(json_path, "r") as f:
             data = json.load(f)
 
-        data[serial_id] = {
+        self._students[serial_id]["exchange_plan_data"] = {
             "incoming_university": {
                 "code": incoming_university.get_code(),
                 "name": incoming_university.get_name()
@@ -242,6 +250,11 @@ class University(User):
             "exchange_period_end": (date.today() + timedelta(days=exchange_period_days)).isoformat()
         }
 
+        data[serial_id] = self._students[serial_id]
+        with open(json_path, "w") as f:
+            json.dump(data, f, indent=4)
+            
+
     def pass_exam(self, student: Student, results: ExamResult):
         """
             Registra il superamento di un esame da parte dello studente.
@@ -251,14 +264,15 @@ class University(User):
         with open(json_path, "r") as f:
             data = json.load(f)
         
-        if serial_id not in data:
+        if serial_id not in self._students:
             raise ValueError(f" [{self._name}] Lo studente {student.get_code()} non è iscritto all'università.")
         
-        if "exams" not in data[serial_id]:
-            data[serial_id]["exams"] = {}
+        if "passed_exams" not in self._students[serial_id]:
+            self._students[serial_id]["passed_exams"] = {}
 
-        data[serial_id]["exams"][results["name"]] = results
+        self._students[serial_id]["passed_exams"][results["name"]] = results
 
+        data[serial_id] = self._students[serial_id]
         with open(json_path, "w") as f:
             json.dump(data, f, indent=4)
 
@@ -271,14 +285,15 @@ class University(User):
         with open(json_path, "r") as f:
             data = json.load(f)
         
-        if serial_id not in data:
+        if serial_id not in self._students:
             raise ValueError(f" [{self._name}] Lo studente {student.get_code()} non è iscritto all'università.")
         
-        if "activities" not in data[serial_id]:
-            data[serial_id]["activities"] = {}
-        
-        data[serial_id]["activities"][results["name"]] = results
-        
+        if "passed_activities" not in self._students[serial_id]:
+            self._students[serial_id]["passed_activities"] = {}
+
+        self._students[serial_id]["passed_activities"][results["name"]] = results
+
+        data[serial_id] = self._students[serial_id]
         with open(json_path, "w") as f:
             json.dump(data, f, indent=4)
 
@@ -295,11 +310,18 @@ class University(User):
         if not incoming_uni_serial_id:
             raise ValueError(f" [{self._name}] Lo studente {student.get_code()} non ha un ID di mobilità in entrata.")
 
-        temp = self._students[serial_id]['credential']
-        if temp:
-            expiration_date = temp.get("expiration_date")
+        credential = self._students[serial_id]['credential']
+        if credential:
+            expiration_date = credential.get("expiration_date")
             if expiration_date and date.fromisoformat(expiration_date) >= date.today():
-                return temp
+                return credential
+            
+        return self._calculate_student_credential(student)
+
+    def _calculate_student_credential(self, student:Student) -> Credential:
+        serial_id = f"{student.get_code():03d}#{self._code:03d}"
+        student_data = self._students[serial_id]
+        incoming_uni_serial_id = student_data.get("incoming_serial_id")
 
         passed_exams:list[ExamResult] = student_data.get("exams", {})
         passed_activities:list[ActivityResult] = student_data.get("activities", {})
@@ -323,6 +345,14 @@ class University(User):
 
         self._students[serial_id]["credential"] = credential
 
+        # Salva i nuovi dati della credenziale su file JSON
+        json_path = os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER, f"uni_{self._name}.json")
+        with open(json_path, "r") as f:
+            data = json.load(f)
+            data[serial_id]["credential"] = credential
+        with open(json_path, "w") as f:
+            json.dump(data, f, indent=4)
+
         return credential
 
     def set_credential_id(self, student:Student, ID:str) -> None:
@@ -337,6 +367,13 @@ class University(User):
             raise ValueError(f" [{self._name}] Lo studente {student.get_code()} non è iscritto all'università.")
         
         self._students[serial_id]["credential_ID"] = ID
+        
+        # Salva i nuovi dati della credenziale su file JSON
+        json_path = os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER, f"uni_{self._name}.json")
+        with open(json_path, "r") as f:
+            data = json.load(f)
+        with open(json_path, "w") as f:
+            json.dump(data, f, indent=4)
 
     def get_credential_id(self, student:Student) -> str|None:
         """
@@ -365,16 +402,19 @@ class University(User):
         credential_activities_list = credential.get("activities_results", [])
         credential_destination_university = credential.get("external_university", None)
 
-        exchange_plan = self._students[serial_id].get("exchange_plan", {})
+        student_data = self._students[serial_id]
+        if not student_data:
+            raise ValueError(f" [{self._name}] Lo studente {student.get_code()} non ha dati registrati.")
+        exchange_plan_data = student_data["exchange_plan_data"]
 
-        if not exchange_plan:
+        if not exchange_plan_data:
             raise ValueError(f" [{self._name}] Lo studente {student.get_code()} non ha un piano di scambio registrato.")
         
-        if exchange_plan.get("destination_university", {}).get("name") != credential_destination_university:
+        if exchange_plan_data.get("destination_university", {}).get("name") != credential_destination_university:
             raise ValueError(f" [{self._name}] La destinazione dello scambio non corrisponde alla credenziale dello studente {student.get_code()}.")
 
-        exchange_exams = exchange_plan.get("exams", {})
-        exchange_activities = exchange_plan.get("activities", {})
+        exchange_exams = exchange_plan_data.get("exams", {})
+        exchange_activities = exchange_plan_data.get("activities", {})
 
         for exam in credential_exams_list:
             if exam not in exchange_exams:

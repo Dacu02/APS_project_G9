@@ -232,6 +232,8 @@ def immatricola(args:list[str]=[]):
         print("La password non può essere vuota.")
         password = input("Inserisci una password per autenticarti all'università: ")
     student.set_password(password, university) # Lo studente si ricorderà la password per usi futuri (viene salvata in student.json in chiaro a scopo didattico)
+    with open(os.path.join(data_dir, STUDENTS_FOLDER, "students.json"), 'w') as f:
+        json.dump({code: s.save_on_json() for code, s in students.items()}, f, indent=4)
     #TODO Ricorda di scrivere la password in student.json
 
     password_message = {
@@ -706,6 +708,13 @@ def emetti_credenziale(args:list[str]=[]):
     student.save_credential(received_credential, credential_ID)
     # Lo studente salva la credenziale in locale
     logout([university_code, student_code])  # Rimuove le chiavi dello studente dall'università e viceversa
+
+    with open(os.path.join(BLOCKCHAIN_FOLDER, "blockchain.json"), 'w') as f:
+        data = {
+            "blockchain": BLOCKCHAIN.save_on_json(),
+            "smart_contract": SMART_CONTRACT.save_on_json()
+        }
+        json.dump(data, f, indent=4)
     
 def divulga_credenziale(credenziale:Credential, args:list[str]=[]) -> Credential:
     print(" *** Divulgazione Selettiva della Credenziale *** ")
@@ -821,6 +830,56 @@ def presenta_credenziale(args:list[str]=[]):
         raise ValueError("L'università è stata inserita nella blacklist dello smart contract, impossibile procedere con la validazione della credenziale.")
 
     validation_results = SMART_CONTRACT.validate_credential_MerkleTreeLeafs(received_leafs, received_ID)
+
+    #* 4 Lo smart contract risponde all'università con i risultati della validazione
+    response_message = {
+        "timestamp": time.time(),
+        "validation_results": validation_results,
+        "credential_ID": received_ID,
+        "text": "Risultati della validazione della credenziale"
+    }
+    SMART_CONTRACT.send(university, Message(json.dumps(response_message)), sign=True)
+
+    received_message = university.get_last_message()
+    received_data = json.loads(received_message.get_content())
+    received_timestamp = received_data['timestamp']
+    if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
+        raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
+    received_id = received_data["credential_ID"]
+    if received_id != received_credential_id:
+        raise ValueError("L'ID della credenziale ricevuto non corrisponde a quello inviato.")
+    
+    validation_results = received_data["validation_results"]
+
+    if validation_results:
+        university.set_credential_id
+
+    #* 5 L'università risponde allo studente con i risultati della validazione
+    validation_message = {
+        "timestamp": time.time(),
+        "nonce": received_nonce,
+        "text": "Risultati della validazione della credenziale",
+        "validation_results": validation_results,
+        "credential_ID": received_id
+    }
+
+    university.send(student, Message(json.dumps(validation_message)), sign=True)
+
+    received_message = student.get_last_message()
+    received_data = json.loads(received_message.get_content())
+
+    received_timestamp = received_data['timestamp']
+    if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
+        raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
+
+    if received_data['nonce'] != initial_nonce:
+        raise ValueError("Il nonce ricevuto non corrisponde a quello inviato.")
+
+    if received_data["credential_ID"] != credential_ID:
+        raise ValueError("L'ID della credenziale ricevuto non corrisponde a quello inviato.")
+    
+    validation_results = received_data["validation_results"]
+    logout([university_code, student_code])  # Rimuove le chiavi dello studente dall'università e viceversa
 
 # ALGORITMI DI SIMULAZIONE DEGLI ATTACCHI
 

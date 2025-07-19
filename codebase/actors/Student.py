@@ -31,6 +31,7 @@ class Student(User):
         dict["surname"] = self._surname
         dict["credential"] = json.dumps(self._credential)
         dict["credential_ID"] = self._credential_ID
+        dict["passwords"] = self._passwords
         return dict
     
     @staticmethod
@@ -41,8 +42,8 @@ class Student(User):
         student = Student(name, surname, code)
         student._credential = json.loads(data.get("credential", "{}"))
         student._credential_ID = data.get("credential_ID", None)
-        #"keys": {user.get_name(): self._keys[user].save_on_json() for user in self._keys.keys()}
         student._keys = {key: Encryption_Scheme.load_from_json(value) for key, value in data.get("keys", {}).items()}
+        student._passwords = data.get("passwords", {})
         return student
     
     def set_password(self, password: str, user:User):
