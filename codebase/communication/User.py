@@ -34,6 +34,7 @@ class User(ABC):
             mex = scheme.authority_sign(message)
             print(f"{self._code} cifra e firma il messaggio: {message.get_content()} con la propria chiave privata")
             user._receive(self, mex, decrypt=False, verify=True)
+            return
 
         if not encrypt and not sign:
             user._receive(self, message, decrypt=False, verify=False)

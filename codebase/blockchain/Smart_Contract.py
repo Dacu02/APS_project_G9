@@ -13,7 +13,7 @@ class Smart_Contract(User):
         self._hashing = self._blockchain.get_hashing_algorithm()
         self._keys[self._code] = scheme
         if not blacklist:
-            blacklist = {}
+            self._blacklist = {}
         else:
             self._blacklist = blacklist
 

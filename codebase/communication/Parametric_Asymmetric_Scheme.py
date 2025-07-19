@@ -154,10 +154,10 @@ class Parametric_Asymmetric_Scheme(Asymmetric_Scheme):
             raise ValueError("Encryption failed: RSA private key is not initialized.")
         ciphertext = self._rsa_private_key.sign(
                 message.get_content().encode('utf-8'),
-                self._encryption_padding,
+                self._signing_padding,
                 algorithm=self._hash_algorithm
             )
-        return Message(ciphertext.hex(), signature=None)
+        return Message(message.get_content(), signature=ciphertext.hex())
 
     def share_public_key(self) -> 'Parametric_Asymmetric_Scheme':
         if self._public_key is None:

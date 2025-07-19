@@ -6,7 +6,7 @@ class Generic_Hash_Algorithm(Hash_Algorithm):
     Implementazione generica di un algoritmo di hash.
     Utilizza la libreria hashlib per supportare vari algoritmi di hash.
     """
-    def __init__(self, algorithm_name):
+    def __init__(self, algorithm_name:str):
         """
         Inizializza l'algoritmo di hash con il nome specificato.
 
@@ -16,10 +16,12 @@ class Generic_Hash_Algorithm(Hash_Algorithm):
         Raises:
             ValueError: Se l'algoritmo specificato non è supportato da hashlib.
         """
-        self._algorithm_name = algorithm_name
-        if algorithm_name not in hashlib.algorithms_available:
-            raise ValueError(f"Algoritmo di hash '{algorithm_name}' non supportato.")
-        self.hasher = hashlib.new(algorithm_name)
+        super().__init__()
+
+        self._algorithm_name = algorithm_name.lower()
+        if self._algorithm_name not in hashlib.algorithms_available:
+            raise ValueError(f"Algoritmo di hash '{self._algorithm_name}' non supportato, disponibili: {hashlib.algorithms_available}")
+        self.hasher = hashlib.new(self._algorithm_name)
     def hash(self, data: str) -> str:
         """
         Calcola l'hash della stringa data.

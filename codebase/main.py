@@ -27,28 +27,22 @@ def crea_blochcain():
         di tutte le chiavi pubbliche delle università a cui è permesso manipolare la blockchain.
     """
 
-    if not os.path.exists(BLOCKCHAIN_FOLDER):
-        os.makedirs(BLOCKCHAIN_FOLDER)
-    if not os.path.exists(os.path.join(BLOCKCHAIN_FOLDER, "blockchain.json")):
+    if not os.path.exists(os.path.join(DATA_DIRECTORY, BLOCKCHAIN_FOLDER)):
+        os.makedirs(os.path.join(DATA_DIRECTORY, BLOCKCHAIN_FOLDER))
+    if not os.path.exists(os.path.join(DATA_DIRECTORY, BLOCKCHAIN_FOLDER, "blockchain.json")):
         BLOCKCHAIN = Blockchain()
         SMART_CONTRACT = Smart_Contract(BLOCKCHAIN, Parametric_Asymmetric_Scheme(), None)
-        with open(os.path.join(BLOCKCHAIN_FOLDER, "blockchain.json"), 'w') as f:
+        with open(os.path.join(DATA_DIRECTORY, BLOCKCHAIN_FOLDER, "blockchain.json"), 'w') as f:
             data = {
                 "blockchain": BLOCKCHAIN.save_on_json(),
                 "smart_contract": SMART_CONTRACT.save_on_json()
             }
             json.dump(data, f, indent=4)
     else:
-        with open(os.path.join(BLOCKCHAIN_FOLDER, "blockchain.json"), 'r') as f:
+        with open(os.path.join(DATA_DIRECTORY, BLOCKCHAIN_FOLDER, "blockchain.json"), 'r') as f:
             blockchain_data = json.load(f)
-        if "smart_contract" in blockchain_data:
-            SMART_CONTRACT = Smart_Contract.load_from_json(blockchain_data["smart_contract"])
-        else:
-            raise ValueError("Il file blockchain.json non contiene lo smart contract.")
-        if "blockchain" in blockchain_data:
             BLOCKCHAIN = Blockchain.load_from_json(blockchain_data["blockchain"])
-        else:
-            raise ValueError("Il file blockchain.json non contiene la blockchain.")
+            SMART_CONTRACT = Smart_Contract.load_from_json(blockchain_data["smart_contract"])
         SMART_CONTRACT._link_blockchain(BLOCKCHAIN) # Perdita del riferimento dopo lettura
 
 def lettura_dati() -> tuple[dict, dict, dict, dict]:
@@ -884,6 +878,10 @@ def presenta_credenziale(args:list[str]=[]):
 # ALGORITMI DI SIMULAZIONE DEGLI ATTACCHI
 
 if __name__ == "__main__":
+    crea_universita(["001", "Unitest"])
+    crea_CA(["CA1"])
+    certifica_universita(["CA1", "001"])
+    exit(0)
 
     if len(sys.argv) < 2:
         print("Inserisci il nome di un algoritmo")
