@@ -426,3 +426,29 @@ class University(User):
             
         return True
         # Se tutte le verifiche sono superate, la credenziale è valida
+
+    def check_exam_availability(self, exam:Exam) -> bool:
+        """
+            Verifica la disponibilità di un esame nel piano di studi.
+            Parametri:
+            - exam: L'esame da verificare.
+        """
+        name = exam["name"]
+        cfus = exam["cfus"]
+        for study_plan in self._study_plans.values():
+            for exam_plan in study_plan:
+                if exam_plan["name"] == name and exam_plan["cfus"] >= cfus:
+                    return True
+        return False
+
+    def check_activity_availability(self, activity:Activity) -> bool:
+        """
+            Verifica la disponibilità di un'attività didattica nel piano di studi.
+            Parametri:
+            - activity: L'attività da verificare.
+        """
+        name = activity["name"]
+        cfus = activity["cfus"]
+        if name in self._activities and self._activities[name]["cfus"] >= cfus:
+            return True
+        return False
