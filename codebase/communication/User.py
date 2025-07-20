@@ -104,7 +104,7 @@ class User(ABC):
         else:
             mex = message
             print(f"[{self.get_label()}<-{user.get_label()}] riceve il messaggio in chiaro")
-        if verify and not isinstance(source_scheme, Symmetric_Scheme):
+        if verify and not decrypt:
             if source_scheme and isinstance(source_scheme, Asymmetric_Scheme):
                 result = source_scheme.verify(message)
                 if not result:

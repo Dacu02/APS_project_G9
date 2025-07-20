@@ -416,11 +416,12 @@ class University(User):
             raise ValueError(f" [{self._name}] Lo studente {student.get_code()} non è iscritto all'università.")
         
         self._students[serial_id]["credential_ID"] = ID
-        
         # Salva i nuovi dati della credenziale su file JSON
         json_path = os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER, f"uni_{self._name}.json")
         with open(json_path, "r") as f:
             data = json.load(f)
+
+        data[serial_id]["credential_ID"] = ID
         with open(json_path, "w") as f:
             json.dump(data, f, indent=4)
 
@@ -465,13 +466,25 @@ class University(User):
         exchange_exams = exchange_plan_data.get("exams", {})
         exchange_activities = exchange_plan_data.get("activities", {})
 
-        for exam in credential_exams_list:
-            if exam["name"] not in exchange_exams:
-                raise ValueError(f" [{self._name}] L'esame {exam} non è presente nel piano di scambio dello studente {student.get_code()}.")
+        for exam, cfu in exchange_exams.items():
+            found = False
+            for exam_result in credential_exams_list:
+                if not found and exam_result["name"] == exam:
+                    if cfu > exam_result["cfus"]:
+                        raise ValueError(f" [{self._name}] I CFU dell'esame {exam} nella credenziale dello studente {student.get_label()} sono inferiori a quelli previsti nel piano di scambio.")
+                    found = True
+            if not found:
+                raise ValueError(f" [{self._name}] L'esame {exam} non è presente nella credenziale dello studente {student.get_label()}.")
 
-        for activity in credential_activities_list:
-            if activity["name"] not in exchange_activities:
-                raise ValueError(f" [{self._name}] L'attività {activity} non è presente nel piano di scambio dello studente {student.get_code()}.")
+        for activity, cfu in exchange_activities.items():
+            found = False
+            for activity_result in credential_activities_list:
+                if not found and activity_result["name"] == activity:
+                    if cfu > activity_result["cfus"]:
+                        raise ValueError(f" [{self._name}] I CFU dell'attività {activity} nella credenziale dello studente {student.get_label()} sono inferiori a quelli previsti nel piano di scambio.")
+                    found = True
+            if not found:
+                raise ValueError(f" [{self._name}] L'attività {activity} non è presente nella credenziale dello studente {student.get_label()}.")
             
         return True
         # Se tutte le verifiche sono superate, la credenziale è valida
@@ -505,7 +518,7 @@ class University(User):
     def get_label(self) -> str:
         return self._name
     
-    def set_credential(self, student:Student, credential:Credential, credentia_id:str):
+    def set_credential(self, student:Student, credential:Credential|None, credentia_id:str|None):
         serial_id = f"{int(student.get_code()):03d}#{int(self._code):03d}"
         if serial_id not in self._students.keys():
             raise ValueError(f" [{self._name}] Lo studente {student.get_code()} non è iscritto all'università.")

@@ -17,10 +17,9 @@ from communication.Parametric_Asymmetric_Scheme import Parametric_Asymmetric_Sch
 from constants import BLOCKCHAIN_FOLDER, BLOCKCHAIN_HASH_ALGORITHM, DATA_DIRECTORY, STUDENTS_FOLDER, UNIVERSITIES_FOLDER, Activity, ActivityResult, CAs_FOLDER, RANDOM_NUMBER_MAX, MAXIMUM_TIMESTAMP_DIFFERENCE, Credential, ExamResult, StudyPlan, stringify_credential_dicts
 import sys
 import secrets
-data_dir = os.path.join(os.getcwd(), DATA_DIRECTORY)
-def crea_blochcain()-> tuple[Blockchain, Smart_Contract]:
+def carica_blockchain()-> tuple[Blockchain, Smart_Contract]:
     """
-        Il seguente algoritmo crea la struttura della blockchain e istanzia uno smart contract, col quale le università possono comunicare
+        Il seguente algoritmo carica la struttura della blockchain e istanzia uno smart contract, col quale le università possono comunicare
         Si presume che tutte le università siano a conoscenza della chiave pubblica dello smart contract, e che a sua volta lo smart contract sia a conoscenza
         di tutte le chiavi pubbliche delle università a cui è permesso manipolare la blockchain.
     """
@@ -46,53 +45,53 @@ def crea_blochcain()-> tuple[Blockchain, Smart_Contract]:
 
 
 
-def lettura_dati() -> tuple[dict, dict, dict, dict, Blockchain, Smart_Contract]:
+def lettura_dati() -> tuple[dict[str, Student], dict[str, University], dict[str, CA], dict[str, str], Blockchain, Smart_Contract]:
     """
         L'algoritmo legge i dati e le configurazioni dai file JSON presenti nella cartella "data".
     """
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
+    if not os.path.exists(DATA_DIRECTORY):
+        os.makedirs(DATA_DIRECTORY)
 
-    if not os.path.exists(os.path.join(data_dir, "config.json")):
-        with open(os.path.join(data_dir, "config.json"), 'w') as f:
+    if not os.path.exists(os.path.join(DATA_DIRECTORY, "config.json")):
+        with open(os.path.join(DATA_DIRECTORY, "config.json"), 'w') as f:
             configurazione = {}
             # Eventuale configurazioni da inizializzare
             json.dump(configurazione, f, indent=4)
 
-    if not os.path.exists(os.path.join(data_dir, STUDENTS_FOLDER)):
-        os.makedirs(os.path.join(data_dir, STUDENTS_FOLDER))
-    if not os.path.exists(os.path.join(data_dir, STUDENTS_FOLDER, "students.json")):
-        with open(os.path.join(data_dir, STUDENTS_FOLDER, "students.json"), 'w') as f:
+    if not os.path.exists(os.path.join(DATA_DIRECTORY, STUDENTS_FOLDER)):
+        os.makedirs(os.path.join(DATA_DIRECTORY, STUDENTS_FOLDER))
+    if not os.path.exists(os.path.join(DATA_DIRECTORY, STUDENTS_FOLDER, "students.json")):
+        with open(os.path.join(DATA_DIRECTORY, STUDENTS_FOLDER, "students.json"), 'w') as f:
             students = {}
             # Eventuale lista di studenti da inizializzare
             json.dump(students, f, indent=4)
 
-    if not os.path.exists(os.path.join(data_dir, UNIVERSITIES_FOLDER)):
-        os.makedirs(os.path.join(data_dir, UNIVERSITIES_FOLDER))
-    if not os.path.exists(os.path.join(data_dir, UNIVERSITIES_FOLDER, "universities.json")):
-        with open(os.path.join(data_dir, UNIVERSITIES_FOLDER, "universities.json"), 'w') as f:
+    if not os.path.exists(os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER)):
+        os.makedirs(os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER))
+    if not os.path.exists(os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER, "universities.json")):
+        with open(os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER, "universities.json"), 'w') as f:
             universities = {}
             json.dump(universities, f, indent=4)
 
-    if not os.path.exists(os.path.join(data_dir, CAs_FOLDER)):
-        os.makedirs(os.path.join(data_dir, CAs_FOLDER))
-    if not os.path.exists(os.path.join(data_dir, CAs_FOLDER, "CAs.json")):
-        with open(os.path.join(data_dir, CAs_FOLDER, "CAs.json"), 'w') as f:
+    if not os.path.exists(os.path.join(DATA_DIRECTORY, CAs_FOLDER)):
+        os.makedirs(os.path.join(DATA_DIRECTORY, CAs_FOLDER))
+    if not os.path.exists(os.path.join(DATA_DIRECTORY, CAs_FOLDER, "CAs.json")):
+        with open(os.path.join(DATA_DIRECTORY, CAs_FOLDER, "CAs.json"), 'w') as f:
             CAs = {}
             json.dump(CAs, f, indent=4)
 
-    with open(os.path.join(data_dir, STUDENTS_FOLDER, "students.json"), 'r') as f:
+    with open(os.path.join(DATA_DIRECTORY, STUDENTS_FOLDER, "students.json"), 'r') as f:
         students = json.load(f)
-    with open(os.path.join(data_dir, UNIVERSITIES_FOLDER, "universities.json"), 'r') as f:
+    with open(os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER, "universities.json"), 'r') as f:
         universities = json.load(f)
-        private_uni_file = os.path.join(data_dir, UNIVERSITIES_FOLDER, "uni_.json")
+        private_uni_file = os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER, "uni_.json")
         if os.path.exists(private_uni_file):
             with open(private_uni_file, 'r') as f_priv:
                 private_universities = json.load(f_priv)
                 universities.update(private_universities)
-    with open(os.path.join(data_dir, CAs_FOLDER, "CAs.json"), 'r') as f:
+    with open(os.path.join(DATA_DIRECTORY, CAs_FOLDER, "CAs.json"), 'r') as f:
         CAs = json.load(f)
-    with open(os.path.join(data_dir, "config.json"), 'r') as f:
+    with open(os.path.join(DATA_DIRECTORY, "config.json"), 'r') as f:
         configurazione = json.load(f)
 
     for student_name, student_data in students.items():
@@ -104,7 +103,7 @@ def lettura_dati() -> tuple[dict, dict, dict, dict, Blockchain, Smart_Contract]:
     for ca_name, ca_data in CAs.items():
         CAs[ca_name] = CA.load_from_json(ca_data)
 
-    return students, universities, CAs, configurazione, *crea_blochcain()
+    return students, universities, CAs, configurazione, *carica_blockchain()
 
 def immatricola(args:list[str]=[]):
     """
@@ -145,8 +144,6 @@ def immatricola(args:list[str]=[]):
         print("La CA non esiste.")
         ca_name = input("Inserisci il nome di una CA dove la chiave pubblica dell'università è registrata, o premi invio per prenderne una disponibile")
 
-    if ca_name == "":
-        print("TODO") #TODO Cerca una CA con un certificato valido per l'università
     
     student:Student = students[student_name]
     university:University = universities[university_name]
@@ -239,9 +236,8 @@ def immatricola(args:list[str]=[]):
         print("La password non può essere vuota.")
         password = input("Inserisci una password per autenticarti all'università: ")
     student.set_password(password, university) # Lo studente si ricorderà la password per usi futuri (viene salvata in student.json in chiaro a scopo didattico)
-    with open(os.path.join(data_dir, STUDENTS_FOLDER, "students.json"), 'w') as f:
+    with open(os.path.join(DATA_DIRECTORY, STUDENTS_FOLDER, "students.json"), 'w') as f:
         json.dump({code: s.save_on_json() for code, s in students.items()}, f, indent=4)
-    #TODO Ricorda di scrivere la password in student.json
 
     password_message = {
         "password": password,
@@ -297,7 +293,7 @@ def crea_studente(args:list[str]=[]):
     print("Studente creato con successo.")
     student = Student(name, surname, code)
     students[code] = student
-    with open(os.path.join(data_dir, STUDENTS_FOLDER, "students.json"), 'w') as f:
+    with open(os.path.join(DATA_DIRECTORY, STUDENTS_FOLDER, "students.json"), 'w') as f:
         json.dump({code: student.save_on_json() for code, student in students.items()}, f, indent=4)
 
 
@@ -316,7 +312,7 @@ def crea_universita(args:list[str]=[]):
     print("Università creata con successo.")
     university = University(name, code, BLOCKCHAIN_HASH_ALGORITHM())
     universities[code] = university
-    with open(os.path.join(data_dir, UNIVERSITIES_FOLDER, "universities.json"), 'w') as f:
+    with open(os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER, "universities.json"), 'w') as f:
         json.dump({code: university.save_on_json() for code, university in universities.items()}, f, indent=4)
 
 
@@ -407,7 +403,7 @@ def crea_CA(args:list[str]=[]):
     scheme = Parametric_Asymmetric_Scheme()
     ca.add_key(ca, scheme)
 
-    with open(os.path.join(data_dir, CAs_FOLDER, "CAs.json"), 'w') as f:
+    with open(os.path.join(DATA_DIRECTORY, CAs_FOLDER, "CAs.json"), 'w') as f:
         json.dump({name: ca.save_on_json() for name, ca in CAs.items()}, f, indent=4)
 
 
@@ -430,8 +426,7 @@ def certifica_universita(args:list[str]=[]):
         Funzione per certificare un'università, richiede il nome della CA e dell'università.
         L'università genera una coppia di chiavi, e chiede alla CA di pubblicare la propria chiave pubblica attraverso un certificato.
     """
-    CAs = lettura_dati()[2]
-    universities = lettura_dati()[1]
+    _, universities, CAs, _, _, smart_contract = lettura_dati()
     if len(args) > 0:
         ca_name = args[0]
     else:
@@ -455,10 +450,9 @@ def certifica_universita(args:list[str]=[]):
     university.add_key(university, scheme)
     university.add_key(ca, ca.get_public_key()) 
 
-
-
     # Si immagina che l'università conosca già la CA sulla quale vuole certificare
     # la chiave pubblica e che comunichi attraverso altri mezzi alternativi sicuri
+    # Discorso analogo per la registrazione della chiave pubblica all'interno dello smart contract
 
 
     #* 2 L'università chiede alla CA di certificare la propria chiave pubblica
@@ -474,14 +468,20 @@ def certifica_universita(args:list[str]=[]):
         raise ValueError(f"La CA {ca_name} non ha emesso correttamente il certificato per l'università {university_code}.")
 
     ca.send(university, certificate, encrypt=False)
-
+    smart_contract.register_university(university, public_key)
     print(f"L'università {university.get_name()} è stata certificata con successo dalla CA {ca.get_code()}.")
 
     # Salva le chiavi aggiornate della CA e dell'università nei rispettivi file JSON
-    with open(os.path.join(data_dir, UNIVERSITIES_FOLDER, "universities.json"), 'w') as f:
+    with open(os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER, "universities.json"), 'w') as f:
         json.dump({code: uni.save_on_json() for code, uni in universities.items()}, f, indent=4)
-    with open(os.path.join(data_dir, CAs_FOLDER, "CAs.json"), 'w') as f:
+    with open(os.path.join(DATA_DIRECTORY, CAs_FOLDER, "CAs.json"), 'w') as f:
         json.dump({name: ca_obj.save_on_json() for name, ca_obj in CAs.items()}, f, indent=4)
+
+    with open(os.path.join(DATA_DIRECTORY, BLOCKCHAIN_FOLDER, "blockchain.json"), 'r') as f:
+        data = json.load(f)
+    data["smart_contract"] = smart_contract.save_on_json()
+    with open(os.path.join(DATA_DIRECTORY, BLOCKCHAIN_FOLDER, "blockchain.json"), 'w') as f:
+        json.dump(data, f, indent=4)
 
 def autenticazione(args:list[str]=[]):
     """
@@ -652,17 +652,17 @@ def autenticazione(args:list[str]=[]):
 
     # Salva le nuove chiavi simmetriche nei rispettivi file JSON
 
-    with open(os.path.join(data_dir, STUDENTS_FOLDER, "students.json"), 'r') as f:
+    with open(os.path.join(DATA_DIRECTORY, STUDENTS_FOLDER, "students.json"), 'r') as f:
         students_data = json.load(f)
-    with open(os.path.join(data_dir, UNIVERSITIES_FOLDER, "universities.json"), 'r') as f:
+    with open(os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER, "universities.json"), 'r') as f:
         universities_data = json.load(f)    
 
     students_data[student_code] = student.save_on_json()
     universities_data[university_code] = university.save_on_json()
 
-    with open(os.path.join(data_dir, STUDENTS_FOLDER, "students.json"), 'w') as f:
+    with open(os.path.join(DATA_DIRECTORY, STUDENTS_FOLDER, "students.json"), 'w') as f:
         json.dump(students_data, f, indent=4)
-    with open(os.path.join(data_dir, UNIVERSITIES_FOLDER, "universities.json"), 'w') as f:
+    with open(os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER, "universities.json"), 'w') as f:
         json.dump(universities_data, f, indent=4)
 
 def logout(args:list[str]=[]):
@@ -691,9 +691,9 @@ def logout(args:list[str]=[]):
 
         # Salva le nuove chiavi simmetriche nei rispettivi file JSON
 
-    with open(os.path.join(data_dir, STUDENTS_FOLDER, "students.json"), 'r') as f:
+    with open(os.path.join(DATA_DIRECTORY, STUDENTS_FOLDER, "students.json"), 'r') as f:
         students_data = json.load(f)
-    with open(os.path.join(data_dir, UNIVERSITIES_FOLDER, "universities.json"), 'r') as f:
+    with open(os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER, "universities.json"), 'r') as f:
         universities_data = json.load(f)    
 
     # Lo studente rimuove la chiave dell'università dal proprio database e riprende quella pubblica
@@ -706,9 +706,9 @@ def logout(args:list[str]=[]):
     universities_data[university_code] = university.save_on_json()
 
 
-    with open(os.path.join(data_dir, STUDENTS_FOLDER, "students.json"), 'w') as f:
+    with open(os.path.join(DATA_DIRECTORY, STUDENTS_FOLDER, "students.json"), 'w') as f:
         json.dump(students_data, f, indent=4)
-    with open(os.path.join(data_dir, UNIVERSITIES_FOLDER, "universities.json"), 'w') as f:
+    with open(os.path.join(DATA_DIRECTORY, UNIVERSITIES_FOLDER, "universities.json"), 'w') as f:
         json.dump(universities_data, f, indent=4)
 
 
@@ -790,9 +790,6 @@ def domanda_mobilita(args:list[str]=[]):
         "study_plan": study_plan,
         "activities": activities
     }
-
-    if isinstance(student._keys[university.get_code()], Asymmetric_Scheme):
-        raise ValueError("Lo studente non ha una chiave simmetrica condivisa con l'università, impossibile inviare la domanda di mobilità.")
 
     request_message = Message(json.dumps(request_message))
     student.send(university, request_message, sign=True)
@@ -984,7 +981,6 @@ def emetti_credenziale(args:list[str]=[]):
 
     # Si presume che le università conoscano già la chiave pubblica dello smart contract
     university.add_key(smart_contract, smart_contract.get_public_key())
-    smart_contract.register_university(university, university._keys[university.get_code()].share_public_key()) # type: ignore #TODO Revisita
 
     university.send(smart_contract, request_message, encrypt=False, sign=True)
 
@@ -1009,6 +1005,7 @@ def emetti_credenziale(args:list[str]=[]):
         "credential_ID": credential_ID,
         "text": "Credenziale certificata con successo nella blockchain"
     }
+    
     response_message = Message(json.dumps(response_message))
     smart_contract.send(university, response_message, sign=True)
     
@@ -1055,10 +1052,10 @@ def emetti_credenziale(args:list[str]=[]):
         }
         json.dump(data, f, indent=4)
 
-    with open(os.path.join(data_dir, STUDENTS_FOLDER, "students.json"), 'r') as f:
+    with open(os.path.join(DATA_DIRECTORY, STUDENTS_FOLDER, "students.json"), 'r') as f:
         students_data = json.load(f)
     students_data[student_code] = student.save_on_json()
-    with open(os.path.join(data_dir, STUDENTS_FOLDER, "students.json"), 'w') as f:
+    with open(os.path.join(DATA_DIRECTORY, STUDENTS_FOLDER, "students.json"), 'w') as f:
         json.dump(students_data, f, indent=4)
 
     
@@ -1180,7 +1177,6 @@ def presenta_credenziale(args:list[str]=[]):
     request_message = Message(json.dumps(request_certification_validation))
     # Si presume che le università conoscano già la chiave pubblica dello smart contract
     university.add_key(smart_contract, smart_contract.get_public_key())
-    smart_contract.register_university(university, university._keys[university.get_code()].share_public_key()) # type: ignore #TODO Revisita
     university.send(smart_contract, request_message, encrypt=False, sign=True)
 
 
@@ -1246,6 +1242,140 @@ def presenta_credenziale(args:list[str]=[]):
     validation_results = received_data["validation_results"]
     logout([university_code, student_code])  # Rimuove le chiavi dello studente dall'università e viceversa
 
+def revoca_credenziale(args:list[str]=[]):
+    students, universities, _, _, blockchain, smart_contract = lettura_dati()
+
+    student_code = read_code("Inserisci il codice dello studente: ", args[0] if len(args) > 0 else None)
+    while student_code not in students:
+        print("Lo studente non esiste.")
+        student_code = read_code("Inserisci il codice dello studente: ")
+
+    university_code = read_code("Inserisci il codice dell'università: ", args[1] if len(args) > 1 else None)
+    while university_code not in universities:
+        print("L'università non esiste.")
+        university_code = read_code("Inserisci il codice dell'università: ")
+
+    student: Student = students[student_code]
+    university: University = universities[university_code]
+
+    # Recupera l'ID della credenziale da revocare
+    credential_ID = university.get_credential_id(student)
+    if not credential_ID:
+        raise ValueError("Credenziale non trovata.")
+
+
+    # L'università invia la richiesta di revoca allo smart contract
+    revoke_message = {
+        "timestamp": time.time(),
+        "credential_ID": credential_ID,
+        "text": "Richiesta di revoca della credenziale"
+    }
+    message = Message(json.dumps(revoke_message))
+    university.add_key(smart_contract, smart_contract.get_public_key())
+    university.send(smart_contract, message, encrypt=False, sign=True)
+
+    # Lo smart contract riceve la richiesta e revoca la credenziale
+    received_message = smart_contract.get_last_message()
+    received_data = json.loads(received_message.get_content())
+    received_credential_id = received_data["credential_ID"]
+    received_timestamp = received_data["timestamp"]
+    if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
+        raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
+
+    if smart_contract.is_blacklisted(university):
+        raise ValueError("L'università è stata inserita nella blacklist dello smart contract, impossibile procedere con la revoca.")
+    try:
+        smart_contract.revoke_credential(received_credential_id, university)
+        revocation_result = True
+    except ValueError as e:
+        print(f"Errore nella revoca della credenziale: {e}")
+        revocation_result = False
+
+    # Lo smart contract risponde all'università con l'esito della revoca
+    response_message = {
+        "timestamp": time.time(),
+        "credential_ID": received_credential_id,
+        "revocation_result": revocation_result
+    }
+    smart_contract.send(university, Message(json.dumps(response_message)), sign=True)
+
+    received_message = university.get_last_message()
+    received_data = json.loads(received_message.get_content())
+
+    with open(os.path.join(DATA_DIRECTORY, BLOCKCHAIN_FOLDER, "blockchain.json"), 'w') as f:
+        data = {
+            "blockchain": blockchain.save_on_json(),
+            "smart_contract": smart_contract.save_on_json()
+        }
+        json.dump(data, f, indent=4)
+
+
+def verifica_credenziale(args:list[str]=[]):
+    students, universities, _, _, blockchain, smart_contract = lettura_dati()
+
+    student_code = read_code("Inserisci il codice dello studente: ", args[0] if len(args) > 0 else None)
+    while student_code not in students:
+        print("Lo studente non esiste.")
+        student_code = read_code("Inserisci il codice dello studente: ")
+
+    university_code = read_code("Inserisci il codice dell'università: ", args[1] if len(args) > 1 else None)
+    while university_code not in universities:
+        print("L'università non esiste.")
+        university_code = read_code("Inserisci il codice dell'università: ")
+
+    student: Student = students[student_code]
+    university: University = universities[university_code]
+
+    # Recupera l'ID della credenziale dello studente
+    credential_ID = university.get_credential_id(student)
+    if not credential_ID:
+        raise ValueError("Credenziale non trovata per lo studente.")
+
+    # L'università invia la richiesta di verifica allo smart contract
+    verify_message = {
+        "timestamp": time.time(),
+        "credential_ID": credential_ID,
+        "text": "Richiesta di verifica della validità della credenziale"
+    }
+    message = Message(json.dumps(verify_message))
+    university.add_key(smart_contract, smart_contract.get_public_key())
+    university.send(smart_contract, message, encrypt=False, sign=True)
+
+    # Lo smart contract riceve la richiesta e verifica la validità della credenziale
+    received_message = smart_contract.get_last_message()
+    received_data = json.loads(received_message.get_content())
+    received_credential_id = received_data["credential_ID"]
+    received_timestamp = received_data["timestamp"]
+    if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
+        raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
+
+    if smart_contract.is_blacklisted(university):
+        raise ValueError("L'università è stata inserita nella blacklist dello smart contract, impossibile procedere con la verifica.")
+
+    is_valid = smart_contract.validate_credential_ID(received_credential_id)
+
+    # Lo smart contract risponde all'università con l'esito della verifica
+    response_message = {
+        "timestamp": time.time(),
+        "credential_ID": received_credential_id,
+        "is_valid": is_valid
+    }
+    smart_contract.send(university, Message(json.dumps(response_message)), sign=True)
+
+
+    received_message = university.get_last_message()
+    received_data = json.loads(received_message.get_content())
+    if not received_data.get("credential_ID") == credential_ID:
+        raise ValueError("L'ID della credenziale ricevuto non corrisponde a quello inviato.")
+    if abs(time.time() - received_data['timestamp']) > MAXIMUM_TIMESTAMP_DIFFERENCE:
+        raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
+
+
+    received_is_valid = received_data["is_valid"]
+    if not received_is_valid:
+        university.set_credential(student, None, None)
+    print(f"Credenziale {'valida' if is_valid else 'non valida'}.")
+
 # ALGORITMI DI SIMULAZIONE DEGLI ATTACCHI
 
 # FUNZIONI PER TESTING
@@ -1292,16 +1422,20 @@ if __name__ == "__main__":
     COD_STUDENTE = "010"
 
     pulizia()
-    crea_universita([COD_UNI_INT, "Unitest"])
     crea_CA(["CA1"])
+
+    crea_universita([COD_UNI_INT, "UniInt"])
     certifica_universita(["CA1", COD_UNI_INT])
     crea_piano_studi([COD_UNI_INT, "Informatica", "Programmazione", "6", "Sistemi Operativi", "6", "Analisi", "3", ""])
-    crea_universita([COD_UNI_EXT, "UniExt"])
-    crea_piano_studi([COD_UNI_EXT, "Matematica", "Fisica", "6", "Analisi", "6", ""])
-    certifica_universita(["CA1", COD_UNI_EXT])
     crea_attivita([COD_UNI_INT, "Ricerca", "3"])
+
+    crea_universita([COD_UNI_EXT, "UniExt"])
+    certifica_universita(["CA1", COD_UNI_EXT])
+    crea_piano_studi([COD_UNI_EXT, "Matematica", "Fisica", "4", "Analisi", "4", ""])
     crea_attivita([COD_UNI_EXT, "Ricerca", "3"])
     crea_studente([COD_STUDENTE, "Mario", "Rossi"])
+
+
     immatricola([COD_STUDENTE, COD_UNI_INT, "CA1", "Informatica", "TEST_PW"])
 
     _registra_esame(COD_UNI_INT, COD_STUDENTE, {
@@ -1324,7 +1458,8 @@ if __name__ == "__main__":
         "cfus": 6
     })
 
-    domanda_mobilita([COD_UNI_INT, COD_UNI_EXT, COD_STUDENTE, "TEST_PW", "Analisi", "3", "Fisica", "3", "", "Ricerca", "3", "", "R_INT", "CA1", "R_EXT"])
+    domanda_mobilita([COD_UNI_INT, COD_UNI_EXT, COD_STUDENTE, "TEST_PW", "Analisi", "3", "", "Ricerca", "3", "", "R_INT", "CA1", "R_EXT"])
+
     immatricola([COD_STUDENTE, COD_UNI_EXT, "CA1", "TEST_PW_EXT"])
 
     _registra_esame(COD_UNI_EXT, COD_STUDENTE, {
@@ -1334,7 +1469,7 @@ if __name__ == "__main__":
         "date": "2023-07-01",
         "prof": "Prof.ssa Verdi",
         "study_plan_name": "Matematica",
-        "cfus": 3
+        "cfus": 4
     })
 
     _registra_esame(COD_UNI_EXT, COD_STUDENTE, {
@@ -1344,7 +1479,7 @@ if __name__ == "__main__":
         "date": "2023-07-15",
         "prof": "Prof. Neri",
         "study_plan_name": "Matematica",
-        "cfus": 3
+        "cfus": 4
     })
 
     _registra_attivita(COD_UNI_EXT, COD_STUDENTE, {
@@ -1357,7 +1492,8 @@ if __name__ == "__main__":
 
     emetti_credenziale([COD_UNI_EXT, COD_STUDENTE, "TEST_PW_EXT"])
     presenta_credenziale([COD_STUDENTE, COD_UNI_INT, 'TEST_PW', 'E', "Fisica", ""])
-
+    revoca_credenziale([COD_STUDENTE, COD_UNI_EXT])
+    verifica_credenziale([COD_STUDENTE, COD_UNI_INT])
     exit(0)
 
     if len(sys.argv) < 2:
@@ -1390,6 +1526,8 @@ if __name__ == "__main__":
         domanda_mobilita(list(sys.argv[2:]))
     elif command == "logout":
         logout(list(sys.argv[2:]))
+    elif command == "revoca_credenziale":
+        revoca_credenziale(list(sys.argv[2:]))
     else:
         print(f"Comando sconosciuto: {command}")
 

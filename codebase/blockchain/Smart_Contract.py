@@ -36,18 +36,25 @@ class Smart_Contract(User):
         """
             Restituisce la blockchain associata allo smart contract.
         """
+        if not self._blockchain:
+            raise ValueError("Lo smart contract non è collegato a nessuna blockchain.")
         return self._blockchain
     
     def _add_block(self, block: Block) -> None:
         """
             Aggiunge un blocco alla blockchain.
         """
+        if not self._blockchain:
+            raise ValueError("Lo smart contract non è collegato a nessuna blockchain.")
         self._blockchain.add_block(block)
 
     def _invalidate_block(self, block_ID:str) -> bool:
         """
             Invalida un blocco già presente sulla blockchain.
         """
+        if not self._blockchain:
+            raise ValueError("Lo smart contract non è collegato a nessuna blockchain.")
+        
         top_block = self._blockchain.get_last_block()
         if not top_block:
             return False
@@ -69,9 +76,14 @@ class Smart_Contract(User):
             Certifica un Merkle Tree, restituendo il suo ID.
             Il Merkle Tree deve essere già stato costruito con i dati della credenziale.
         """
+        if not self._blockchain:
+            raise ValueError("Lo smart contract non è collegato a nessuna blockchain.")
         if not tree or not tree.get_root():
             raise ValueError("Il Merkle Tree non è stato costruito correttamente.")
         
+        if self.is_blacklisted(university):
+            raise ValueError("L'università è stata inserita nella blacklist dello smart contract, impossibile procedere con la certificazione.")
+
         if not isinstance(tree, MerkleTree):
             raise TypeError("Il parametro 'tree' deve essere un'istanza di MerkleTree.")
 
@@ -113,7 +125,7 @@ class Smart_Contract(User):
 
     def save_on_json(self) -> dict:
         data = super().save_on_json()
-        data["keys"] = {k: v.save_on_json() for k, v in self._keys.items()}
+        data["keys"] = {user: scheme.save_on_json() for user, scheme in self._keys.items()}
         # data["blockchain"] = [block.save_on_json() for block in self._blockchain.get_blocks()]
         data["blacklist"] = {uni_code: [voter.save_on_json() for voter in voter_list] for uni_code, voter_list in self._blacklist.items()}
         return data
@@ -126,7 +138,9 @@ class Smart_Contract(User):
         scheme = Asymmetric_Scheme.load_from_json(data.get("keys", {}).get("SMART_CONTRACT", {}))
         # blockchain = Blockchain.load_from_json(data.get("blockchain", []))
         blacklist = {uni_code: [Asymmetric_Scheme.load_from_json(voter) for voter in voter_list] for uni_code, voter_list in data.get("blacklist", {}).items()}
-        return Smart_Contract(None, scheme, blacklist)
+        contract = Smart_Contract(None, scheme, blacklist)
+        contract._keys = {user: Asymmetric_Scheme.load_from_json(scheme) for user, scheme in data.get("keys", {}).items()}
+        return contract
 
 
     def vote_blacklist(self, voter: Asymmetric_Scheme, to_blacklist: University) -> None:
@@ -149,6 +163,8 @@ class Smart_Contract(User):
         """
             Valida le foglie di un Merkle Tree per una determinata credenziale.
         """
+        if not self._blockchain:
+            raise ValueError("Lo smart contract non è collegato a nessuna blockchain.")
         if not leafs or not credential_ID:
             raise ValueError("Le foglie e l'ID della credenziale non possono essere vuoti.")
 
@@ -196,3 +212,55 @@ class Smart_Contract(User):
             Registra l'università allo smart contract
         """
         self.add_key(university, scheme)
+
+    def revoke_credential(self, credential_ID: str, university: University):
+        """
+            Revoca una credenziale rappresentata da un Merkle Tree.
+            Restituisce True se la revoca è avvenuta con successo, False altrimenti.
+            Parametri:
+            - credential_ID: L'ID della credenziale da revocare.
+            - university: L'università che sta richiedendo la revoca.
+
+        """
+
+        if not self._blockchain:
+            raise ValueError("Lo smart contract non è collegato a nessuna blockchain.")
+
+        if self.is_blacklisted(university):
+            raise ValueError("L'università è stata inserita nella blacklist dello smart contract, impossibile procedere con la revocazione.")
+
+        block = self._blockchain.find_block(credential_ID)
+        if not block:
+            raise ValueError("Il blocco con l'ID specificato non esiste nella blockchain.")
+        
+        # Controlla se l'ID è stato revocato successivamente nella blockchain
+        next_block = self._blockchain.next(block)
+        while next_block:
+            if next_block.get_delete_flag() and next_block.get_merkle_or_ID() == credential_ID:
+                raise ValueError("La credenziale è già stata revocata in un blocco successivo.")
+    
+            next_block = self._blockchain.next(next_block)
+
+        if not self._invalidate_block(credential_ID):
+            raise ValueError("La revoca della credenziale è fallita.")
+
+    def validate_credential_ID(self, credential_ID: str) -> bool:
+        """
+            Valida l'ID di una credenziale.
+        """
+        if not self._blockchain:
+            raise ValueError("Lo smart contract non è collegato a nessuna blockchain.")
+
+        block = self._blockchain.find_block(credential_ID)
+        if not block:
+            return False
+
+        # Controlla se l'ID è stato revocato successivamente nella blockchain
+        next_block = self._blockchain.next(block)
+        while next_block:
+            if next_block.get_delete_flag() and next_block.get_merkle_or_ID() == credential_ID:
+                return False
+
+            next_block = self._blockchain.next(next_block)
+
+        return True
