@@ -90,7 +90,8 @@ def immatricola(args:list[str]=[]):
             study_plan = input(f"Scegli un piano di studi tra {', '.join(study_plans.keys())}: ")
 
     student_initial_timestamp = time.time()
-    random_number = secrets.randbelow(RANDOM_NUMBER_MAX)  # Numero casuale tra 0 e 999999 non basato su timestamp
+    RANDOM_NUMBER0 = secrets.randbelow(RANDOM_NUMBER_MAX)  # Numero casuale tra 0 e 999999 non basato su timestamp
+    RANDOM_NUMBER1 = secrets.randbelow(RANDOM_NUMBER_MAX)  # Numero casuale tra 0 e 999999 non basato su timestamp
 
     message_data = {
         "name": student.get_name(),
@@ -100,14 +101,16 @@ def immatricola(args:list[str]=[]):
         "text": "Richiesta di immatricolazione",
         "study_plan": study_plan,
         # "email": "..." # Si potrebbe considerare in futuro l'utilizzo di una email come scenario 2FA
-        "nonce": random_number
+        "nonce0": RANDOM_NUMBER0,
+        "nonce1": RANDOM_NUMBER1
     }
 
     message = Message(json.dumps(message_data))
     student.send(university, message, sign=False)
     #* 4 L'università riceve il messaggio e lo decifra con la propria chiave privata,
     #* chiede quindi allo studente di definire una password con la quale potrà autenticarsi successivamente
-    #* Inoltre, per evitare replay attack gli chiede di ripetere il timestamp originale
+    #! OLD Inoltre, per evitare replay attack gli chiede di ripetere il timestamp originale
+    #* Per evitare replay attack, l'università chiede allo studente di fornire l'altro nonce casuale
     received_message = university.get_last_message()
     received_data = json.loads(received_message.get_content())
     first_received_timestamp = received_data["timestamp"]
@@ -116,8 +119,8 @@ def immatricola(args:list[str]=[]):
         raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
 
     uni_message = {
-        "text": f"Benvenuto {received_data['name']} {received_data['surname']}, per favore fornisci una password per autenticarti in futuro, inoltre, ripeti il timestamp originale e l'attuale",
-        "nonce": received_data["nonce"],
+        "text": f"Benvenuto {received_data['name']} {received_data['surname']}, per favore fornisci una password per autenticarti in futuro, inoltre, invia il l'altro nonce e il timestamp attuale",
+        "nonce": received_data["nonce0"],
         "timestamp": time.time()
     }
     university.send(student, Message(json.dumps(uni_message)), encrypt=False, sign=True)
@@ -125,7 +128,7 @@ def immatricola(args:list[str]=[]):
     #* 5 Lo studente riceve il messaggio e procede a definire una password
     received_message = student.get_last_message()
     received_data = json.loads(received_message.get_content())
-    if received_data['nonce'] != random_number:
+    if received_data['nonce'] != RANDOM_NUMBER0:
         raise ValueError("Il nonce non corrisponde a quello inviato, possibile replay attack.")
     received_timestamp = received_data['timestamp']
     if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
@@ -146,7 +149,7 @@ def immatricola(args:list[str]=[]):
     password_message = {
         "password": password,
         "timestamp": time.time(),
-        "nonce": student_initial_timestamp,
+        "nonce": RANDOM_NUMBER1,
         "text": "Password di immatricolazione"
     }
 
@@ -154,10 +157,10 @@ def immatricola(args:list[str]=[]):
     #* 6 L'università riceve la password e la salva nel proprio database, immatricolando lo studente
     received_message = university.get_last_message()
     received_data = json.loads(received_message.get_content())
-    received_timestamp = received_data['nonce']
+    received_timestamp = received_data['timestamp']
     if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
         raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
-    if received_timestamp != first_received_timestamp:
-        raise ValueError("Il timestamp ricevuto non corrisponde a quello originale, possibile replay attack.")
+    if received_data['nonce'] != RANDOM_NUMBER1:
+        raise ValueError("Il nonce ricevuto non corrisponde a quello originale, possibile replay attack.")
 
     university.enroll_student(student, password, study_plan)

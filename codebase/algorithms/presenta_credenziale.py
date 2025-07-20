@@ -9,8 +9,8 @@ from algorithms.logout import logout
 from algorithms.read_code import read_code
 from algorithms.autenticazione import autenticazione
 from algorithms.divulga_credenziale import divulga_credenziale
-from communication import Message
 from constants import MAXIMUM_TIMESTAMP_DIFFERENCE, RANDOM_NUMBER_MAX, stringify_credential_dicts
+from communication import Message
 
 
 def presenta_credenziale(args:list[str]=[]):
@@ -144,3 +144,7 @@ def presenta_credenziale(args:list[str]=[]):
     
     validation_results = received_data["validation_results"]
     logout([university_code, student_code])  # Rimuove le chiavi dello studente dall'università e viceversa
+    if validation_results:
+        print("Credenziale presentata con successo.")
+    else:
+        raise ValueError("La credenziale non è valida o non è stata accettata dall'università.")

@@ -147,17 +147,18 @@ class Smart_Contract(User):
         """
             Vota per aggiungere un'università alla blacklist.
         """
-        if not self._blacklist[to_blacklist.get_code()]:
+        bl = self._blacklist.get(to_blacklist.get_code())
+        if not bl:
             self._blacklist[to_blacklist.get_code()] = [voter]
         else:
-            if voter not in self._blacklist[to_blacklist.get_code()]:
-                self._blacklist[to_blacklist.get_code()].append(voter)
+            if voter not in bl:
+                bl.append(voter)
 
     def is_blacklisted(self, university: University) -> bool:
         """
             Controlla se un'università è nella blacklist.
         """
-        return university.get_code() in self._blacklist and len(self._blacklist[university.get_code()]) > len(self._keys) // BLACKLIST_THRESHOLD
+        return university.get_code() in self._blacklist and len(self._blacklist[university.get_code()]) > (len(self._keys) - 1) * BLACKLIST_THRESHOLD
 
     def validate_credential_MerkleTreeLeafs(self, leafs: list[str], credential_ID: str) -> bool:
         """

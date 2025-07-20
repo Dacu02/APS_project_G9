@@ -39,33 +39,38 @@ def autenticazione(args:list[str]=[]):
     university:University = universities[university_code]
 
     student_initial_timestamp = time.time()
-    random_number = secrets.randbelow(RANDOM_NUMBER_MAX)  # Numero casuale tra 0 e 999999 non basato su timestamp
+    RANDOM_NUMBER0 = secrets.randbelow(RANDOM_NUMBER_MAX)  # Numero casuale tra 0 e 999999 non basato su timestamp
+    RANDOM_NUMBER1 = secrets.randbelow(RANDOM_NUMBER_MAX)  # Numero casuale tra 0 e 999999 non basato su timestamp
     #* 1 Lo studente invia un messaggio all'università con il proprio nome, cognome, codice, timestamp e un numero casuale
     message_data = {
         "name": student.get_name(),
         "surname": student.get_surname(),
         "code": student.get_code(),
         "timestamp": student_initial_timestamp,
-        "text": "Richiesta di autenticazione",
-        "nonce": random_number
+        "text": "Autenticazione",
+        "nonce0": RANDOM_NUMBER0,
+        "nonce1": RANDOM_NUMBER1
     }
 
     message = Message(json.dumps(message_data))
     student.send(university, message, sign=False)
     #* 2 L'università riceve il messaggio e lo decifra con la propria chiave privata,
     #* chiede quindi allo studente di inserire la password per autenticarsi
-    #* Inoltre, per evitare replay attack gli chiede di ripetere il timestamp originale
+    ## !OLD Inoltre, per evitare replay attack gli chiede di ripetere il timestamp originale
+    #* Per evitare replay attack, l'università chiede allo studente di fornire l'altro nonce casuale
     received_message = university.get_last_message()
     received_data = json.loads(received_message.get_content())
     first_received_timestamp = received_data['timestamp']
     if abs(time.time() - first_received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
         raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
-    
-    received_nonce_challenge = received_data["nonce"]
+
+    NONCE_CHALLENGE_0 = received_data["nonce0"]
+    NONCE_CHALLENGE_1 = received_data["nonce1"]
     uni_message = {
-        "text": f"Benvenuto {received_data['name']} {received_data['surname']}, per favore fornisci una password per autenticarti, inoltre, ripeti il timestamp originale e l'attuale",
+        "text": f"Benvenuto {received_data['name']} {received_data['surname']}, per favore fornisci una password per autenticarti, inoltre, forniscimi il nonce1",
         "nonce": received_data["timestamp"],
-        "timestamp": time.time()
+        "timestamp": time.time(),
+        "nonce": NONCE_CHALLENGE_0,
     }
     university.send(student, Message(json.dumps(uni_message)), encrypt=False, sign=True)
 
@@ -75,16 +80,16 @@ def autenticazione(args:list[str]=[]):
     received_timestamp = received_data['timestamp']
     if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
         raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
-    if received_data['nonce'] != first_received_timestamp:
-        raise ValueError("Il timestamp del messaggio dell'università non corrisponde a quello originale, possibile replay attack.")
+    if received_data['nonce'] != RANDOM_NUMBER0:
+        raise ValueError("Il nonce del messaggio dell'università non corrisponde a quello originale, possibile replay attack.")
 
 
     student_scheme = Parametric_Symmetric_Scheme()
     password_message = {
         "password": student.get_password(university),
         "timestamp": time.time(),
-        "nonce": random_number,
-        "text": "Password di autenticazione",
+        "nonce": RANDOM_NUMBER1,
+        "text": "Password",
         # "scheme": student_scheme.save_on_json()
     }
     student.send(university, Message(json.dumps(password_message)), sign=False)
@@ -95,7 +100,7 @@ def autenticazione(args:list[str]=[]):
     received_timestamp = received_data['timestamp']
     if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
         raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
-    if received_data['nonce'] != received_nonce_challenge:
+    if received_data['nonce'] != NONCE_CHALLENGE_1:
         raise ValueError("Il numero casuale del messaggio dello studente non corrisponde a quello originale, possibile replay attack.")
     check = university.check_password(student, received_data["password"])
     if not check:
@@ -104,7 +109,7 @@ def autenticazione(args:list[str]=[]):
     
     #* 5 L'università risponde allo studente con un messaggio di autenticazione avvenuta con successo con attraverso la nuova chiave
     auth_message = {
-        "text": f"Autenticazione avvenuta con successo {student.get_name()} {student.get_surname()} ({student.get_code()}). Inviami uno schema simmetrico casuale a partire dal nonce inviato",
+        "text": f"Autenticazione avvenuta con successo {student.get_name()} {student.get_surname()} ({student.get_code()}). Inviami uno schema simmetrico casuale a partire dal secondo nonce inviato",
         "timestamp": time.time(),
     }
     
@@ -114,8 +119,8 @@ def autenticazione(args:list[str]=[]):
 
 
     # Comunicazione delle componenti della chiave TCP style
-    sender_k = received_nonce_challenge
-    receiver_k = received_nonce_challenge
+    sender_k = RANDOM_NUMBER1
+    receiver_k = NONCE_CHALLENGE_1
     sender_data = student_scheme.save_on_json()
     receiver_data = {}
 

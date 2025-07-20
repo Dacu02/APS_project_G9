@@ -1,8 +1,10 @@
 from typing import TypeAlias, TypedDict
+import os
+
 
 from communication.Generic_Hash_Algorithm import Generic_Hash_Algorithm
 
-DATA_DIRECTORY = "data"
+DATA_DIRECTORY = os.path.join(os.path.dirname(__file__), "data")
 STUDENTS_FOLDER = "students"
 UNIVERSITIES_FOLDER = "universities"
 BLOCKCHAIN_FOLDER = "blockchain"
@@ -16,11 +18,11 @@ MAC_SIZE = 32 #256 bit per HMAC-SHA256
 ASYMMETRIC_KEY_LENGTH = 256  # Lunghezza della chiave in byte
 
 BLOCKCHAIN_HASH_ALGORITHM = lambda : Generic_Hash_Algorithm("SHA256")
-RANDOM_NUMBER_MAX = 10**6
+RANDOM_NUMBER_MAX = 10**4 # Numero casuale tra 0 e 9999
 MAXIMUM_TIMESTAMP_DIFFERENCE = 120  # Due minuti in secondi
 EXCHANGE_DEFAULT_PERIOD_DAYS = 120 # 120 giorni di scambio predefiniti
 CREDENTIAL_PERIOD_DAYS = 365 # 365 giorni di validità della credenziale
-BLACKLIST_THRESHOLD = 4  # Soglia per considerare un'università nella blacklist (25% delle università)
+BLACKLIST_THRESHOLD = .25  # Soglia per considerare un'università nella blacklist (25% delle università)
 
 PRINT_MAX_LENGTH = -1
 DECORATION_CHARACTERS = 51  # Numero di caratteri per la decorazione nei messaggi
@@ -129,3 +131,46 @@ def stringify_credential_dicts(credential: Credential) -> list[str]:
     ]
 
     return [str(data)] + [str(exam) for exam in exam_datas] + [str(activity) for activity in activities_data]
+
+
+def _registra_esame(cod_uni:str, cod_stud:str, exam_res:ExamResult):
+    from algorithms import lettura_dati, read_code
+    from actors import Student, University
+
+    students = lettura_dati()[0]
+    universities = lettura_dati()[1]
+
+    cod_stud = read_code("Inserisci il codice dello studente: ", cod_stud)
+    cod_uni = read_code("Inserisci il codice dell'università: ", cod_uni)
+
+    if cod_uni not in universities.keys():
+        raise ValueError("Università non trovata")
+
+    if cod_stud not in students:
+        raise ValueError("Studente non trovato")
+
+    student: Student = students[cod_stud]
+    university: University = universities[cod_uni]
+
+    university.pass_exam(student, exam_res)
+
+
+def _registra_attivita(cod_uni:str, cod_stud:str, act_res:ActivityResult):
+    from algorithms import lettura_dati, read_code
+    from actors import Student, University
+    students = lettura_dati()[0]
+    universities = lettura_dati()[1]
+
+    cod_stud = read_code("Inserisci il codice dello studente: ", cod_stud)
+    cod_uni = read_code("Inserisci il codice dell'università: ", cod_uni)
+
+    if cod_stud not in students:
+        raise ValueError("Studente non trovato")
+
+    if cod_uni not in universities:
+        raise ValueError("Università non trovata")
+
+    student: Student = students[cod_stud]
+    university: University = universities[cod_uni]
+
+    university.pass_activity(student, act_res)
