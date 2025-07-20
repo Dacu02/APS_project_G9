@@ -6,11 +6,10 @@ from actors.Student import Student
 from algorithms.lettura_dati import lettura_dati
 from algorithms.read_code import read_code
 from communication import Message
-from constants import MAXIMUM_TIMESTAMP_DIFFERENCE, ExamResult
-
+from constants import MAXIMUM_TIMESTAMP_DIFFERENCE
 
 def verifica_credenziale(args:list[str]=[]):
-    students, universities, _, _, blockchain, smart_contract = lettura_dati()
+    students, universities, _, _, _, smart_contract = lettura_dati()
 
     student_code = read_code("Inserisci il codice dello studente: ", args[0] if len(args) > 0 else None)
     while student_code not in students:
@@ -74,25 +73,3 @@ def verifica_credenziale(args:list[str]=[]):
     if not received_is_valid:
         university.set_credential(student, None, None)
     print(f"Credenziale {'valida' if is_valid else 'non valida'}.")
-
-# ALGORITMI DI SIMULAZIONE DEGLI ATTACCHI
-
-# FUNZIONI PER TESTING
-
-def _registra_esame(cod_uni:str, cod_stud:str, exam_res:ExamResult):
-    students = lettura_dati()[0]
-    universities = lettura_dati()[1]
-
-    cod_stud = read_code("Inserisci il codice dello studente: ", cod_stud)
-    cod_uni = read_code("Inserisci il codice dello studente: ", cod_uni)
-
-    if cod_uni not in universities.keys():
-        raise ValueError("Università non trovata")
-
-    if cod_stud not in students:
-        raise ValueError("Studente non trovato")
-
-    student: Student = students[cod_stud]
-    university: University = universities[cod_uni]
-
-    university.pass_exam(student, exam_res)

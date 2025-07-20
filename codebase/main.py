@@ -2,11 +2,32 @@
 import sys
 from actors import University
 from actors.Student import Student
-from algorithms import certifica_universita, crea_CA, crea_piano_studi, crea_studente, crea_universita, crea_universita, domanda_mobilita, emetti_credenziale, immatricola, lettura_dati, pulizia, read_code
-from algorithms.crea_attivita import crea_attivita
-from algorithms.verifica_credenziale import _registra_esame, verifica_credenziale
+from algorithms import *
 from algorithms import logout, presenta_credenziale, revoca_credenziale
-from constants import ActivityResult
+from constants import ActivityResult, ExamResult
+
+
+# ALGORITMI DI SIMULAZIONE DEGLI ATTACCHI
+
+# FUNZIONI PER TESTING
+
+def _registra_esame(cod_uni:str, cod_stud:str, exam_res:ExamResult):
+    students = lettura_dati()[0]
+    universities = lettura_dati()[1]
+
+    cod_stud = read_code("Inserisci il codice dello studente: ", cod_stud)
+    cod_uni = read_code("Inserisci il codice dell'università: ", cod_uni)
+
+    if cod_uni not in universities.keys():
+        raise ValueError("Università non trovata")
+
+    if cod_stud not in students:
+        raise ValueError("Studente non trovato")
+
+    student: Student = students[cod_stud]
+    university: University = universities[cod_uni]
+
+    university.pass_exam(student, exam_res)
 
 
 def _registra_attivita(cod_uni:str, cod_stud:str, act_res:ActivityResult):
