@@ -10,6 +10,18 @@ class MerkleTree():
             self._left:MerkleTree._Node|None = left
             self._right:MerkleTree._Node|None = right
 
+        def __len__(self) -> int:
+            """
+                Restituisce il numero di nodi nel Merkle Tree.
+                Il numero di nodi è dato dal numero di foglie - 1, poiché l'albero è completo.
+            """
+            left = self.get_left()
+            right = self.get_right()
+            if left is None or right is None:
+                return 1
+            else:
+                return 1 + len(left) + len(right)
+
         def get_hash(self) -> str|None:
             return self._hash
 
@@ -29,7 +41,8 @@ class MerkleTree():
             self._right = right
 
         def _validate(self, hash_alg:Hash_Algorithm) -> bool:
-            if not self or not self.get_hash():
+            
+            if not self.get_hash():
                 return False
             
             hash_function = hash_alg.hash
@@ -59,17 +72,28 @@ class MerkleTree():
                 return left_node._validate_leaf(hash_leaf) or right_node._validate_leaf(hash_leaf)
             raise ValueError("Il nodo non è una foglia né è intero e l'albero non è valido")
 
-    def __init__(self, leaves_to_hash: list[str], hash_algorithm: Hash_Algorithm = BLOCKCHAIN_HASH_ALGORITHM()):
+    def __init__(self, leaves: list[str], hash_algorithm: Hash_Algorithm = BLOCKCHAIN_HASH_ALGORITHM()):
         """
             Inizializza un Merkle Tree con i nodi foglia specificati.
         """
         self._hash = hash_algorithm
-        leaves_hashes = [self._hash.hash(leaf) for leaf in leaves_to_hash if leaf is not None]
-        if not leaves_hashes or len(leaves_hashes) == 0:
-            return 
-        leaves: list[MerkleTree._Node] = [MerkleTree._Node(leaf) for leaf in leaves_hashes]
-        self._root: MerkleTree._Node | None = None
-        self._root = self._build_tree(leaves)
+        if not leaves:
+            return
+        merkle_leaves: list[MerkleTree._Node] = [MerkleTree._Node(leaf) for leaf in leaves]
+        self._root = self._build_tree(merkle_leaves)
+        # print(len(self))
+
+    def __len__(self) -> int:
+        """
+            Restituisce il numero di nodi nel Merkle Tree.
+            Il numero di nodi è dato dal numero di foglie - 1, poiché l'albero è completo.
+        """
+        left = self._root.get_left()
+        right = self._root.get_right()
+        if not left or not right:
+            return 1
+        else:
+            return 1 + len(left) + len(right)
 
     def _build_tree(self, leaves:list[_Node]) -> _Node:
         """
@@ -77,8 +101,7 @@ class MerkleTree():
             Cerca di bilanciarlo quanto più possibile, per cui calcola a priori il numero di nodi necessario (NUM_FOGLIE-1).
         """
         if len(leaves) == 1:
-            return leaves[0]            
-
+            return leaves[0]
         node = MerkleTree._Node()
         node.set_left(self._build_tree(leaves[:len(leaves)//2]))
         node.set_right(self._build_tree(leaves[len(leaves)//2:]))
@@ -134,6 +157,7 @@ class MerkleTree():
         """
         if not self._root or not self._root.get_hash():
             return False
+
         return self._root._validate(self._hash)
 
     def validate_leafs(self, leafs: list[str]) -> bool:

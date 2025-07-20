@@ -14,13 +14,11 @@ from communication.Certificate import Certificate
 from communication.Asymmetric_Scheme import Asymmetric_Scheme
 from communication.Symmetric_Scheme import Symmetric_Scheme
 from communication.Parametric_Asymmetric_Scheme import Parametric_Asymmetric_Scheme
-from constants import BLOCKCHAIN_FOLDER, BLOCKCHAIN_HASH_ALGORITHM, DATA_DIRECTORY, STUDENTS_FOLDER, UNIVERSITIES_FOLDER, Activity, CAs_FOLDER, RANDOM_NUMBER_MAX, MAXIMUM_TIMESTAMP_DIFFERENCE, Credential, StudyPlan, stringify_credential_dicts
+from constants import BLOCKCHAIN_FOLDER, BLOCKCHAIN_HASH_ALGORITHM, DATA_DIRECTORY, STUDENTS_FOLDER, UNIVERSITIES_FOLDER, Activity, ActivityResult, CAs_FOLDER, RANDOM_NUMBER_MAX, MAXIMUM_TIMESTAMP_DIFFERENCE, Credential, ExamResult, StudyPlan, stringify_credential_dicts
 import sys
 import secrets
 data_dir = os.path.join(os.getcwd(), DATA_DIRECTORY)
-BLOCKCHAIN:Blockchain
-SMART_CONTRACT:Smart_Contract
-def crea_blochcain():
+def crea_blochcain()-> tuple[Blockchain, Smart_Contract]:
     """
         Il seguente algoritmo crea la struttura della blockchain e istanzia uno smart contract, col quale le università possono comunicare
         Si presume che tutte le università siano a conoscenza della chiave pubblica dello smart contract, e che a sua volta lo smart contract sia a conoscenza
@@ -30,28 +28,28 @@ def crea_blochcain():
     if not os.path.exists(os.path.join(DATA_DIRECTORY, BLOCKCHAIN_FOLDER)):
         os.makedirs(os.path.join(DATA_DIRECTORY, BLOCKCHAIN_FOLDER))
     if not os.path.exists(os.path.join(DATA_DIRECTORY, BLOCKCHAIN_FOLDER, "blockchain.json")):
-        BLOCKCHAIN = Blockchain()
-        SMART_CONTRACT = Smart_Contract(BLOCKCHAIN, Parametric_Asymmetric_Scheme(), None)
+        blockchain = Blockchain()
+        smart_contract = Smart_Contract(blockchain, Parametric_Asymmetric_Scheme(), None)
         with open(os.path.join(DATA_DIRECTORY, BLOCKCHAIN_FOLDER, "blockchain.json"), 'w') as f:
             data = {
-                "blockchain": BLOCKCHAIN.save_on_json(),
-                "smart_contract": SMART_CONTRACT.save_on_json()
+                "blockchain": blockchain.save_on_json(),
+                "smart_contract": smart_contract.save_on_json()
             }
             json.dump(data, f, indent=4)
     else:
         with open(os.path.join(DATA_DIRECTORY, BLOCKCHAIN_FOLDER, "blockchain.json"), 'r') as f:
             blockchain_data = json.load(f)
-            BLOCKCHAIN = Blockchain.load_from_json(blockchain_data["blockchain"])
-            SMART_CONTRACT = Smart_Contract.load_from_json(blockchain_data["smart_contract"])
-        SMART_CONTRACT._link_blockchain(BLOCKCHAIN) # Perdita del riferimento dopo lettura
+            blockchain = Blockchain.load_from_json(blockchain_data["blockchain"])
+            smart_contract = Smart_Contract.load_from_json(blockchain_data["smart_contract"])
+        smart_contract._link_blockchain(blockchain) # Perdita del riferimento dopo lettura
+    return blockchain, smart_contract
 
-def lettura_dati() -> tuple[dict, dict, dict, dict]:
+
+
+def lettura_dati() -> tuple[dict, dict, dict, dict, Blockchain, Smart_Contract]:
     """
         L'algoritmo legge i dati e le configurazioni dai file JSON presenti nella cartella "data".
     """
-
-    crea_blochcain()
-
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
 
@@ -106,7 +104,7 @@ def lettura_dati() -> tuple[dict, dict, dict, dict]:
     for ca_name, ca_data in CAs.items():
         CAs[ca_name] = CA.load_from_json(ca_data)
 
-    return students, universities, CAs, configurazione
+    return students, universities, CAs, configurazione, *crea_blochcain()
 
 def immatricola(args:list[str]=[]):
     """
@@ -121,7 +119,7 @@ def immatricola(args:list[str]=[]):
             - arg5: Password scelta dallo studente
 
     """
-    students, universities, CAs, configurazione = lettura_dati()
+    students, universities, CAs = lettura_dati()[0:3]
     if len(args) > 0:
         student_name = args[0]
     else:
@@ -174,16 +172,21 @@ def immatricola(args:list[str]=[]):
 
     #* 3 Lo studente si salva la chiave pubblica dell'università e la utilizza per comunicare con essa
     student.add_key(university, uni_public_key)
-    study_plans = university.get_study_plans()
-    if study_plans is None or len(study_plans) == 0:
-        raise ValueError("L'università non ha piani di studio disponibili.")
-    if len(args) > 3:
-        study_plan = args[3]
+    i = 3
+    if university.is_incoming_student(student):
+        study_plan = "ext"
     else:
-        study_plan = input(f"Scegli un piano di studi tra {', '.join(study_plans.keys())}: ")
-    while study_plan not in study_plans:
-        print(f"Il piano di studi {study_plan} non esiste nell'università {university_name}.")
-        study_plan = input(f"Scegli un piano di studi tra {', '.join(study_plans.keys())}: ")
+        study_plans = university.get_study_plans()
+        if study_plans is None or len(study_plans) == 0:
+            raise ValueError("L'università non ha piani di studio disponibili.")
+        if len(args) > i:
+            study_plan = args[i]
+            i+=1
+        else:
+            study_plan = input(f"Scegli un piano di studi tra {', '.join(study_plans.keys())}: ")
+        while study_plan not in study_plans:
+            print(f"Il piano di studi {study_plan} non esiste nell'università {university_name}.")
+            study_plan = input(f"Scegli un piano di studi tra {', '.join(study_plans.keys())}: ")
 
     student_initial_timestamp = time.time()
     random_number = secrets.randbelow(RANDOM_NUMBER_MAX)  # Numero casuale tra 0 e 999999 non basato su timestamp
@@ -227,8 +230,9 @@ def immatricola(args:list[str]=[]):
     if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
         raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
     
-    if len(args) > 4:
-        password = args[4]
+    if len(args) > i:
+        password = args[i]
+        i+=1
     else:
         password = input("Inserisci una password per autenticarti all'università: ")
     while not password:
@@ -692,8 +696,15 @@ def logout(args:list[str]=[]):
     with open(os.path.join(data_dir, UNIVERSITIES_FOLDER, "universities.json"), 'r') as f:
         universities_data = json.load(f)    
 
+    # Lo studente rimuove la chiave dell'università dal proprio database e riprende quella pubblica
+    # Per comodità si prende la precedente chiave pubblica dell'università
+    previous_public_key = university._keys[university.get_code()].share_public_key()  # type: ignore
+    student.add_key(university, previous_public_key)
+
+
     students_data[student_code] = student.save_on_json()
     universities_data[university_code] = university.save_on_json()
+
 
     with open(os.path.join(data_dir, STUDENTS_FOLDER, "students.json"), 'w') as f:
         json.dump(students_data, f, indent=4)
@@ -769,7 +780,6 @@ def domanda_mobilita(args:list[str]=[]):
             act_cfu = input("Inserisci il numero di CFU dell'attività: ")
         activities.append({"name": act_name, "cfus": int(act_cfu)})
     # Aggiungi le attività al piano di studi
-    study_plan.extend(activities)
 
     #* 1 Lo studente invia la domanda di mobilità all'università
     request_message = {
@@ -831,8 +841,9 @@ def domanda_mobilita(args:list[str]=[]):
         raise ValueError(f"La CA {ca_name} non ha un certificato registrato per l'università {university}.")
     dest_uni.add_key(university, cert.read_key())
 
-    plan_tuples = [(name, cfu) for course in received_data['study_plan'] for name, cfu in course.items()]
-    activities_tuples = [(name, cfu) for activity in received_data['activities'] for name, cfu in activity.items()]
+    plan_tuples: list[tuple[str, int]] = [(ex["name"], ex["cfus"]) for ex in received_data["study_plan"]]
+    activities_tuples: list[tuple[str, int]] = [(act["name"], act["cfus"]) for act in received_data["activities"]]
+
 
     check_plan_availability = {
         "timestamp": time.time(),
@@ -856,12 +867,12 @@ def domanda_mobilita(args:list[str]=[]):
     received_tuples_activities = received_data['ACT']
 
     received_study_plan = []
-    for name, cfu in received_tuples_study_plan:
-        received_study_plan.append({"name": name, "cfus": cfu})
-
     received_activities = []
-    for name, cfu in received_tuples_activities:
-        received_activities.append({"name": name, "cfus": cfu})
+    for tupl in received_tuples_study_plan:
+        received_study_plan.append({"name":tupl[0], "cfus": tupl[1]})
+    
+    for tupl in received_tuples_activities:
+        received_activities.append({"name":tupl[0], "cfus": tupl[1]})
 
     received_ref = received_data["internal_ref"]
 
@@ -913,13 +924,11 @@ def domanda_mobilita(args:list[str]=[]):
         external_ref = input("Inserisci il nome e cognome del referente esterno dell'università ospitante: ")
     dest_uni.accept_incoming_exchange(student, university, f"{student.get_code()}#{university.get_code()}", received_ref, external_ref)
 
-
 def emetti_credenziale(args:list[str]=[]):
     """
         Funzione per emettere una credenziale di uno studente in mobilità iscritto ad un'università ospitante.
     """
-    students = lettura_dati()[0]
-    universities = lettura_dati()[1]
+    students, universities, _, _, blockchain, smart_contract = lettura_dati()
 
     university_code = read_code("Inserisci il codice dell'università ospitante: ", args[0] if len(args) > 0 else None)
     while university_code not in universities:
@@ -959,7 +968,7 @@ def emetti_credenziale(args:list[str]=[]):
     credential = university.get_student_credential(student)
     #! L'università deve procedere a salvare il Merkle Tree della credenziale all'interno della blockchain
     # Si presume che l'università conoscoa l'algoritmo di hashing della blockchain
-    hashing_algorithm = BLOCKCHAIN.get_hashing_algorithm()
+    hashing_algorithm = blockchain.get_hashing_algorithm()
     if hashing_algorithm is None:
         raise ValueError("L'algoritmo di hashing della blockchain non è stato definito.")
     stringified_credential = stringify_credential_dicts(credential)
@@ -972,21 +981,26 @@ def emetti_credenziale(args:list[str]=[]):
     }
     
     request_message = Message(json.dumps(blockchain_request))
-    university.send(SMART_CONTRACT, request_message, sign=True)
 
-    received_data = SMART_CONTRACT.get_last_message().get_content()
+    # Si presume che le università conoscano già la chiave pubblica dello smart contract
+    university.add_key(smart_contract, smart_contract.get_public_key())
+    smart_contract.register_university(university, university._keys[university.get_code()].share_public_key()) # type: ignore #TODO Revisita
+
+    university.send(smart_contract, request_message, encrypt=False, sign=True)
+
+    received_data = smart_contract.get_last_message().get_content()
     received_data = json.loads(received_data)
     received_timestamp = received_data['timestamp']
     if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
         raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
     
     
-    if SMART_CONTRACT.is_blacklisted(university):
+    if smart_contract.is_blacklisted(university):
         raise ValueError("L'università è stata inserita nella blacklist dello smart contract, impossibile procedere con la certificazione della credenziale.")
     
     #* 4 Lo smart contract verifica la richiesta e costruisce il merkle_tree
     mt = MerkleTree(merkle_leafs, hashing_algorithm)
-    credential_ID = SMART_CONTRACT.certificate_credential_MerkleTree(mt, university)
+    credential_ID = smart_contract.certificate_credential_MerkleTree(mt, university)
 
 
     #* 5 Lo smart contract risponde all'università con l'ID della credenziale
@@ -996,7 +1010,7 @@ def emetti_credenziale(args:list[str]=[]):
         "text": "Credenziale certificata con successo nella blockchain"
     }
     response_message = Message(json.dumps(response_message))
-    SMART_CONTRACT.send(university, response_message, sign=True)
+    smart_contract.send(university, response_message, sign=True)
     
     
     #* 6 L'università risponde allo studente con l'ID della credenziale
@@ -1034,12 +1048,19 @@ def emetti_credenziale(args:list[str]=[]):
     # Lo studente salva la credenziale in locale
     logout([university_code, student_code])  # Rimuove le chiavi dello studente dall'università e viceversa
 
-    with open(os.path.join(BLOCKCHAIN_FOLDER, "blockchain.json"), 'w') as f:
+    with open(os.path.join(DATA_DIRECTORY, BLOCKCHAIN_FOLDER, "blockchain.json"), 'w') as f:
         data = {
-            "blockchain": BLOCKCHAIN.save_on_json(),
-            "smart_contract": SMART_CONTRACT.save_on_json()
+            "blockchain": blockchain.save_on_json(),
+            "smart_contract": smart_contract.save_on_json()
         }
         json.dump(data, f, indent=4)
+
+    with open(os.path.join(data_dir, STUDENTS_FOLDER, "students.json"), 'r') as f:
+        students_data = json.load(f)
+    students_data[student_code] = student.save_on_json()
+    with open(os.path.join(data_dir, STUDENTS_FOLDER, "students.json"), 'w') as f:
+        json.dump(students_data, f, indent=4)
+
     
 def divulga_credenziale(credenziale:Credential, args:list[str]=[]) -> Credential:
     print(" *** Divulgazione Selettiva della Credenziale *** ")
@@ -1049,9 +1070,10 @@ def divulga_credenziale(credenziale:Credential, args:list[str]=[]) -> Credential
 
     print("Esami disponibili: ", f" {', '.join(lista_esami.keys())}")
     print("Attività disponibili: ", f" {', '.join(lista_attivita.keys())}")
-    i = 1
-    if len(args) > 0:
-        action = args[0]
+    i = 0
+    if len(args) > i:
+        action = args[i]
+        i+=1
     else:
         action = input("Inserisci E per rimuovere un esame, oppure A per rimuovere una attività, o premi invio per continuare: ")
     while action:
@@ -1079,19 +1101,20 @@ def divulga_credenziale(credenziale:Credential, args:list[str]=[]) -> Credential
         else:
             print("Azione non valida, riprova.")
         if len(args) > i:
-                action = args[i]
-                i+=1
-        action = input("Inserisci E per rimuovere un esame, oppure A per rimuovere una attività, o premi invio per continuare: ")
+            action = args[i]
+            i+=1
+        else:
+            action = input("Inserisci E per rimuovere un esame, oppure A per rimuovere una attività, o premi invio per continuare: ")
 
-    #* 1 Lo studente seleziona gli esami e le attività da rimuovere dalla credenziale
+    #* Lo studente seleziona gli esami e le attività da rimuovere dalla credenziale
+
     credenziale["exams_results"] = list(lista_esami.values())
     credenziale["activities_results"] = list(lista_attivita.values())
-
+    
     return credenziale
 
 def presenta_credenziale(args:list[str]=[]):
-    students = lettura_dati()[0]
-    universities = lettura_dati()[1]
+    students, universities, _, _, blockchain, smart_contract = lettura_dati()
 
     student_code = read_code("Inserisci il codice dello studente: ", args[0] if len(args) > 0 else None)
     while student_code not in students:
@@ -1111,6 +1134,8 @@ def presenta_credenziale(args:list[str]=[]):
 
     autenticazione([university_code, student_code] + args[2:])  # Assicura che lo studente sia autenticato prima di validare la credenziale
     students, universities = lettura_dati()[0:2]
+    student: Student = students[student_code]
+    university: University = universities[university_code]
 
     #* 1 Lo studente effettua la divulgazione selettiva della propria credenziale
     new_credential = divulga_credenziale(credential, args[3:]) if len(args) > 3 else divulga_credenziale(credential)
@@ -1132,17 +1157,17 @@ def presenta_credenziale(args:list[str]=[]):
     received_message = university.get_last_message()
     received_data = json.loads(received_message.get_content())
     received_credential = received_data["credential"]
-    received_credential_id = received_data["credential_id"]
+    received_credential_id = received_data["credential_ID"]
     received_nonce = received_data["nonce"]
     received_timestamp = received_data['timestamp']
     if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
         raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
 
     #* 3 L'università verifica la credenziale e poi controlla la certificazione sulla blockchain
-    if not university.check_matching(student, credential):
+    if not university.check_matching(student, received_credential):
         raise ValueError("La credenziale non è valida.")
 
-    hashing_algorithm = BLOCKCHAIN.get_hashing_algorithm()
+    hashing_algorithm = blockchain.get_hashing_algorithm()
     merkle_leafs = [hashing_algorithm.hash(data) for data in stringify_credential_dicts(received_credential)]
 
     request_certification_validation = {
@@ -1153,10 +1178,13 @@ def presenta_credenziale(args:list[str]=[]):
     }
 
     request_message = Message(json.dumps(request_certification_validation))
-    university.send(SMART_CONTRACT, request_message, sign=True)
+    # Si presume che le università conoscano già la chiave pubblica dello smart contract
+    university.add_key(smart_contract, smart_contract.get_public_key())
+    smart_contract.register_university(university, university._keys[university.get_code()].share_public_key()) # type: ignore #TODO Revisita
+    university.send(smart_contract, request_message, encrypt=False, sign=True)
 
 
-    received_message = SMART_CONTRACT.get_last_message()
+    received_message = smart_contract.get_last_message()
     received_data = json.loads(received_message.get_content())
     received_timestamp = received_data['timestamp']
     received_leafs = received_data["credential"]
@@ -1164,19 +1192,18 @@ def presenta_credenziale(args:list[str]=[]):
     if abs(time.time() - received_timestamp) > MAXIMUM_TIMESTAMP_DIFFERENCE:
         raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
 
-    if SMART_CONTRACT.is_blacklisted(university):
+    if smart_contract.is_blacklisted(university):
         raise ValueError("L'università è stata inserita nella blacklist dello smart contract, impossibile procedere con la validazione della credenziale.")
 
-    validation_results = SMART_CONTRACT.validate_credential_MerkleTreeLeafs(received_leafs, received_ID)
+    validation_results = smart_contract.validate_credential_MerkleTreeLeafs(received_leafs, received_ID)
 
     #* 4 Lo smart contract risponde all'università con i risultati della validazione
     response_message = {
         "timestamp": time.time(),
         "validation_results": validation_results,
         "credential_ID": received_ID,
-        "text": "Risultati della validazione della credenziale"
     }
-    SMART_CONTRACT.send(university, Message(json.dumps(response_message)), sign=True)
+    smart_contract.send(university, Message(json.dumps(response_message)), sign=True)
 
     received_message = university.get_last_message()
     received_data = json.loads(received_message.get_content())
@@ -1190,7 +1217,7 @@ def presenta_credenziale(args:list[str]=[]):
     validation_results = received_data["validation_results"]
 
     if validation_results:
-        university.set_credential_id
+        university.set_credential(student, received_credential, received_credential_id)  # Salva la credenziale validata nello studente
 
     #* 5 L'università risponde allo studente con i risultati della validazione
     validation_message = {
@@ -1221,21 +1248,115 @@ def presenta_credenziale(args:list[str]=[]):
 
 # ALGORITMI DI SIMULAZIONE DEGLI ATTACCHI
 
-if __name__ == "__main__":
-    pulizia()
-    crea_universita(["001", "Unitest"])
-    crea_CA(["CA1"])
-    certifica_universita(["CA1", "001"])
-    crea_piano_studi(["001", "Informatica", "Programmazione", "6", "Sistemi Operativi", "6", "Fisica", "3", "Analisi", "3", ""])
-    crea_universita(["002", "UniExt"])
-    crea_piano_studi(["002", "Matematica", "Fisica", "6", "Analisi", "6", ""])
-    certifica_universita(["CA1", "002"])
-    crea_attivita(["001", "Ricerca", "3"])
-    crea_attivita(["002", "Ricerca", "3"])
+# FUNZIONI PER TESTING
 
-    crea_studente(["010", "Mario", "Rossi"])
-    immatricola(["010", "001", "CA1", "Informatica", "TEST_PW"])
-    domanda_mobilita(["001", "002", "010", "TEST_PW", "Analisi", "3", "", "Ricerca", "3", "", "R_INT", "CA1"])
+def _registra_esame(cod_uni:str, cod_stud:str, exam_res:ExamResult):
+    students = lettura_dati()[0]
+    universities = lettura_dati()[1]
+
+    cod_stud = read_code("Inserisci il codice dello studente: ", cod_stud)
+    cod_uni = read_code("Inserisci il codice dello studente: ", cod_uni)
+
+    if cod_uni not in universities.keys():
+        raise ValueError("Università non trovata")
+
+    if cod_stud not in students:
+        raise ValueError("Studente non trovato")
+
+    student: Student = students[cod_stud]
+    university: University = universities[cod_uni]
+
+    university.pass_exam(student, exam_res)
+
+def _registra_attivita(cod_uni:str, cod_stud:str, act_res:ActivityResult):
+    students = lettura_dati()[0]
+    universities = lettura_dati()[1]
+
+    cod_stud = read_code("Inserisci il codice dello studente: ", cod_stud)
+    cod_uni = read_code("Inserisci il codice dell'università: ", cod_uni)
+
+    if cod_stud not in students:
+        raise ValueError("Studente non trovato")
+
+    if cod_uni not in universities:
+        raise ValueError("Università non trovata")
+
+    student: Student = students[cod_stud]
+    university: University = universities[cod_uni]
+
+    university.pass_activity(student, act_res)
+
+if __name__ == "__main__":
+    COD_UNI_INT = "001"
+    COD_UNI_EXT = "002"
+    COD_STUDENTE = "010"
+
+    pulizia()
+    crea_universita([COD_UNI_INT, "Unitest"])
+    crea_CA(["CA1"])
+    certifica_universita(["CA1", COD_UNI_INT])
+    crea_piano_studi([COD_UNI_INT, "Informatica", "Programmazione", "6", "Sistemi Operativi", "6", "Analisi", "3", ""])
+    crea_universita([COD_UNI_EXT, "UniExt"])
+    crea_piano_studi([COD_UNI_EXT, "Matematica", "Fisica", "6", "Analisi", "6", ""])
+    certifica_universita(["CA1", COD_UNI_EXT])
+    crea_attivita([COD_UNI_INT, "Ricerca", "3"])
+    crea_attivita([COD_UNI_EXT, "Ricerca", "3"])
+    crea_studente([COD_STUDENTE, "Mario", "Rossi"])
+    immatricola([COD_STUDENTE, COD_UNI_INT, "CA1", "Informatica", "TEST_PW"])
+
+    _registra_esame(COD_UNI_INT, COD_STUDENTE, {
+        "name":"Programmazione",
+        "grade":28,
+        "lodging":False,
+        "date":"2023-05-15",
+        "prof":"Prof. Rossi",
+        "study_plan_name":"Informatica",
+        "cfus":6
+    })
+    
+    _registra_esame(COD_UNI_INT, COD_STUDENTE, {
+        "name": "Sistemi Operativi",
+        "grade": 30,
+        "lodging": True,
+        "date": "2023-06-10",
+        "prof": "Prof. Bianchi",
+        "study_plan_name": "Informatica",
+        "cfus": 6
+    })
+
+    domanda_mobilita([COD_UNI_INT, COD_UNI_EXT, COD_STUDENTE, "TEST_PW", "Analisi", "3", "Fisica", "3", "", "Ricerca", "3", "", "R_INT", "CA1", "R_EXT"])
+    immatricola([COD_STUDENTE, COD_UNI_EXT, "CA1", "TEST_PW_EXT"])
+
+    _registra_esame(COD_UNI_EXT, COD_STUDENTE, {
+        "name": "Fisica",
+        "grade": 27,
+        "lodging": False,
+        "date": "2023-07-01",
+        "prof": "Prof.ssa Verdi",
+        "study_plan_name": "Matematica",
+        "cfus": 3
+    })
+
+    _registra_esame(COD_UNI_EXT, COD_STUDENTE, {
+        "name": "Analisi",
+        "grade": 29,
+        "lodging": False,
+        "date": "2023-07-15",
+        "prof": "Prof. Neri",
+        "study_plan_name": "Matematica",
+        "cfus": 3
+    })
+
+    _registra_attivita(COD_UNI_EXT, COD_STUDENTE, {
+        "name": "Ricerca",
+        "cfus": 3,
+        "start_date": "2025-06-06",
+        "end_date": "2025-07-06",
+        "prof": "Prof. Rossi"
+    })
+
+    emetti_credenziale([COD_UNI_EXT, COD_STUDENTE, "TEST_PW_EXT"])
+    presenta_credenziale([COD_STUDENTE, COD_UNI_INT, 'TEST_PW', 'E', "Fisica", ""])
 
     exit(0)
 
@@ -1265,6 +1386,10 @@ if __name__ == "__main__":
         emetti_credenziale(list(sys.argv[2:]))
     elif command == "presenta_credenziale":
         presenta_credenziale(list(sys.argv[2:]))
+    elif command == "domanda_mobilita":
+        domanda_mobilita(list(sys.argv[2:]))
+    elif command == "logout":
+        logout(list(sys.argv[2:]))
     else:
         print(f"Comando sconosciuto: {command}")
 

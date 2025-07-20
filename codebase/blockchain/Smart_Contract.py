@@ -7,10 +7,11 @@ from communication.User import User
 from constants import BLACKLIST_THRESHOLD
 
 class Smart_Contract(User):
-    def __init__(self, blockchain:Blockchain, scheme:Asymmetric_Scheme, blacklist: dict[str, list[Asymmetric_Scheme]]|None) -> None:
+    def __init__(self, blockchain:Blockchain|None, scheme:Asymmetric_Scheme, blacklist: dict[str, list[Asymmetric_Scheme]]|None) -> None:
         super().__init__("SMART_CONTRACT")
         self._blockchain = blockchain
-        self._hashing = self._blockchain.get_hashing_algorithm()
+        if blockchain:
+            self._hashing = blockchain.get_hashing_algorithm()
         self._keys[self._code] = scheme
         if not blacklist:
             self._blacklist = {}
@@ -22,6 +23,7 @@ class Smart_Contract(User):
             Collega lo smart contract alla blockchain.
         """
         self._blockchain = blockchain
+        self._hashing = blockchain.get_hashing_algorithm()
 
     def whitelist_university(self, university:University, author_public_key: Asymmetric_Scheme) -> None:
         """
@@ -112,7 +114,7 @@ class Smart_Contract(User):
     def save_on_json(self) -> dict:
         data = super().save_on_json()
         data["keys"] = {k: v.save_on_json() for k, v in self._keys.items()}
-        data["blockchain"] = [block.save_on_json() for block in self._blockchain.get_blocks()]
+        # data["blockchain"] = [block.save_on_json() for block in self._blockchain.get_blocks()]
         data["blacklist"] = {uni_code: [voter.save_on_json() for voter in voter_list] for uni_code, voter_list in self._blacklist.items()}
         return data
 
@@ -122,9 +124,9 @@ class Smart_Contract(User):
             Carica lo smart contract da un dizionario JSON.
         """
         scheme = Asymmetric_Scheme.load_from_json(data.get("keys", {}).get("SMART_CONTRACT", {}))
-        blockchain = Blockchain.load_from_json(data.get("blockchain", []))
+        # blockchain = Blockchain.load_from_json(data.get("blockchain", []))
         blacklist = {uni_code: [Asymmetric_Scheme.load_from_json(voter) for voter in voter_list] for uni_code, voter_list in data.get("blacklist", {}).items()}
-        return Smart_Contract(blockchain, scheme, blacklist)
+        return Smart_Contract(None, scheme, blacklist)
 
 
     def vote_blacklist(self, voter: Asymmetric_Scheme, to_blacklist: University) -> None:
@@ -172,3 +174,25 @@ class Smart_Contract(User):
             next_block = self._blockchain.next(next_block)
 
         return True
+
+    def get_public_key(self) -> Asymmetric_Scheme:
+        """
+            Restituisce la chiave pubblica dello smart contract.
+        """
+        self_scheme = self._keys.get(self.get_code(), None)
+        if not self_scheme:
+            raise ValueError("La chiave pubblica dello smart contract non è valida.")
+        if not isinstance(self_scheme, Asymmetric_Scheme):
+            raise TypeError("La chiave pubblica dello smart contract deve essere un'istanza di Asymmetric_Scheme.")
+
+        p_key = self_scheme.share_public_key()
+        if not p_key:
+            raise ValueError("La chiave pubblica dello smart contract non è valida.")
+            
+        return p_key
+    
+    def register_university(self, university:University, scheme:Asymmetric_Scheme) -> None:
+        """
+            Registra l'università allo smart contract
+        """
+        self.add_key(university, scheme)

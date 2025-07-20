@@ -28,6 +28,8 @@ class User(ABC):
             Parametri:
             - user: L'utente destinatario del messaggio.
             - message: Il messaggio da inviare.
+            - encrypt: Il messaggio dev'essere cifrato
+            - sign: Il messaggio dev'essere firmato
         """
         destination_scheme = self._keys.get(user.get_code())
         print("\n" + ">"*DECORATION_CHARACTERS + f" {self.get_label()} INVIA UN MESSAGGIO A {user.get_label()} " + ">"*DECORATION_CHARACTERS)
@@ -64,6 +66,11 @@ class User(ABC):
             Se l'utente ha uno schema di crittografia simmetrico condiviso con l'utente mittente, lo utilizza per decifrare e verificare il token sul messaggio.
             Se l'utente ha una propria chiave privata, la utilizza per decifrare il messaggio.
             Se l'utente ha la chiave pubblica dello schema di crittografia asimmetrico dell'utente mittente, la utilizza per verificare il messaggio.
+            - Parametri:
+            - user: L'utente mittente del messaggio.
+            - message: Il messaggio da ricevere.
+            - decrypt: Il messaggio dev'essere decifrato
+            - verify: Il messaggio dev'essere verificato
         """
         source_scheme = self._keys.get(user.get_code())
         scheme = self._keys.get(self.get_code())

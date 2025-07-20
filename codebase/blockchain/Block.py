@@ -51,10 +51,16 @@ class Block():
     
     @staticmethod
     def load_from_json(data: dict) -> 'Block':
+
+        if data['delete_flag']:
+            merkle_or_ID = data['merkle_or_ID']
+        else:
+            merkle_or_ID = MerkleTree.load_from_json(data['merkle_or_ID'])
+
         block = Block(
             prev_ID=data['prev_ID'],
             author=data['author'],
-            merkle_or_ID=data['merkle_or_ID'],
+            merkle_or_ID=merkle_or_ID,
             delete_flag=data['delete_flag']
         )
         block._ID = data['ID']

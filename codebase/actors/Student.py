@@ -29,7 +29,7 @@ class Student(User):
         dict["user_type"] = "Student"
         dict["name"] = self._name
         dict["surname"] = self._surname
-        dict["credential"] = json.dumps(self._credential)
+        dict["credential"] = self._credential
         dict["credential_ID"] = self._credential_ID
         dict["passwords"] = self._passwords
         return dict
@@ -40,7 +40,7 @@ class Student(User):
         surname = data["surname"]
         code = data["code"]
         student = Student(name, surname, code)
-        student._credential = json.loads(data.get("credential", "{}"))
+        student._credential = data.get("credential", None)
         student._credential_ID = data.get("credential_ID", None)
         student._keys = {key: Encryption_Scheme.load_from_json(value) for key, value in data.get("keys", {}).items()}
         student._passwords = data.get("passwords", {})

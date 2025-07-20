@@ -59,7 +59,6 @@ class ActivityResult(TypedDict):
         Rappresenta il risultato di un'attività.
     """
     name: str
-    type: str
     start_date: str
     end_date: str
     cfus: int
@@ -122,7 +121,6 @@ def stringify_credential_dicts(credential: Credential) -> list[str]:
     activities_data = [
         {
             "name": activity["name"],
-            "type": activity["type"],
             "start_date": activity["start_date"],
             "end_date": activity["end_date"],
             "cfus": activity["cfus"],

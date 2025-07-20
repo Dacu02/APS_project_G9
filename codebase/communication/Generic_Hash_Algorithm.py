@@ -22,6 +22,7 @@ class Generic_Hash_Algorithm(Hash_Algorithm):
         if self._algorithm_name not in hashlib.algorithms_available:
             raise ValueError(f"Algoritmo di hash '{self._algorithm_name}' non supportato, disponibili: {hashlib.algorithms_available}")
         self.hasher = hashlib.new(self._algorithm_name)
+        
     def hash(self, data: str) -> str:
         """
         Calcola l'hash della stringa data.
@@ -32,6 +33,7 @@ class Generic_Hash_Algorithm(Hash_Algorithm):
         Returns:
             L'hash della stringa in formato esadecimale.
         """
+        self.hasher = hashlib.new(self._algorithm_name)
         self.hasher.update(data.encode('utf-8'))
         return self.hasher.hexdigest()
     def get_algorithm_name(self) -> str:
