@@ -419,4 +419,38 @@ Il seguente algoritmo simula uno studente malevolo, intenzionato a divulgare inf
 \subsubsection{Ascoltatore di comunicazioni dello studente}
 \subsubsection{Attacco con credenziale nota}
 \subsubsection{Divulgazione di informazioni superflue}
+
+\subsection{Moduli}
+L'implementazione del progetto è suddivisa in moduli, ciascun modulo ha una finalità e responsabilità ben delineate. 
+\subsubsection{Modulo di comunicazione}
+
+È il modulo che implementa in maniera astratta la comunicazione tra gli attori del sistema, gli attori del sistema sono rappresentati da classi propri che implementano la classe astratta \texttt{User}.
+Inoltre, il modulo permette la gestione delle chiavi associate agli utenti sfruttando la classe \texttt{Key}.
+\\[1em]
+Le classi \texttt{Paramatric Asymmetric Scheme}
+e \texttt{Parametric Symmetric Scheme} sono basate su un'interfaccia comune fornita dalla classe \texttt{Encryption Scheme}, garantendo l'interazione tra gli attori del sistema e qualsiasi schema di cifratura utilizzato.
+Le classi concrete permettono inoltre di effettuare modifiche ai parametri di sicurezza utilizzati dagli schemi, garantendo anche che il sistema sia estensibile a futuri sviluppi.
+La logica di entrambi gli schemi sono stati implementati con l'utilizzo della libreria cryptography di Python. 
+\\[1em]
+La classe \texttt{Generic Hash Algorithm} permette di genire quale algortimo di hashing utilizzare e fornisce i metodi per calcolare l'hash dei dati, sfruttando la libreria hashlib. Contestualmente al progetto viene utilizzato per l'hashing in tutti i compenenti fondamentali per l'impiego della blockchain.
+
+\subsubsection{Modulo blockchain}
+Il modulo implementa la logica di funzionamento della blockchain. La class \texttt{blockchain}, gestisce i vari blocchi di quest'ultima garantendo la coerenza e l'integrità, garantisce la cifratura dei blocchi, la cui implementazione è fornista dalla classe \texttt{block}, e valida l'intera sequenza. 
+\\[1em]
+La classe \texttt{Smart Contract} fornisce la gestione della blockchain ed è responsabile della creazione della stessa, inoltre si propone una nostra implementazione di \texttt{MerkleTree} che gestisce la creazione della struttura, seguendo la logica di funzionamento nota.
+\subsubsection{Modulo attori}
+Il modulo attori fornisce delle implementazio concrete della classe \texttt{User}: 
+la classe \texttt{Student} che memorizza le credenziali e le password per le diverse università, create durante l'esecuzione della funzione immatricolazione. 
+\\[1em]
+La classe \texttt{University} che modella un ateneo, gli attributi più rilevanti sono piano di studi, attività e un registro contenente gli studenti iscritti. 
+Le sue principali responsabilità sono la gestione degli studenti e i relativi esami, interagendo con uno smart contract. 
+\\[1em]
+La classe \texttt{CA}, rappresenta la Certification Authority e tramite i suoi metodi permette di registrare un utente tramite la sua chiave pubblica e di rilasciare un certificato contente la chiave registrata.
+
+
+
+
+
+
+
 \end{document}
