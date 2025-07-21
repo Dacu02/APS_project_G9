@@ -1,100 +1,183 @@
 @startuml design
-class Message {
-    - content:str
-    - signature:str
-    + getContent():str
-    + getSignature():str
-}
-class Key {
-    - value:str
-    + getValue():str
+package "communication"{
+    class Message {
+        - content:str
+        - signature:str
+        + getContent():str
+        + getSignature():str
+    }
+    class Key {
+        - value:str
+        + getValue():str
+    }
+
+    Message <-- User
+    Message <-- Encryption_Scheme
+    abstract User{
+        - code 
+        - keys : dict[key,Encryption_Scheme]
+        - last_message : Message
+        + send(user:User, msg:Message)
+        + receive(user:User, msg:Message)
+        + add_key(user:User, scheme:Encryption_Scheme)
+        + get_last_message(): Message
+        
+    }
+    interface Encryption_Scheme {
+        + {abstract} encrypt(msg:Message):Message
+        + {abstract} decrypt(msg:Message):Message
+        + {abstract} sign(msg:Message):Message
+        + {abstract} verify(msg:Message):boolean
+    }
+
+    abstract Symmetric_Scheme
+    Symmetric_Scheme *-- Key : -key
+    Asymmetric_Scheme *-- Key : -encryption_key
+    Asymmetric_Scheme *-- Key : -decryption_key
+
+    abstract Asymmetric_Scheme{
+        + share_public_key () : Asymmetric_Scheme
+
+    }
+    interface Hash_Algorithm{
+        + {abstract} hash(data:str) : str
+    }
+    class Generic_Hash_Algorithm {
+        - algorithm_name : str 
+    }
+
+    Encryption_Scheme <|.. Symmetric_Scheme
+    Encryption_Scheme <|.. Asymmetric_Scheme
+    Symmetric_Scheme <|.. Parametric_Symmetric_Scheme
+    Asymmetric_Scheme <|.. Parametric_Asymmetric_Scheme
+    Hash_Algorithm <|.. Generic_Hash_Algorithm
+    Key <-- Encryption_Scheme 
+    User *-- Encryption_Scheme: - keys: dict(User, Encryption_Scheme)
+
+    }
+
+
+
+    package "actors"{
+    class Student {
+        - name : str
+        - surname : str 
+        - password : str
+        - credential_ID : str
+        + get_name() : str
+        + get_surname() : str
+        + set_password(password:str , user:User)
+        + get_password(user:User) :str
+        + save_credential(credential : Credential , credential_ID :str)
+        + get_credential_data() : tuple[Credential,str]
+        + get_label () : str
+        
+    }
+
+    class University {
+        - name : str
+        - code : str 
+        - study_plans : dict[str,StudyPlan]
+        - students : dict[str,StudentData]
+        + check_activity_availability(activity: Activity) : bool
+        + check_exam_availability( exam : Exam) : bool
+        + check_matching( student : Studente, credential : Credential) : bool
+        + _create_student_credential (student : Student) : bool
+        + pass_activity(self, student: Student, results: ActivityResult)
+        + pass_exam(self, student: Student, results: ExamResult)
+        + accept_incoming_exchange ( student: Student, incoming_university: 'University', incoming_serial_id: str, incoming_referrer: str, internal_referrer: str, exchange_period_days: int)
+        + add_activity(activity : Activity)
+        + add_study_plan(plan_name : str, study_plan : StudyPlan):
+        + check_password(student : Student, passoword : str) : bool
+        + enrool_student(student : Student, password :str,study_plan_str)
+        + is_incoming_student (student : Student)
+        + agree_exchange_contract( student:Student, destination_university: 'University', study_plan: StudyPlan, activities: list[Activity], internal_referrer: str):
+    }   
+
+    class CA {
+        - code 
+        + register_user_publish_key(user: User,scheme : Asymmetric_Scheme) : Certificate
+        + get_public_key () : Asymmetric_Scheme
+        + get_user_certificate (user : User) : Certificate
+        + _get_user_public_key (user : User)
+        
+    }
 }
 
-Message <-- User
-Message <-- Encryption_Scheme
-abstract User{
-    + send(user:User, msg:Message)
-    + receive(user:User, msg:Message)
-    
+class Credential {
+    external_serial_id: str
+    name: str
+    surname: str
+    external_university: str
+    external_university_code: str
+    internal_referrer: str
+    external_referrer: str
+    emission_date: str
+    expiration_date: str
+    exchange_period_start: str
+    exchange_period_end: str
+    exams_results: list[ExamResult]
+    activities_results: list[ActivityResult]
 }
-class Student {
-}
-
-class University {
-    + register(student:Student)
-    - writeStudentData(student:Student)
-    - getStudentData(id:str)
-}
-
-class CA {
-    + publish(cert:Certificate):boolean
-    - writeCertificate(cert:Certificate)
-    + getCertificate(user:User):Certificate
-}
-
-class Credential {}
+Student *-- Credential : -credential
 
 
 class Certificate {
+    - content :CertificateContent
+    - scheme : Asymmetric_Scheme
     + getUser():User
     + getKey():Key
+    + read_timestamp() : str
+    + read_key() : str
+    + verify_signature (public_key : Asymmetric_Scheme) : bool
     
 }
 Certificate *-- User : -user
 Certificate *-- Key : -key
 
-class Smart_Contract {
-    - blockchain: Blockchain
-    - getMerkleTree(cred:Credential):MerkleTree
-    + certificateCredential(cred:Credential):boolean
-    + revocateCertification(cred:Credential, author:str)
+package "blockchain"{
+    class Smart_Contract {
+        - blockchain: Blockchain
+        - getMerkleTree(cred:Credential):MerkleTree
+        + certificateCredential(cred:Credential):boolean
+        + revocateCertification(cred:Credential, author:str)
+    }
+    Blockchain <-- Smart_Contract
+    class Block {
+        - prev_ID:str
+        - author:str
+        - merkle_or_ID:MerkleTree
+        - delete_flag:bool
+
+        + getId()
+        + getAuthor():str
+
+    }
+    Block *-- Hash_Algorithm : -hashing_algorithm
+    class Blockchain {
+        - validateBlock(block:Block):boolean
+        + addBlock(block:Block):boolean
+    }
+    class MerkleTree {
+        +{static} getMerkleTree(credential):MerkleTree
+    }
+    Block *-- MerkleTree : -credential
+    Block <-- Blockchain
+    PointerList *-- Blockchain : -chain
+
+    class PointerList {}
+    class LinkedList
+    LinkedList <|-- PointerList
 }
-Blockchain <-- Smart_Contract
-class Block {
-    - id:str
-    - author_signature:str
-    + getId()
-    + getAuthor():str
 
-}
-class Blockchain {
-    - validateBlock(block:Block):boolean
-    + addBlock(block:Block):boolean
-}
-Block <-- Blockchain
-PointerList *-- Blockchain : -chain
-
-class PointerList {}
-class LinkedList
-LinkedList <|-- PointerList
-interface Encryption_Scheme {
-    + {abstract} encrypt(msg:Message):Message
-    + {abstract} decrypt(msg:Message):Message
-    + {abstract} sign(msg:Message):Message
-    + {abstract} verify(msg:Message):boolean
-}
-
-abstract Symmetric_Scheme
-Symmetric_Scheme *-- Key : -key
-Asymmetric_Scheme *-- Key : -encryption_key
-Asymmetric_Scheme *-- Key : -decryption_key
-
-abstract Asymmetric_Scheme 
-
-Encryption_Scheme <|.. Symmetric_Scheme
-Encryption_Scheme <|.. Asymmetric_Scheme
-Key <-- Encryption_Scheme 
 User <|-- Student
 User <|-- University
 User <|-- CA
 User <|-- Smart_Contract
 
-User *-- Encryption_Scheme: - keys: dict(User, Encryption_Scheme)
+
 hide empty members
-class MerkleTree {
-    +{static} getMerkleTree(credential):MerkleTree
-}
-Block *-- MerkleTree : -credential
+
 @enduml
 
 
