@@ -41,6 +41,7 @@ if char_input == "H" or char_input == "A":
         x = input("Università interna creata...")
     #####################################################################
 
+
     ################## CERTIFICAZIONE UNIVERSITà INTERNA #################
     if char_input == "A":
         CERTIFICA_INT_START_TIME = time.time()
@@ -68,6 +69,7 @@ if char_input == "H" or char_input == "A":
         x = input("Università esterna creata...")
     ###################################################################################
     
+
     ################## CERTIFICAZIONE UNIVERSITà ESTERNA #################
     if char_input == "A":
         CERTIFICA_EXT_START_TIME = time.time()
@@ -78,6 +80,7 @@ if char_input == "H" or char_input == "A":
         CERTIFICA_EXT_END_TIME = time.time() - CERTIFICA_EXT_START_TIME # type: ignore
     #####################################################################
 
+
     ################## CREAZIONE PIANO DI STUDI ESTERNO E ATTIVITA' ###################
     crea_piano_studi([COD_UNI_EXT, "Matematica", "Fisica", "4", "Analisi", "4", ""])
     if char_input == "H":
@@ -87,6 +90,7 @@ if char_input == "H" or char_input == "A":
     if char_input == "H":
         x = input("Attività esterna creata...")
     ###################################################################################
+
 
     ################### CREAZIONE STUDENTE E IMMATRICOLAZIONE #####################
     crea_studente([COD_STUDENTE, "Mario", "Rossi"])
@@ -126,6 +130,7 @@ if char_input == "H" or char_input == "A":
     })
     #############################################################################
 
+
     ################### DOMANDA DI MOBILITA' ####################################
     if char_input == "A":
         DOMANDA_MOBILITA_START_TIME = time.time()
@@ -135,6 +140,7 @@ if char_input == "H" or char_input == "A":
     else:
         DOMANDA_MOBILITA_END_TIME = time.time() - DOMANDA_MOBILITA_START_TIME # type: ignore
     #############################################################################
+
 
     ################### REGISTRAZIONE UNIVERSITA' ESTERNA #####################
     if char_input == "A":
@@ -147,6 +153,7 @@ if char_input == "H" or char_input == "A":
         IMMATRICOLA_EXT_END_TIME = time.time() - IMMATRICOLA_EXT_START_TIME # type: ignore
     ###################################################################################
     
+
     ################### REGISTRAZIONE ESAMI E ATTIVITA' CARRIERA ESTERNA #####################
     _registra_esame(COD_UNI_EXT, COD_STUDENTE, {
         "name": "Fisica",
@@ -178,6 +185,7 @@ if char_input == "H" or char_input == "A":
     if char_input == "H":
         x = input("Carriera esterna registrata...")
     ###########################################################################################
+
 
     ############################### EMISSIONE CREDENZIALE ###################################
     if char_input == "A":
@@ -213,6 +221,7 @@ if char_input == "H" or char_input == "A":
     #     REVOCA_END_TIME = time.time() - REVOCA_START_TIME # type: ignore
     ###########################################################################################
 
+
     ############################### VERIFICA CREDENZIALE ###################################
     if char_input == "A":
         VERIFICA_START_TIME = time.time()
@@ -224,6 +233,9 @@ if char_input == "H" or char_input == "A":
     else:
         VERIFICA_END_TIME = time.time() - VERIFICA_START_TIME # type: ignore
     ###########################################################################################
+
+
+
 
     if char_input == "A":
         END_TIME = time.time() - START_TIME # type: ignore
@@ -237,8 +249,8 @@ if char_input == "H" or char_input == "A":
         print(f"Tempo presentazione credenziale: {PRESENTA_CREDENZIALE_END_TIME:.4f} secondi") #type: ignore
         print(f"Tempo verifica credenziale: {VERIFICA_END_TIME:.4f} secondi") #type: ignore
 
-        print("La credenziale iniziale occupa:" , asizeof.asizeof(IC), "bytes")
-        print("La credenziale finale occupa:" , asizeof.asizeof(FC), "bytes")
+        print("La credenziale iniziale occupa:", asizeof.asizeof(IC), "bytes")
+        print("La credenziale finale occupa:", asizeof.asizeof(FC), "bytes")
 
 
 elif char_input == "C":
@@ -278,4 +290,5 @@ elif char_input == "C":
         verifica_credenziale(list(sys.argv[2:]))
     else:
         print(f"Comando sconosciuto: {command}")
-
+else:
+    print("Input non valido")

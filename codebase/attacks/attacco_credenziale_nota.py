@@ -222,15 +222,6 @@ def attacco_credenziale_nota():
         "cfus": 4
     })
 
-    esame_non_superato:ExamResult = {
-        "name": "Analisi",
-        "grade": 30,
-        "lodging": True,
-        "date": "2023-07-15",
-        "prof": "Prof. Neri",
-        "study_plan_name": "Matematica",
-        "cfus": 4
-    }
     
     _registra_esame(COD_UNI_EXT, COD_STUDENTE, {
         "name": "Analisi",

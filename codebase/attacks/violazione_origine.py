@@ -46,7 +46,7 @@ def vota_estromissione_universita(voter_uni_code:str, voted_uni_code:str, cod_CA
 
 
 
-def violazione_ospitante():
+def violazione_origine():
     COD_UNI_INT = "001"
     COD_UNI_EXT = "002"
     COD_STUDENTE = "010"
@@ -123,7 +123,6 @@ def violazione_ospitante():
         "prof": "Prof. Rossi"
     })
 
-    input("Può accadere che l'università esterna venga violata o che venga rimossa dalla blockchain da altre università per motivi di sicurezza. Le università procedono a votare l'estromissione dell'università esterna dalla blockchain.")
 
     UNIS = [UNI1, UNI2, UNI3] = "313", "626", "939"
     for uni in UNIS:
@@ -131,10 +130,12 @@ def violazione_ospitante():
         certifica_universita([_CA, uni])
 
 
-    vota_estromissione_universita(UNI1, COD_UNI_EXT, _CA)
-    vota_estromissione_universita(UNI3, COD_UNI_EXT, _CA)
+    vota_estromissione_universita(UNI1, COD_UNI_INT, _CA)
+    vota_estromissione_universita(UNI3, COD_UNI_INT, _CA)
     
     emetti_credenziale([COD_UNI_EXT, COD_STUDENTE, "TEST_PW_EXT"])
+    # ! Può accadere che l'università interna venga violata o che venga rimossa dalla blockchain da altre università
+
     presenta_credenziale([COD_STUDENTE, COD_UNI_INT, 'TEST_PW', 'E', "Fisica", ""])
     # revoca_credenziale([COD_STUDENTE, COD_UNI_EXT])
     verifica_credenziale([COD_STUDENTE, COD_UNI_INT])

@@ -1,35 +1,8 @@
-
-import json
-import os
-import sys
-
-from actors.Student import Student
 from algorithms import *
-from constants import DATA_DIRECTORY, STUDENTS_FOLDER, ExamResult, _registra_attivita, _registra_esame
+from constants import _registra_attivita, _registra_esame
 
-def _manipola_credenziale(student_code: str, esame_non_superato: ExamResult):
-    students = lettura_dati()[0]
 
-    while student_code not in students:
-        print("Lo studente non esiste.")
-        student_code = read_code("Inserisci il codice dello studente: ")
-    student: Student = students[student_code]
-    credenziale, ID = student.get_credential_data()
-    lista_esami = {exam["name"]: exam for exam in credenziale["exams_results"]}
-
-    print(f"Aggiunta di un esame non superato: {esame_non_superato['name']}")
-    lista_esami[esame_non_superato["name"]] = esame_non_superato
-    credenziale["exams_results"] = list(lista_esami.values())
-    student.save_credential(credenziale, ID)
-
-    with open(os.path.join(DATA_DIRECTORY, STUDENTS_FOLDER, "students.json"), 'r') as f:
-        students_data = json.load(f)
-
-    students_data[student_code] = student.save_on_json()
-    with open(os.path.join(DATA_DIRECTORY, STUDENTS_FOLDER, "students.json"), 'w') as f:
-        json.dump(students_data, f, indent=4)
-
-def studente_malevolo():
+def divulgazione_informazioni_superflue():
     COD_UNI_INT = "001"
     COD_UNI_EXT = "002"
     COD_STUDENTE = "010"
@@ -76,6 +49,7 @@ def studente_malevolo():
 
     immatricola([COD_STUDENTE, COD_UNI_EXT, _CA, "TEST_PW_EXT"])
 
+
     _registra_esame(COD_UNI_EXT, COD_STUDENTE, {
         "name": "Fisica",
         "grade": 27,
@@ -85,27 +59,18 @@ def studente_malevolo():
         "study_plan_name": "Matematica",
         "cfus": 4
     })
+    x = input("Lo studente ha passato l'esame di Fisica, il quale non era necessario per la mobilità.")
 
-    esame_non_superato:ExamResult = {
+    
+    _registra_esame(COD_UNI_EXT, COD_STUDENTE, {
         "name": "Analisi",
-        "grade": 30,
-        "lodging": True,
+        "grade": 29,
+        "lodging": False,
         "date": "2023-07-15",
         "prof": "Prof. Neri",
         "study_plan_name": "Matematica",
         "cfus": 4
-    }
-    
-    # ! L'esame di Analisi non è stato superato, per cui non verrà registrato dall'università ospitante
-    # _registra_esame(COD_UNI_EXT, COD_STUDENTE, {
-    #     "name": "Analisi",
-    #     "grade": 29,
-    #     "lodging": False,
-    #     "date": "2023-07-15",
-    #     "prof": "Prof. Neri",
-    #     "study_plan_name": "Matematica",
-    #     "cfus": 4
-    # })
+    })
 
     _registra_attivita(COD_UNI_EXT, COD_STUDENTE, {
         "name": "Ricerca",
@@ -117,9 +82,9 @@ def studente_malevolo():
 
     emetti_credenziale([COD_UNI_EXT, COD_STUDENTE, "TEST_PW_EXT"])
 
-    x = input("Lo studente procede a manipolare la credenziale per far risultare l'esame di Analisi come superato. ")
-    _manipola_credenziale(COD_STUDENTE, esame_non_superato)
 
-    presenta_credenziale([COD_STUDENTE, COD_UNI_INT, 'TEST_PW', 'E', "Fisica", ""])
-    revoca_credenziale([COD_STUDENTE, COD_UNI_EXT])
-    verifica_credenziale([COD_STUDENTE, COD_UNI_INT])
+    FC, NC = presenta_credenziale([COD_STUDENTE, COD_UNI_INT, 'TEST_PW', ""])
+
+    print("La credenziale fornita, contenente l'esame di Fisica è stata inviata anche all'università interna, che non lo chiedeva, siccome lo studente non lo ha rimosso durante la divulgazione selettiva")
+    print("La credenziale iniziale contiene:", NC["exams_results"])
+    print("La credenziale finale contiene:", FC["exams_results"])

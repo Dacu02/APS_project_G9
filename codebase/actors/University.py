@@ -129,7 +129,7 @@ class University(User):
         if serial_id in self._students.keys():
             if self._students[serial_id].get("exchange_plan_data") and not self._students[serial_id]["password"]: # Se lo studente è già iscritto ma senza password, aggiorna la password
                 
-                self._students[serial_id]["password"] = self._hash.hash(password)
+                self._students[serial_id]["password"] = self._hash.hash(password + self._students[serial_id]["salt"])
 
                 data[serial_id] = self._students[serial_id]
                 with open(json_path, "w") as f:
@@ -138,14 +138,15 @@ class University(User):
                 return
             raise ValueError(f"Lo studente {student_id} è già iscritto all'università {self._name}.")
 
+        salt = student.get_name() + student.get_surname()  # Per semplicità si considera la concatenazione del nome e cognome come salt
         student_data: StudentData = {
             "name": student.get_name(),
             "surname": student.get_surname(),
             "study_plan": str(study_plan),
             "passed_exams": {},
             "passed_activities": {},
-            "password": self._hash.hash(password),
-            "salt": student.get_name() + student.get_surname(), # Per semplicità si considera la concatenazione del nome e cognome come salt
+            "salt": salt,
+            "password": self._hash.hash(password + salt),
             "exchange_plan": None,
             "exchange_plan_data": None,
             "credential": None,
@@ -175,8 +176,8 @@ class University(User):
         scheme = self._keys.get(self._code)
         if scheme is None or not isinstance(scheme, Asymmetric_Scheme):
             raise ValueError("L'università non possiede uno schema crittografico asimmetrico.")
-        
-        return self._hash.hash(password) == stored_password
+
+        return self._hash.hash(password + student_data.get("salt", "")) == stored_password
 
     def add_study_plan(self, plan_name: str, study_plan: StudyPlan):
         """

@@ -26,7 +26,7 @@ def violazione_CA():
     immatricola([COD_STUDENTE, COD_UNI_INT, CA_VIOLATO, "Informatica", "TEST_PW"])
 
     print("Lo studente è ora immatricolato presso una università falsa, oppure un attaccante che è ora in grado di decifrare i messaggi che invierà all'università, siccome potrebbe avere calcoato una coppia di chiavi e inviato la pubblica.")
-    print("Il seguente progetto non implementa una contromisura per il seguente attacco, tuttavia una possibile soluzione è già descritta all'interno della documentazione")
+    input("Il seguente progetto non implementa una contromisura per il seguente attacco, tuttavia una possibile soluzione è già descritta all'interno della documentazione")
     exit(1)
 
     _registra_esame(COD_UNI_INT, COD_STUDENTE, {
