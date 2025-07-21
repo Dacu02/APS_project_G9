@@ -1,7 +1,6 @@
 from typing import TypeAlias, TypedDict
 import os
 
-
 from communication.Generic_Hash_Algorithm import Generic_Hash_Algorithm
 
 DATA_DIRECTORY = os.path.join(os.path.dirname(__file__), "data")

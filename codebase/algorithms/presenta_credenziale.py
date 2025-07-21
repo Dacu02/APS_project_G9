@@ -9,11 +9,11 @@ from algorithms.logout import logout
 from algorithms.read_code import read_code
 from algorithms.autenticazione import autenticazione
 from algorithms.divulga_credenziale import divulga_credenziale
-from constants import MAXIMUM_TIMESTAMP_DIFFERENCE, RANDOM_NUMBER_MAX, stringify_credential_dicts
+from constants import MAXIMUM_TIMESTAMP_DIFFERENCE, RANDOM_NUMBER_MAX, Credential, stringify_credential_dicts
 from communication import Message
 
 
-def presenta_credenziale(args:list[str]=[]):
+def presenta_credenziale(args:list[str]=[]) -> tuple[Credential, Credential]:
     students, universities, _, _, blockchain, smart_contract = lettura_dati()
 
     student_code = read_code("Inserisci il codice dello studente: ", args[0] if len(args) > 0 else None)
@@ -38,7 +38,11 @@ def presenta_credenziale(args:list[str]=[]):
     university: University = universities[university_code]
 
     #* 1 Lo studente effettua la divulgazione selettiva della propria credenziale
-    new_credential = divulga_credenziale(credential, args[3:]) if len(args) > 3 else divulga_credenziale(credential)
+    new_credential = divulga_credenziale(credential.copy(), args[3:]) if len(args) > 3 else divulga_credenziale(credential)
+    #? Parametri da ritornare alla fine per debug o per informazioni
+    INITIAL_CREDENTIAL = credential
+    FINAL_CREDENTIAL = new_credential
+
 
     #* 2 Lo studente invia la richiesta di validazione della credenziale, e la credenziale, all'università
     initial_nonce = secrets.randbelow(RANDOM_NUMBER_MAX)
@@ -148,3 +152,6 @@ def presenta_credenziale(args:list[str]=[]):
         print("Credenziale presentata con successo.")
     else:
         raise ValueError("La credenziale non è valida o non è stata accettata dall'università.")
+
+    return INITIAL_CREDENTIAL, FINAL_CREDENTIAL
+    #? Restituisce la credenziale iniziale e quella finale per eventuali verifiche
