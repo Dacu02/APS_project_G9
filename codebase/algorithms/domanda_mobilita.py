@@ -2,7 +2,6 @@
 
 import json
 from pkgutil import read_code
-import secrets
 import time
 from actors import CA, University
 from actors.Student import Student
@@ -11,7 +10,7 @@ from algorithms.logout import logout
 from algorithms.read_code import read_code
 from algorithms.autenticazione import autenticazione
 from communication import Message
-from constants import MAXIMUM_TIMESTAMP_DIFFERENCE, RANDOM_NUMBER_MAX, Activity, StudyPlan
+from constants import MAXIMUM_TIMESTAMP_DIFFERENCE, Activity, StudyPlan, EXTRACT_RANDOM_NUMBER
 
 
 def domanda_mobilita(args:list[str]=[]):
@@ -40,7 +39,7 @@ def domanda_mobilita(args:list[str]=[]):
     students, universities = lettura_dati()[0:2]
     student:Student = students[student_code]
     university:University = universities[university_code]
-    initial_nonce = secrets.randbelow(RANDOM_NUMBER_MAX)
+    initial_nonce = EXTRACT_RANDOM_NUMBER()
 
     i = 4
     study_plan:StudyPlan = []

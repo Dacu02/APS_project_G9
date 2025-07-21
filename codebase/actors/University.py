@@ -468,6 +468,10 @@ class University(User):
         if credential_internal_serial_id != serial_id:
             raise ValueError(f" [{self._name}] La matricola dello studente {student.get_code()} non corrisponde a quella presente nella credenziale.")
 
+        credential_expiration_date = credential.get("expiration_date")
+        if credential_expiration_date and date.fromisoformat(credential_expiration_date) < date.today():
+            raise ValueError(f" [{self._name}] La credenziale dello studente {student.get_code()} è scaduta.")
+
         exchange_exams = exchange_plan_data.get("exams", {})
         exchange_activities = exchange_plan_data.get("activities", {})
 

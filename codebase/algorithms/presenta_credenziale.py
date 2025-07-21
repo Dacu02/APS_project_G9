@@ -1,6 +1,5 @@
 
 import json
-import secrets
 import time
 from actors import University
 from actors.Student import Student
@@ -9,7 +8,7 @@ from algorithms.logout import logout
 from algorithms.read_code import read_code
 from algorithms.autenticazione import autenticazione
 from algorithms.divulga_credenziale import divulga_credenziale
-from constants import MAXIMUM_TIMESTAMP_DIFFERENCE, RANDOM_NUMBER_MAX, Credential, stringify_credential_dicts
+from constants import MAXIMUM_TIMESTAMP_DIFFERENCE, EXTRACT_RANDOM_NUMBER, Credential, stringify_credential_dicts
 from communication import Message
 
 
@@ -45,7 +44,7 @@ def presenta_credenziale(args:list[str]=[]) -> tuple[Credential, Credential]:
 
 
     #* 2 Lo studente invia la richiesta di validazione della credenziale, e la credenziale, all'università
-    initial_nonce = secrets.randbelow(RANDOM_NUMBER_MAX)
+    initial_nonce = EXTRACT_RANDOM_NUMBER()
 
     validation_message = {
         "timestamp": time.time(),

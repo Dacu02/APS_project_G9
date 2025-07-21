@@ -1,13 +1,13 @@
 import json
 import os
-import secrets
+
 import time
 from actors import University
 from actors.Student import Student
 from algorithms import *
 from blockchain import MerkleTree
 from communication import Message
-from constants import BLOCKCHAIN_FOLDER, DATA_DIRECTORY, MAXIMUM_TIMESTAMP_DIFFERENCE, RANDOM_NUMBER_MAX, STUDENTS_FOLDER, ExamResult, _registra_attivita, _registra_esame, stringify_credential_dicts
+from constants import BLOCKCHAIN_FOLDER, DATA_DIRECTORY, MAXIMUM_TIMESTAMP_DIFFERENCE, EXTRACT_RANDOM_NUMBER, STUDENTS_FOLDER, ExamResult, _registra_attivita, _registra_esame, stringify_credential_dicts
 from attacks import Attacker
 
 def _emetti_credenziale(args:list[str]=[]):
@@ -34,7 +34,7 @@ def _emetti_credenziale(args:list[str]=[]):
     university:University = universities[university_code]
 
     #* 1 Lo studente comunica la richiesta della credenziale
-    initial_nonce = secrets.randbelow(RANDOM_NUMBER_MAX)
+    initial_nonce = EXTRACT_RANDOM_NUMBER()
     credential_request = {
         "timestamp": time.time(),
         "nonce": initial_nonce,
@@ -132,7 +132,7 @@ def _emetti_credenziale(args:list[str]=[]):
         "timestamp": time.time(),
         "credential": edited_credential,
         "credential_ID": 1234, # L'attaccante modifica l'ID della credenziale non conoscendone l'originale
-        "nonce": secrets.randbelow(RANDOM_NUMBER_MAX),  # L'attaccante tenta di indovinare il nonce
+        "nonce": EXTRACT_RANDOM_NUMBER(),  # L'attaccante tenta di indovinare il nonce
     }
     new_credential_message = Message(json.dumps(new_credential_message))
     student._receive(university, new_credential_message, decrypt=True, verify=True)

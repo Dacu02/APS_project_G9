@@ -32,3 +32,8 @@ attack
 timestamp
 challenge
 nounce
+autenticatore
+autenticatore
+nonce
+salt
+decifratura

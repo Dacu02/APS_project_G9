@@ -1,3 +1,4 @@
+import secrets
 from typing import TypeAlias, TypedDict
 import os
 
@@ -17,7 +18,7 @@ MAC_SIZE = 32 #256 bit per HMAC-SHA256
 ASYMMETRIC_KEY_LENGTH = 256  # Lunghezza della chiave in byte
 
 BLOCKCHAIN_HASH_ALGORITHM = lambda : Generic_Hash_Algorithm("SHA256")
-RANDOM_NUMBER_MAX = 10**4 # Numero casuale tra 0 e 9999
+EXTRACT_RANDOM_NUMBER = lambda: secrets.randbelow(10**4)  # Numero casuale tra 0 e 9999
 MAXIMUM_TIMESTAMP_DIFFERENCE = 120  # Due minuti in secondi
 EXCHANGE_DEFAULT_PERIOD_DAYS = 120 # 120 giorni di scambio predefiniti
 CREDENTIAL_PERIOD_DAYS = 365 # 365 giorni di validità della credenziale

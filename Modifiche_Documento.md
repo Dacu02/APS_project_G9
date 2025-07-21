@@ -9,3 +9,5 @@ E' stato commesso un errore durante la progettazione: non è possibile alterare 
 
 ## 21/07 
 Da "I meccanismi di crittografia più comuni" a "I meccanismi di crittografia più recenti" in Attacco con credenziale nota
+
+Si modifica il protocollo di autenticazione con due nounce piuttosto che due timestamp e anticipato di uno durante la comunicazione dello schema simmetrico.

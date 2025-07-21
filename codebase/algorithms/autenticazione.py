@@ -1,13 +1,12 @@
 
 import json
 import os
-import secrets
 import time
 from actors import Student, University
 from algorithms.lettura_dati import lettura_dati
 from algorithms.read_code import read_code
 from communication import Message, Parametric_Symmetric_Scheme
-from constants import DATA_DIRECTORY, MAXIMUM_TIMESTAMP_DIFFERENCE, RANDOM_NUMBER_MAX, STUDENTS_FOLDER, UNIVERSITIES_FOLDER
+from constants import DATA_DIRECTORY, MAXIMUM_TIMESTAMP_DIFFERENCE, STUDENTS_FOLDER, UNIVERSITIES_FOLDER, EXTRACT_RANDOM_NUMBER
 
 
 def autenticazione(args:list[str]=[]):
@@ -39,8 +38,8 @@ def autenticazione(args:list[str]=[]):
     university:University = universities[university_code]
 
     student_initial_timestamp = time.time()
-    RANDOM_NUMBER0 = secrets.randbelow(RANDOM_NUMBER_MAX)  # Numero casuale tra 0 e 999999 non basato su timestamp
-    RANDOM_NUMBER1 = secrets.randbelow(RANDOM_NUMBER_MAX)  # Numero casuale tra 0 e 999999 non basato su timestamp
+    RANDOM_NUMBER0 = EXTRACT_RANDOM_NUMBER()  # Numero casuale tra 0 e 999999 non basato su timestamp
+    RANDOM_NUMBER1 = EXTRACT_RANDOM_NUMBER()  # Numero casuale tra 0 e 999999 non basato su timestamp
     #* 1 Lo studente invia un messaggio all'università con il proprio nome, cognome, codice, timestamp e un numero casuale
     message_data = {
         "name": student.get_name(),
@@ -119,17 +118,21 @@ def autenticazione(args:list[str]=[]):
 
 
     # Comunicazione delle componenti della chiave TCP style
-    sender_k = RANDOM_NUMBER1
-    receiver_k = NONCE_CHALLENGE_1
     sender_data = student_scheme.save_on_json()
     receiver_data = {}
 
+    # Challenge
+    receiver_expecting = NONCE_CHALLENGE_1
+    sender_next_challenge = NONCE_CHALLENGE_1
     for key, value in sender_data.items():
+        sender_challenge = sender_next_challenge
+        sender_next_challenge = EXTRACT_RANDOM_NUMBER()  # Numero casuale tra 0 e 9999 non basato su timestamp
         data_message = {
             "field": key,
             "value": value,
             "timestamp": time.time(),
-            "nonce": sender_k
+            "nonce": sender_challenge,
+            "next_nonce": sender_next_challenge
         }
         student.send(university, Message(json.dumps(data_message)), encrypt=True, sign=False)
 
@@ -139,8 +142,8 @@ def autenticazione(args:list[str]=[]):
         if abs(time.time() - received_data['timestamp']) > MAXIMUM_TIMESTAMP_DIFFERENCE:
             raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
 
-        if received_data['nonce'] != receiver_k:
-            raise ValueError("Il numero di pacchetto del messaggio dello studente non corrisponde a quello originale, possibile replay attack.")
+        if received_data['nonce'] != receiver_expecting:
+            raise ValueError("Il numero di pacchetto del messaggio dello studente non corrisponde a quello atteso, possibile replay attack.")
 
 
         received_key = received_data['field']
@@ -148,22 +151,20 @@ def autenticazione(args:list[str]=[]):
         receiver_data[received_key] = received_value
 
         response_message = {
-            "nonce": receiver_k,
+            "nonce": receiver_expecting,
             "timestamp": time.time(),
         }
+        receiver_expecting = received_data['next_nonce']
         university.send(student, Message(json.dumps(response_message)), encrypt=False, sign=True)
 
         received_data = student.get_last_message()
         received_data = json.loads(received_data.get_content())
 
-        if received_data['nonce'] != sender_k:
-            raise ValueError("Il numero di pacchetto del messaggio dello studente non corrisponde a quello originale, possibile replay attack.")
-        
+        if received_data['nonce'] != sender_challenge:
+            raise ValueError("Il numero di pacchetto del messaggio dell'università non corrisponde a quello atteso, possibile replay attack.")
+
         if abs(time.time() - received_data['timestamp']) > MAXIMUM_TIMESTAMP_DIFFERENCE:
             raise ValueError("La differenza di timestamp supera il limite consentito, possibile replay attack.")
-
-        sender_k += 1
-        receiver_k += 1
 
     uni_scheme = Parametric_Symmetric_Scheme.load_from_json(receiver_data)
     student.add_key(university, uni_scheme) 

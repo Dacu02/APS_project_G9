@@ -228,7 +228,7 @@ Ciascuno studente deve essere in grado di dimostrare la propria identità all'un
 \newline Lo studente che desidera autenticarsi per la prima volta deve innanzitutto dimostrare la propria identità, ma successivamente può decidere una chiave di crittografia, con la quale stabilire una comunicazione sicura con l'università durante tale sessione. Una volta che lo studente possiede tale chiave e la comunica all'università, quest'ultima è in grado di cifrare i propri messaggi verso lo studente, che li può decifrare facilmente.
 \newline La soluzione al problema di autenticazione è l'invio di un identificativo univoco, come un account email attraverso cui lo studente sia in grado di ricevere messaggi, e successivamente una password, utilizzata come mezzo di autenticazione. Sebbene sia semplice da implementare, questo meccanismo non è sicuro: è necessario affiancare infine a questo un timestamp, e magari anche la risposta a una challenge iniziata dall'università durante la fase di autenticazione.
 \newline Per rendere ancora più sicuro questo meccanismo, si potrebbe affiancare alla password anche un autenticatore sul dispositivo dello studente, come un applicazione che genera un codice temporaneo mono uso. Qualora lo studente debba perdere l'autenticatore, deve però identificarsi nuovamente, e può farlo solo recandosi di persona all'università se tale strumento è reso disponibile dall'università. Per ovviare a questo problema, l'università potrebbe anche fare uso di servizi terzi di autenticazione, cosiddetti Identity Provider. Strumenti del genere sono comuni qualora le università appartengano a un consorzio di università, e quindi condividano un Identity Provider comune, il quale permette di autenticare lo studente in maniera sicura.
-\newline La decisione finale, nello scambio di messaggi che avviene per l'autenticazione, è che lo studente intenzionato ad autenticarsi invii sia il timestamp del messaggio, che un numero casuale. Quando l'università riceve il messaggio, lo decifra e risponde con o il timestamp originale, oppure il numero casuale. In questo modo, lo studente è sicuro che sia l'università ad aver risposto al messaggio, e ne verifica l'autenticità dalla firma, sebbene il messaggio sia in chiaro. Fatto ciò, lo studente invia la propria password cifrandola con la chiave pubblica e allega il timestamp precedente, se l'università ha risposto con il numero casuale, altrimenti il numero casuale. L'università sarà sicura che sia stato lo studente a rispondere attraverso tale informazione. Eventualmente, può anche comunicare la chiave con la quale continuare la comunicazione in maniera sicura, altrimenti l'università può rispondere, ma non può aspettarsi di poter verificare l'effettiva autenticità dei messaggi successivi.
+\newline La decisione finale, nello scambio di messaggi che avviene per l'autenticazione, è che lo studente intenzionato ad autenticarsi invii sia il timestamp del messaggio, che una coppia di numeri casuale. Quando l'università riceve il messaggio, lo decifra e risponde con uno dei numeri casuali inviati precedentemente. In questo modo, lo studente è sicuro che sia l'università ad aver risposto al messaggio, e ne verifica l'autenticità dalla firma, sebbene il messaggio sia in chiaro. Fatto ciò, lo studente invia la propria password cifrandola con la chiave pubblica e allega il secondo nonce. L'università sarà sicura che sia stato lo studente a rispondere, siccome solo lo studente poteva conoscere tale numero casuale. Eventualmente, può anche comunicare la chiave con la quale continuare la comunicazione in maniera sicura, altrimenti l'università può rispondere, ma non può aspettarsi di poter verificare l'effettiva autenticità dei messaggi successivi, se la comunicazione non aggiunge ulteriori nonce casuali.
 \newline L'università dovrà conservare le varie associazioni username password, per poter riconoscere dalle credenziali lo studente in futuro. La password non viene salvata in chiaro ma conservata con un hash combinato a un salt univoco per ciascuno studente.
 \newline L'utilizzo della chiave simmetrica per la sola sessione è una questione di sicurezza ed efficienza, per alcuni documenti, come la credenziale, la crittografia asimmetrica comporterebbe un rallentamento proporzionale alla quantità d'informazione contenuta nei messaggi, che potrebbe essere alta in caso di foto di documenti. Siccome poi la chiave di sessione è univoca per ciascuna sessione, il rischio di compromissione della chiave viene ridotto.
 \subsubsection{Ricezione credenziale}
@@ -253,19 +253,19 @@ Nella seguente sezione si discute come il sistema sia o meno in grado di difende
 \subsubsection{Funzione di hash}
 Una funzione di hash $h$ è una one-way function, che determina un valore di lunghezza fissa, detto digest, a partire da un messaggio di lunghezza arbitraria. Questa funzione, deterministica, deve rispettare le seguenti proprietà:
 \begin{itemize}
-    \item \textbf{Non reversibilità o one-way function}: data una funzione di hash $h$, ed un digest $d=h(m)$, non è computazionalemente possibile trovare il messaggio $m$.
+    \item \textbf{Non reversibilità o one-way function}: data una funzione di hash $h$, ed un digest $d=h(m)$, non è computazionalmente possibile trovare il messaggio $m$.
     \item \textbf{Efficienza}: data una funzione di hash $h$ deve essere computazionalmente efficiente calcolare $h(m)$ per ogni messaggio $m$.
     \item \textbf{Resistenza alle collisioni}: non è computazionalmente fattibile trovare due messaggi distinti $m_1$ e $m_2$ tali che $h(m_1)=h(m_2)$.
     \item \textbf{Hiding}: data una funzione di hash $h$, scelto un segreto $r$ da una distribuzione di probabilità, la cui entropia minima è alta, allora dato $h(r\|x)$ non è computazionalmente fattibile trovare $x$.
 \end{itemize}
 La funzione di hash torna utile laddove è necessario riferirsi ad una informazione, senza lasciarne trasparire alcuna parte. Un esempio è la trasformazione della credenziale in un Merkle Tree: in questo caso non è possibile risalire alla credenziale che l'ha originato, tuttavia, una volta trovata tale credenziale è immediato controllarlo.
-\newline Ancora, questa funzione ritorna fondamentale per il controllo di integrità ed autenteicità nella comunicazione asimmetrica.
+\newline Ancora, questa funzione ritorna fondamentale per il controllo di integrità ed autenticità nella comunicazione asimmetrica.
 
 \subsubsection{Crittografia asimmetrica}
 La crittografia asimmetrica è uno schema di crittografia, esprimibile come una terna di algoritmi $\Pi=\mathsf{(Gen, Enc, Dec)}$:
 \paragraph{Confidenzialità} 
 L'algoritmo $\mathsf{Gen}$ genera una coppia di chiavi, una pubblica $p_k$ e una privata $s_k$, per un attore mittente. L'attore intenzionato a stabilire una comunicazione, ovvero il destinatario, deve fornirsi della propria coppia di chiavi, prodotta da un'altra esecuzione di $\mathsf{Gen}$. 
-La chiave pubblica del destinatario permette al mittente di cifrare il proprio messaggio $m$, attraverso un algoritmo di cifratura $\mathsf{Enc}_{p_k}(m)$, il quale ritorna un messaggio cifrato $c$. Successivamente, il destinatario decifra il messaggio cifrato attraverso la propria chiave privata ed un algoritmo di decifratura $\mathsf{Dec}_{s_k}(c)$.
+La chiave pubblica del destinatario permette al mittente di cifrare il proprio messaggio $m$, attraverso un algoritmo di cifratura $\mathsf{Enc}_{p_k}(m)$, il quale ritorna un messaggio cifrato $c$. Successivamente, il destinatario decifra il messaggio cifrato attraverso la propria chiave privata ed un algoritmo di decrittazione $\mathsf{Dec}_{s_k}(c)$.
 Questo meccanismo garantisce la confidenzialità del messaggio, in quanto solamente il destinatario è in grado di decifrare il messaggio.
 \paragraph{Integrità}
 Tuttavia, la confidenzialità non è sufficiente per garantire la sicurezza del sistema, ma è necessario rispettare ulteriori proprietà.
@@ -284,7 +284,7 @@ Con gli smart contract appartenenti alla blockchain, le università sono in grad
 Le credenziali sono definite con un formato standard, il quale permette a ciascuna università di interpretarle correttamente.
 \paragraph{Divulgazione selettiva}
 Nei blocchi della blockchain sono contenuti dei Merkle Tree, i quali permettono di validare le credenziali per parti, senza doverle divulgare per intero. In questo modo si garantisce la proprietà di divulgazione selettiva, siccome lo studente è in grado di decidere quali informazioni divulgare.
-\paragraph{Disponibilità }
+\paragraph{Disponibilità}
 Siccome la blockchain è decentralizzata, quindi ciascuna università possiede una copia della blockchain in locale. Se un'università vicina non è disponibile, le altre università sono comunque in grado di comunicare lo stato della blockchain.
 \paragraph{Scalabilità \& Decentralizzazione}
 La blockchain è per definizione decentralizzata, e come conseguenza di ciò è anche scalabile: l'aggiunta di nuovi nodi non comporta una riduzione delle prestazioni del sistema, anzi, al contrario, aumenta la disponibilità del sistema. 
@@ -334,13 +334,13 @@ Nel caso in ipotesi, un attaccante intercetta le comunicazioni tra lo studente e
 \newline Ad ogni modo, una volta che l'università ospitante ha ricevuto la richiesta di autenticazione dallo studente, che decifra con la propria chiave privata, risponde con una challenge, e attende le credenziali. Questo messaggio non è cifrato, ma autenticato, siccome viene associato al messaggio la firma dell'università. L'attaccante che intercetta questo messaggio non può decifrarlo ma può comunque impersonarsi come università se riesce a rinviarlo allo studente nel frangente di tempo adatto. In questo caso, lo studente invierebbe le proprie credenziali all'attaccante, però cifrate attraverso la chiave pubblica dell'università, per cui l'attaccante non sarebbe in grado di decifrarle.
 \newline Una volta che lo studente si è autenticato verso l'università, egli richiede di comunicare attraverso la crittografia simmetrica. Chiede quindi all'università di comunicare mediante la chiave di sessione contenuta nel messaggio. Se l'attaccante riesce a intercettare il messaggio, sebbene non in grado di leggerlo, può comunque modificarlo se conosce il formato del messaggio, e riuscire a impersonare lo studente inserendo una chiave diversa. Per ovviare a questo problema sono necessari challenge consecutivi:
 \begin{itemize}
-    \item Lo studente invia una richiesta di autenticazione all'università, cifrata con la chiave pubblica dell'università, con un timestamp e un nounce N
-    \item L'università risponde con una modifica da apportare alla challenge, senza rivelarla
-    \item Lo studente risponde con la challenge modificata, cifrata con la chiave pubblica dell'università, un timestamp e le credenziali
-    \item L'università decifra il messaggio, verifica la challenge e le credenziali, e risponde con successo, chiedendo di procedere con una comunicazione sicura, e chiedendo in tal caso di effettuare una ulteriore modifica al nounce
-    \item Lo studente risponde con una chiave, il nounce modificato, e un timestamp, tutti cifrati attraverso la chiave pubblica dell'università
+    \item Lo studente invia una richiesta di autenticazione all'università, cifrata con la chiave pubblica dell'università, con un timestamp e due nonce \texttt{$N_0,N_1$} tali che non sia possibile inferire \texttt{$N_1$} da \texttt{$N_0$} e entrambi dal tempo in cui sono stati creati.
+    \item L'università include nella sua risposta il primo nonce \texttt{$N_0$} esponendolo all'attaccante, che tuttavia non è in grado di forgiare nuovi messaggi siccome non è dotato della chiave privata dell'università, con la quale firma i messaggi, sebbene inviati in chiaro.
+    \item Lo studente controlla la freschezza del timestamp, la correttezza del nonce e della firma, ed in caso di esito positivo invia il messaggio con la password e il secondo nonce, cifrato ma non firmato.
+    \item L'università decifra il messaggio, verifica il timestamp, il secondo nonce \texttt{$N_1$} e le credenziali. In caso di esito positivo, chiede di procedere con una comunicazione sicura, e richiedendo in tal caso di comunicare lo schema simmetrico, cominciando la comunicazione dal secondo nonce \texttt{$N_1$}. L'università evita di rispondere col nonce siccome lo usa per rispondere dopo.
+    \item Lo studente invia ciascuna componente dello schema all'università allegando per ciascuna componente l'ultimo nonce stabilito fino a quel momento, e il successivo. L'attaccante può ottenere il nonce precedente, ma non potrà mai ottenere il successivo, siccome non è in grado di decifrare il messaggio.
 \end{itemize}
-Aggiungendo questo dettaglio di sicurezza, si nota che l'attaccante non può utilizzare replay attack a causa dei timestamp e delle challenge, e non può neanche modificare un messaggio di una delle due parti per inferire informazioni sullo studente.
+Aggiungendo questo dettaglio di sicurezza, si nota che l'attaccante non può utilizzare replay attack a causa dei timestamp e delle challenge, e non può neanche modificare un messaggio di una delle due parti per inferire informazioni sullo studente. L'unica cosa che può fare è tentare di ottenere casualmente un messaggio corretto sostituendo il nonce nella catena con uno casuale.
 \subsubsection{Ascoltatore di comunicazioni dello studente}
 Un attaccante che ascolti i messaggi che lo uno studente invia a una o più università non è in grado di decifrare i messaggi, siccome questi vengono cifrati, eventualmente con diverse chiavi. Per cui, se un attaccante in grado di manipolare i messaggi non riesca a inferire informazioni sullo studente, non può neanche riuscirci un attaccante di abilità inferiori rispetto a egli.
 \subsubsection{Attacco con credenziale nota}
@@ -356,6 +356,13 @@ L'applicazione utilizzata dallo studente per manipolare la credenziale ed ottene
 \section{WP 4}
 Il codice sorgente del progetto è contenuto all'interno della repository: \newline\url{https://github.com/Dacu02/APS_project_G9}
 \subsection{Class design}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{uml_design.eps}
+    \caption{UML Class Design}
+    \label{fig:class_design}
+\end{figure}
+
 \subsection{Struttura implementazione}
 L'implementazione è suddivisa in diversi algoritmi, ciascuno dei quali collabora con gli altri, nel senso che produce dei risultati che possono essere utilizzati dagli altri algoritmi, ma opera in un contesto proprio, indipendente dagli altri.
 \\[1em]
@@ -363,94 +370,131 @@ Ogni algoritmo effettua una determinata azione tra quelle descritte nel document
 \\
 La suddivisione della logica del progetto in algoritmi permette di testare singolarmente ciascuno di essi, e di verificare che il risultato ottenuto sia quello atteso. Inoltre, la modularità del codice permette di sostituire un algoritmo con uno più efficiente, senza dover modificare il resto del codice.
 \\[1em] Gli algoritmi principali, nel quale è distribuito il progetto, sono a loro volta suddivisi in base agli attori principali, eventualmente iniziatori dell'azione descritta mediante tale algoritmo.
-\subsection{Studente CAPISCI COME METTERE MEGLIO I PARAMETRI DI CIASCUN ALGORITMO}
-\subsubsection{Immatricolazione}
-L'algoritmo prende in ingresso le informazioni riguardanti lo studente, e simula la procedura d'iscrizione di uno studente presso un'università. Questa procedura richiede quindi che lo studente venga in possesso di un certificato dell'università, attraverso un ente di accreditamento, e che l'università ne registri nome utente e password in un database locale, in modo da poterne verificare l'identità dello studente durante il processo di autenticazione. E' compito dell'università inoltre aprire un fascicolo dello studente, nel quale vengono conservate le informazioni concernenti la carriera dello studente.
-\\
-I parametri di sicurezza individuati e modificabili sono:
+\subsection{Parametri di sicurezza}
+I parametri di sicurezza vengono utilizzati per configurare gli algoritmi di sicurezza utilizzati, in particolare vanno a influenzare le prestazioni e la sicurezza offerta dagli schemi crittografici e dagli algoritmi di hash. Anche le distribuzioni casuali e la dimensione massima dalle quali vengono presi i nonce vengono parametrizzati in base al livello di sicurezza desiderato. I parametri più importanti sono inseriti nel file \texttt{constants.py}, e sono:
 \begin{itemize}
-    \item La lunghezza delle chiavi pubbliche conservate all'interno degli enti di accreditamento, utilizzate per cifrare i messaggi diretti alle università.
-    \item La funzione di hash utilizzata per applicare l'hash sui messaggi cifrati.
-    \item La lunghezza della chiave di sessione utilizzata per cifrare i messaggi tra lo studente e l'università.
-    \item La funzione di hash utilizzata e la lunghezza del salt utilizzati per conservare le password degli studenti.
-    \end{itemize}
+    \item \texttt{SYMMETRIC\_KEY\_LENGTH}: La lunghezza della chiave simmetrica in byte, utilizzata una volta che lo studente si è autenticato con l'università. Questo schema viene utilizzato solo per la durata della sessione, e attraverso questa viene effettuata la cifratura della credenziale inviata dall'università ospitante.
+    \item \texttt{IV\_SIZE}: La dimensione del vettore di inizializzazione (IV) in byte, utilizzato negli algoritmi di crittografia simmetrica.
+    \item \texttt{MAC\_SIZE}: La lunghezza del codice di autenticazione del messaggio (MAC) in byte, utilizzato per garantire l'integrità dei messaggi cifrati.
+    \item \texttt{ASYMMETRIC\_KEY\_LENGTH}: La lunghezza della chiave asimmetrica in byte, utilizzata per la cifratura dei messaggi tra lo studente e le università prima dell'autenticazione. Viene utilizzata per cifrare la chiave simmetrica, e tra le università per firmare e/o cifrare i messaggi. Nel seguente progetto non vi è differenza del tempo di cifratura rispetto all'università e agli studenti, tuttavia sarebbe possibile inserire un ritardo inversamente proporzionale alla potenza computazionale dell'autore del messaggio, per rappresentare questa criticità.
+    \item \texttt{EXTRACT\_RANDOM\_NUMBER}: Funzione per estrarre un numero casuale minore di un dato numero definibile come parametro. Utilizzata per generare nonce e le chiavi per gli schemi crittografici. Il numero casuale viene generato attraverso la libreria \texttt{secrets}.
+    \item \texttt{MAXIMUM\_TIMESTAMP\_DIFFERENCE}: La differenza massima tra i timestamp accettata per un messaggio, in secondi. Utilizzata per verificare la freschezza dei messaggi tra lo studente e l'università, per rilevare i replay attack.
+    \item \texttt{BLOCKCHAIN\_HASH\_ALGORITHM}: L'algoritmo di hash utilizzato per calcolare gli hash. Viene usato per calcolare l'hash delle componenti delle credenziali, dei blocchi, e per comodità il suo uso è esteso alle università per calcolare l'hash delle password, il cui salt è, a solo scopo didattico, una concatenazione del nome e del cognome dello studente. Nel progetto è parametrizzato con \texttt{"SHA256"}.
+    \item \texttt{CREDENTIAL\_PERIOD\_DAYS} La durata in giorni di una credenziale dopo che viene emessa, di default. Dopo questi, la credenziale viene considerata scaduta, e non può più essere utilizzata.
+    \item \texttt{BLACKLIST\_THRESHOLD} Il rapporto di università rispetto al totale necessario per estromettere una università dal sistema. Quando una università viene estromessa, non è più in grado di interagire con lo smart contract. 
+\end{itemize}
+Non esiste una combinazione perfetta dei seguenti parametri: la combinazione migliore è frutto del compromesso tra la sicurezza del sistema rispetto alla sua velocità, relativamente alle chiavi, e alla sua reattività rispetto alla manipolabilità relativamente al rapporto di università necessarie per estrometterne una, dalla blockchain o dalle CA, quando implementata tale funzionalità
+\subsection{Studente}
+\subsubsection{Immatricolazione}
+L'algoritmo prende in ingresso le informazioni riguardanti lo studente, l'università e il piano di studi, e simula la procedura d'iscrizione di uno studente presso un'università. Questa procedura richiede quindi che lo studente venga in possesso di un certificato dell'università, attraverso un ente di accreditamento, e che l'università ne registri nome utente e password in un database locale, in modo da poterne verificare l'identità dello studente durante il processo di autenticazione. È compito dell'università inoltre aprire un fascicolo dello studente, nel quale vengono conservate le informazioni concernenti la carriera dello studente.
+\\[1em]
+In particolare, se lo studente si iscrive all'università ospitante, non è richiesto il piano di studi desiderato, siccome è compito dello studente proporre un piano all'università di origine.
 \subsubsection{Autenticazione}
-L'algoritmo prende in ingresso lo studente, e simula la procedura di autenticazione dello studente presso un'università. Essa richiede che lo studente sia in possesso di un certificato dell'università, e che l'università ne verifichi l'identità attraverso le credenziali fornitele confrontandole con quelle conservate nel database locale. In questo caso, i parametri di sicurezza selezionati sono gli stessi presenti nell'algoritmo di immatricolazione.
+L'algoritmo prende in ingresso lo studente, e simula la procedura di autenticazione dello studente presso un'università. Essa richiede che lo studente sia in possesso di un certificato dell'università, e che l'università ne verifichi l'identità attraverso le credenziali fornitele confrontandole con quelle conservate nel database locale. Questo algoritmo viene usato anche da altri algoritmi per simulare l'autenticazione dello studente presso l'università ospitante, siccome dopo questa procedura sia lo studente che l'università possono comunicare attraverso uno schema crittografico simmetrico.
 \subsubsection{Presentazione domanda per accesso a periodo di mobilità}
-L'algoritmo prende in ingresso lo studente, e simula la procedura di presentazione della domanda per accedere a un periodo di mobilità. Questa richiede che lo studente sia in possesso di un certificato dell'università di origine, delle credenziali di accesso e di un piano di studi da proporre. Una volta che lo studente le ha comunicate, citando anche l'università di destinazione alla quale è interessato, l'università di origine procede con l'accettazione o il rifiuto della domanda. Anche qui i parametri di sicurezza sono i medesimi dell'algoritmo di immatricolazione.
+L'algoritmo prende in ingresso lo studente, e simula la procedura di presentazione della domanda per accedere a un periodo di mobilità. Questa richiede che lo studente sia in possesso di un certificato dell'università di origine, delle credenziali di accesso e di un piano di studi da proporre. Una volta che lo studente si è autenticato e le ha comunicate, citando anche l'università di destinazione alla quale è interessato, l'università di origine procede con l'accettazione o il rifiuto della domanda. L'università di origine, per accertarsi che sia possibile rispettare il piano, comunica con l'università ospitante, attraverso lo schema asimmetrico a loro disposizione. 
 \\[1em]
 In caso di esito positivo, l'università di origine deve inserire nel proprio fascicolo dello studente le informazioni sul periodo di mobilità, quali le attività accademiche da sostenere e l'università presso cui si svolgerà.
-% \subsubsection{Accesso alla carriera, rinuncia e ulteriori pratiche legali}
-% L'algoritmo è analogo a quello di autenticazione, tuttalpiù deve prendere in considerazione le pratiche effettuabili dallo studente durante il suo percorso accademico.
 \subsection{Università}
 \subsubsection{Registrazione}
-L'algoritmo prende in ingresso le informazioni riguardanti l'università, e simula la procedura di registrazione di un'università presso un ente di accreditamento. Questa procedura spesso avviene mediante canali sicuri alternativi, o persino di persona, per cui non vi sono particolari misure di sicurezza individuabili, se non la lunghezza della coppia di chiavi adottata dall'ente di accreditamento per produrre i certificati delle università.
-\subsubsection{Inserimento di esame in libretto}
-L'algoritmo prende in ingresso l'università, lo studente e l'esame da inserire nel libretto dello studente. Questa procedura è relativamente semplice, in quanto sono operazioni che non richiedono particolari misure di sicurezza, siccome è contemplata all'interno di un solo attore. Tuttavia è cruciale supportare questa operazione per i fini del progetto. Ovviamente, lo studente può essere sia iscritto all'università, che in mobilità presso essa.
-\subsection{Enti di accreditamento}
-\subsubsection{Aggiornamento periodico dei certificati?}
+L'algoritmo prende in ingresso le informazioni riguardanti l'università, e simula la procedura di registrazione di un'università presso un ente di accreditamento. Questa procedura spesso avviene mediante canali sicuri alternativi, o persino di persona, per cui non vi sono particolari misure di sicurezza individuabili, se non la lunghezza della coppia di chiavi adottata dall'ente di accreditamento per produrre i certificati delle università. Dopo questa procedura, l'università è in possesso di una coppia di chiavi, e gli studenti possono ottenere la chiave pubblica dell'università contattando la CA presso cui si è registrata.
 \subsection{Di progetto}
 Gli algoritmi qui presentati riguardano la logica interna del progetto e sono utilizzati per simulare le operazioni nelle quali tutti, o quasi tutti, gli attori devono collaborare per raggiungere il risultato desiderato. 
 \subsubsection{Emissione \& certificazione credenziale}
+L'algoritmo prende in ingresso lo studente e l'università ospitante presso cui sta svolgendo il suo periodo di mobilità, e simula la procedura di emissione della credenziale da parte dell'università ospitante, e la certificazione della stessa. L'università per prima cosa produce la credenziale utilizzando i dati dello studente, sia quelli ottenuti durante la presentazione della domanda del periodo di mobilità che quelli prodotti durante la carriera nell'università. Prodotta la credenziale, suddivide la credenziale in vari blocchi: in uno inserisce i dati generici della credenziale, per ciascun esame genera un blocco, e per ciascuna attività ne genera altri. In ciascun blocco è presente un dizionario di informazioni, e lo usa per ottenere prima una forma in stringa, e poi l'hash attraverso l'algoritmo condiviso dalle università. Una volta ottenuta la lista degli hash, ciascuno calcolato su un blocco, la comunica allo smart contract della blockchain, il quale provvede a generare un Merkle Tree le cui foglie sono i blocchi hashati forniti dall'università. Ottenuto il Merkle Tree, lo smart contract genera un nuovo blocco nella blockchain, contenente:
+\begin{itemize}
+    \item L'ID del blocco precedente, o l'hash di "Genesis Block" se è il primo
+    \item L'hash della chiave pubblica dell'università che ha emesso la credenziale
+    \item La delete flag, pari a 0 in questo caso
+    \item Il Merkle Tree generato
+    \item L'ID come hash del contenuto del blocco
+\end{itemize}
+Il blocco viene quindi inserito nella blockchain, e lo smart contract ne restituisce l'ID all'università ospitante, la quale lo inoltra allo studente, che lo comunicherà con la università di origine.
 \subsubsection{Presentazione \& validazione credenziale}
+L'algoritmo prende in ingresso lo studente e l'università di origine, e simula la procedura di presentazione della credenziale da parte dello studente all'università di origine, e la validazione della stessa. Prima di tutto, lo studente deve decidere quali informazioni rimuovere dalla credenziale attraverso la divulgazione selettiva, che consiste nel rimuovere le parti della credenziale che contengono informazioni superflue. Una volta che lo studente ha deciso, comunica la credenziale ottenuta e l'ID all'università, previa autenticazione. L'università procede a controllare se la credenziale è in linea con quella che si attendeva dallo studente: se la data della credenziale è valida, se contiene tutti gli esami richiesti, e se fa riferimento allo studente. Una volta fatto questa verifica, deve interrogare lo smart contract attraverso sia l'ID fornito, che la forma in blocchi hashati della credenziale. Lo smart contract cercherà nella blockchain un blocco con lo stesso ID:
+\begin{itemize}
+    \item Se la ricerca va a buon fine, deve controllare che tutti gli hash dei blocchi della credenziale appartengano alle foglie del Merkle Tree contenuto nel blocco. L'associazione dev'essere uno ad uno. Ciò significa che la credenziale è stata certificata. Tuttavia, è necessario controllare che non sia stata revocata scorrendo il resto della blockchain.
+    \item Se la ricerca non va a buon fine o l'albero non contiene tutti gli hash tra le foglie, significa che la credenziale non esiste oppure è stata manomessa.
+\end{itemize}
+Lo smart contract provvede quindi a comunicare l'esito all'università.
+\subsubsection{Revoca della credenziale}
+L'algoritmo prende in ingresso lo studente e l'università ospitante, e simula la procedura di revoca della credenziale da parte dell'università ospitante. Prima di tutto, l'università deve comunicare allo smart contract l'ID della credenziale da revocare. Lo smart contract a sua volta cerca nella blockchain se il blocco esiste, in caso positivo, controlla allora che non sia stato già revocato. Quando arriva alla fine della blockchain significa che deve aggiungere un nuovo blocco che invalidi quello contenente la credenziale. Crea quindi alla fine un nuovo blocco, contenente:
+\begin{itemize}
+    \item L'ID del blocco precedente
+    \item L'hash della chiave pubblica dell'università che ha emesso la credenziale
+    \item La delete flag, pari a 1 in questo caso
+    \item L'ID della credenziale, corrispondente al blocco revocato
+    \item L'ID come hash del contenuto del blocco
+\end{itemize}
+Quando si vuole controllare che la credenziale non sia stata revocata, è sufficiente scorrere la blockchain e controllare che, nei blocchi revocatori, non ci sia l'ID della credenziale.
 \subsubsection{Algoritmi di cifratura e decifratura}
 Rispetto agli altri algoritmi, questi non vengono utilizzati per simulare le operazioni effettuate dagli attori, ma per permetterle. Gli algoritmi di sicurezza vengono valutati sulla base delle prestazioni in termini di tempo, e sicurezza offerta, in base ai parametri di sicurezza configurati.
 \\[1em]
 La valutazione delle prestazioni sulla base del tempo che essi impiegano è di vitale importanza, siccome permette il confronto tra implementazioni e la scelta che, contestualizzata in merito al seguente progetto, risulta essere la migliore.
 \subsection{Tecnici}
-Alcuni algoritmi riguardano invece la manipolazione dei parametri utilizzati dagli altri algoritmi e dei risultati prodotti.
 \subsubsection{Rimozione dei file salvati}
-Questa funzionalità è utile per formattare lo stato del progetto e riportarlo alle condizioni originali, siano essi reativi alla logica degli attori, oppure relativi alle esecuzioni, ai risultati e così via.
+Questa funzionalità è utile per formattare lo stato del progetto e riportarlo alle condizioni originali, siano essi relativi alla logica degli attori, oppure relativi alle esecuzioni, ai risultati e così via.
 \subsubsection{Modifica dei parametri di sicurezza}
-Qui è possibile manipolare i vari parametri necessari agli algoritmi per funzionare, come la lunghezza delle chiavi, le funzioni di hash utilizzate e altri aspetti crittografici.
+Qui è possibile manipolare i vari parametri necessari agli algoritmi per funzionare, come la lunghezza delle chiavi, le funzioni di hash utilizzate e altri aspetti crittografici. La loro inizializzazione è contenuta all'interno del file \texttt{constants.py}.
 \subsubsection{Visualizzazione dei tempi di esecuzione}
-La seguente funzionalità è estesa pressoché a tutti gli altri algoritmi, siccome permette di osservare la differenza in termini di prestazioni tra le varie implementazioni, considerandone i parametri di sicurezza configurati, e di confrontarle eventualmente. Ciò significa non solo considerare per ciascun algoritmo, e relative configurazioni, il tempo di esecuzione, ma anche archiviare il risultato e renderlo confrontabile con altre istanze e configurazioni differenti.
+Per ciascun algoritmo vengono valutati i tempi di esecuzione, e mostrati alla fine dell'esecuzione.
 \subsection{Simulazione degli attacchi}
 Questi algoritmi simulano gli attacchi descritti nella sezione del WP3, mostrandone le conseguenze e le eventuali contromisure adottate dal sistema.
 \subsubsection{Violazione dell'ente di accreditamento}
-Il seguente algoritmo simula la violazione di un ente di accreditamento, mostrando le conseguenze che tale attacco può avere sul sistema.
+Il seguente algoritmo simula la violazione di un ente di accreditamento, gli effetti di questo attacco sono stati già descritti nel WP3, e per l'assenza di contromisure, non è possibile difendersi. Tuttavia, è presente per completezza.
 \subsubsection{Violazione dell'università ospitante}
-Il seguente algoritmo simula la violazione di un'università ospitante, andando ad evidenziare le possibili azioni che può commettere per compromettere il sistema.
+L'algoritmo simula la violazione di una università ospitante, la contromisura adottata dal sistema è quella di estrometterla dalla blockchain: delle altre università votano, attraverso lo smart contract, l'estromissione. Se la quota dei voti supera la soglia richiesta, verrà impedito all'università di accedere alla blockchain per certificare credenziali.
 \subsubsection{Violazione dell'università di origine}
-Il seguente algoritmo simula la violazione di un'università ospitante, andando ad evidenziare le possibili azioni che può commettere per compromettere il sistema.
+Similmente all'algoritmo precedente, simula la violazione dell'università di origine. Allo stesso modo nuove università votano l'estromissione, in caso di superamento della soglia tale università non sarà più in grado di usufruire dei servizi della blockchain.
 \subsubsection{Studente malevolo}
-Il seguente algoritmo simula uno studente malevolo, intenzionato a divulgare informazioni false riguardo la sua credenziale. L'algoritmo mostra come il sistema sia in grado di difendersi da tale attacco.
+Il seguente algoritmo simula uno studente malevolo, intenzionato a divulgare informazioni false riguardo la sua credenziale. L'algoritmo mostra cosa accade quando uno studente altera i campi della credenziale, il caso in esame preso è quello dove viene aggiunto un esame agli esiti della credenziale. L'università, quando invia la lista dei blocchi hashati delle componenti della credenziale alterata allo smart contract, questi si accorge dell'alterazione, siccome ad un blocco della credenziale non corrisponde alcuna foglia del Merkle Tree.
 \subsubsection{Intercettatore di comunicazioni dell'università ospitante}
-\subsubsection{Ascoltatore di comunicazioni dello studente}
+Questo algoritmo simula la presenza di un intercettatore tra la comunicazione con l'università ospitante e lo studente. In particolare, lo scenario in esame è preso durante la fase di immatricolazione. Quando lo studente apre la comunicazione con l'università e chiede di autenticarsi, comunica il primo numero casuale che genera. L'attaccante non lo può conoscere, ma conosce il momento nel quale ha generato il primo e il secondo numero casuale. Quando l'università risponde, espone il primo numero casuale, per cui l'attaccante potrebbe tentare di inferire il secondo numero casuale, conoscendo il primo.
+\\[1em]
+Tale attacco è possibile nel momento in cui lo studente sta per inviare la password con la quale registrarsi all'università: se l'attaccante modifica il messaggio, potrebbe riempire tutti i campi, ma non conoscerebbe solamente il nonce casuale da inserire al messaggio. Per questa ragione, intercetta il messaggio, lo cancella e ne inietta un altro con le stesse informazioni, ma un nonce eventualmente diverso e una password diversa, conosciuta da lui solamente. La probabilità che questo attacco abbia successo è inversamente proporzionale alla sicurezza del generatore di numeri (pseudo)casuali e la dimensione massima del numero casuale.
 \subsubsection{Attacco con credenziale nota}
+In questo attacco si simula un attaccante che conosce la credenziale dello studente, e tenta di inferire informazioni o quanto meno compromettere il sistema. Tuttavia, siccome la comunicazione della credenziale da parte dell'università ospitante avviene in un schema crittografico simmetrico, e il messaggio contiene inoltre il timestamp, e l'ID che l'attaccante potrebbe non conoscere, non gli è possibile alterare la credenziale senza destare sospetto. Difatti, se l'alterasse durante l'emissione, lo studente noterebbe la compromissione dell'integrità, viceversa durante la presentazione della credenziale, la noterebbe l'università di origine.
 \subsubsection{Divulgazione di informazioni superflue}
-
+In questo algoritmo si simula la divulgazione di informazioni superflue da parte dello studente, che decide di inviare all'università di origine una credenziale con informazioni non necessarie. Tuttavia, siccome il sistema non ha alcun controllo su ciò che lo studente decide di divulgare, non è possibile impedire tale operazione. L'unica soluzione sarebbe di proporre allo studente un'applicativo che, ottenuto il piano di studi in mobilità proposto, effettui il filtraggio delle informazioni superflue. In questo modo, lo studente non potrebbe divulgare informazioni superflue, siccome l'applicazione non glielo consentirebbe.
 \subsection{Moduli}
 L'implementazione del progetto è suddivisa in moduli, ciascun modulo ha una finalità e responsabilità ben delineate. 
 \subsubsection{Modulo di comunicazione}
 
-È il modulo che implementa in maniera astratta la comunicazione tra gli attori del sistema, gli attori del sistema sono rappresentati da classi propri che implementano la classe astratta \texttt{User}.
+È il modulo che implementa in maniera astratta la comunicazione tra gli attori del sistema, gli attori del sistema sono rappresentati dalle rispettive classi, che implementano la classe astratta \texttt{User}.
 Inoltre, il modulo permette la gestione delle chiavi associate agli utenti sfruttando la classe \texttt{Key}.
 \\[1em]
-Le classi \texttt{Paramatric Asymmetric Scheme}
-e \texttt{Parametric Symmetric Scheme} sono basate su un'interfaccia comune fornita dalla classe \texttt{Encryption Scheme}, garantendo l'interazione tra gli attori del sistema e qualsiasi schema di cifratura utilizzato.
-Le classi concrete permettono inoltre di effettuare modifiche ai parametri di sicurezza utilizzati dagli schemi, garantendo anche che il sistema sia estensibile a futuri sviluppi.
-La logica di entrambi gli schemi sono stati implementati con l'utilizzo della libreria cryptography di Python. 
+Le classi \texttt{Parametric Asymmetric Scheme} e \texttt{Parametric Symmetric Scheme} sono basate su un'interfaccia comune fornita dalla classe \texttt{Encryption Scheme}, garantendo l'interazione tra gli attori del sistema mediante l'interfaccia comune.
+Le classi concrete permettono inoltre di effettuare modifiche ai parametri di sicurezza utilizzati dagli schemi, garantendo estendibilità e manutenibilità del codice per sviluppi futuri. La logica di entrambi gli schemi sono stati implementati con l'utilizzo della libreria \texttt{cryptography}.
 \\[1em]
-La classe \texttt{Generic Hash Algorithm} permette di genire quale algortimo di hashing utilizzare e fornisce i metodi per calcolare l'hash dei dati, sfruttando la libreria hashlib. Contestualmente al progetto viene utilizzato per l'hashing in tutti i compenenti fondamentali per l'impiego della blockchain.
+La classe \texttt{Generic Hash Algorithm} permette di decidere quale algoritmo di hashing utilizzare e fornisce i metodi per calcolare l'hash dei dati, sfruttando la libreria \texttt{hashlib}. 
 
 \subsubsection{Modulo blockchain}
-Il modulo implementa la logica di funzionamento della blockchain. La class \texttt{blockchain}, gestisce i vari blocchi di quest'ultima garantendo la coerenza e l'integrità, garantisce la cifratura dei blocchi, la cui implementazione è fornista dalla classe \texttt{block}, e valida l'intera sequenza. 
+Il modulo implementa la logica di funzionamento della blockchain, in particolare nella classe \texttt{Blockchain} è presente la struttura dati che gestisce la lista dei blocchi, la cui implementazione di ciascuno è fornita dalla classe \texttt{Block}. 
 \\[1em]
-La classe \texttt{Smart Contract} fornisce la gestione della blockchain ed è responsabile della creazione della stessa, inoltre si propone una nostra implementazione di \texttt{MerkleTree} che gestisce la creazione della struttura, seguendo la logica di funzionamento nota.
+La classe \texttt{Smart Contract} sovrintende la gestione della blockchain. È presente un'implementazione personalizzata di \texttt{MerkleTree}, che gestisce la creazione della omonima struttura, seguendo la logica di funzionamento nota.
+
 \subsubsection{Modulo attori}
-Il modulo attori fornisce delle implementazio concrete della classe \texttt{User}: 
+Il modulo attori fornisce delle implementazioni concrete della classe \texttt{User}: 
 la classe \texttt{Student} che memorizza le credenziali e le password per le diverse università, create durante l'esecuzione della funzione immatricolazione. 
 \\[1em]
 La classe \texttt{University} che modella un ateneo, gli attributi più rilevanti sono piano di studi, attività e un registro contenente gli studenti iscritti. 
-Le sue principali responsabilità sono la gestione degli studenti e i relativi esami, interagendo con uno smart contract. 
+Le sue principali responsabilità sono la gestione degli studenti e i relativi esami, e l'interazione con lo smart contract. 
 \\[1em]
-La classe \texttt{CA}, rappresenta la Certification Authority e tramite i suoi metodi permette di registrare un utente tramite la sua chiave pubblica e di rilasciare un certificato contente la chiave registrata.
-
-
-
-
-
-
-
+La classe \texttt{CA}, rappresenta la Certification Authority e tramite i suoi metodi permette di registrare un utente tramite la sua chiave pubblica contestualmente rilasciando un certificato contenente la chiave registrata.
+\subsection{Esempio di esecuzione in \texttt{main.py}}
+Nella cartella principale è stato creato un file \texttt{main.py} che funge da entry point del progetto, e permette di eseguire gli algoritmi implementati. Il flusso di esecuzione si divide in tre parti, in base all'ingresso che viene immediatamente fornito dopo l'esecuzione:
+\begin{itemize}
+    \item Se si inserisce la lettera 'C' è possibile eseguire uno degli algoritmi sopracitati che riguarda il funzionamento del sistema. Ciascun algoritmo chiederà all'utente di inserire i valori necessari al suo corretto funzionamento.
+    \item Se si inserisce la lettera 'H' è possibile eseguire una configurazione predefinita (ma ancora configurabile) del codice proposta dagli autori del progetto. Tale configurazione rappresenta il caso proposto nella traccia del progetto, contente:
+    \begin{itemize}
+        \item Una singola CA a cui sia le università che gli studenti fanno riferimento
+        \item Uno studente
+        \item Una università di origine, alla quale lo studente è immatricolato
+        \item Una università ospitante, dove la quale lo studente desidera effettuare il suo periodo di mobilità
+    \end{itemize}
+    Questa esecuzione prevede l'esecuzione di tutti quanti gli algoritmi mostrati, con ingressi predefiniti. A ciascun algoritmo l'esecuzione si ferma e descrive a terminale una breve introduzione di ciò che sta avvenendo.
+    \item Se si inserisce la lettera 'A' è possibile lanciare l'esecuzione predefinita in modalità di analisi delle prestazioni temporali, questa configurazione risulta estremamente utile quando si voglio valutare le prestazioni temporali in funzione dei parametri di sicurezza. Alla fine dell'esecuzione, il codice mostra un report contenenti i tempi di esecuzione per gli algoritmi principali, e per validazione, emissione e certificazione della credenziale.
+\end{itemize}
+\subsection{Simulazioni degli attacchi in \texttt{simulate\_attack.py}}
+All'interno del file \texttt{simulate\_attack.py} sono presenti i diversi algoritmi che permettono di simulare attacchi al sistema. Essi possono essere richiamati per mostrare le conseguenze e le eventuali contromisure adottate dal sistema. La loro esecuzione è guidata e stampano a terminale l'eventuale eccezione qualora l'attacco fallisse.
 \end{document}

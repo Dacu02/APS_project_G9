@@ -1,12 +1,11 @@
 import os
 import json
 import time
-import secrets
 
 from algorithms.lettura_dati import lettura_dati
 from actors import CA, Student, University
 from communication import Certificate, Message
-from constants import DATA_DIRECTORY, MAXIMUM_TIMESTAMP_DIFFERENCE, RANDOM_NUMBER_MAX, STUDENTS_FOLDER
+from constants import DATA_DIRECTORY, MAXIMUM_TIMESTAMP_DIFFERENCE, STUDENTS_FOLDER, EXTRACT_RANDOM_NUMBER
 
 
 def immatricola(args:list[str]=[]):
@@ -90,8 +89,8 @@ def immatricola(args:list[str]=[]):
             study_plan = input(f"Scegli un piano di studi tra {', '.join(study_plans.keys())}: ")
 
     student_initial_timestamp = time.time()
-    RANDOM_NUMBER0 = secrets.randbelow(RANDOM_NUMBER_MAX)  # Numero casuale tra 0 e 999999 non basato su timestamp
-    RANDOM_NUMBER1 = secrets.randbelow(RANDOM_NUMBER_MAX)  # Numero casuale tra 0 e 999999 non basato su timestamp
+    RANDOM_NUMBER0 = EXTRACT_RANDOM_NUMBER()  # Numero casuale tra 0 e 999999 non basato su timestamp
+    RANDOM_NUMBER1 = EXTRACT_RANDOM_NUMBER()  # Numero casuale tra 0 e 999999 non basato su timestamp
 
     message_data = {
         "name": student.get_name(),

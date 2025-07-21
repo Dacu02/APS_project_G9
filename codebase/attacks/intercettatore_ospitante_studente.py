@@ -1,12 +1,12 @@
 import json
 import os
-import secrets
+
 import sys
 import time
 
 from algorithms import *
 from communication import Certificate
-from constants import DATA_DIRECTORY, MAXIMUM_TIMESTAMP_DIFFERENCE, RANDOM_NUMBER_MAX, STUDENTS_FOLDER, _registra_attivita, _registra_esame
+from constants import DATA_DIRECTORY, MAXIMUM_TIMESTAMP_DIFFERENCE, EXTRACT_RANDOM_NUMBER, STUDENTS_FOLDER, _registra_attivita, _registra_esame
 from communication import Message
 from actors import *
 from attacks import Attacker
@@ -94,8 +94,8 @@ def _immatricola(args:list[str]=[]):
             study_plan = input(f"Scegli un piano di studi tra {', '.join(study_plans.keys())}: ")
 
     student_initial_timestamp = time.time()
-    RANDOM_NUMBER0 = secrets.randbelow(RANDOM_NUMBER_MAX)  # Numero casuale tra 0 e 9999 non basato su timestamp
-    RANDOM_NUMBER1 = secrets.randbelow(RANDOM_NUMBER_MAX)  # Numero casuale tra 0 e 9999 non basato su timestamp
+    RANDOM_NUMBER0 = EXTRACT_RANDOM_NUMBER()  # Numero casuale tra 0 e 9999 non basato su timestamp
+    RANDOM_NUMBER1 = EXTRACT_RANDOM_NUMBER()  # Numero casuale tra 0 e 9999 non basato su timestamp
 
     message_data = {
         "name": student.get_name(),
@@ -167,7 +167,7 @@ def _immatricola(args:list[str]=[]):
     # student.send(university, Message(json.dumps(password_message)), sign=False) #! INTERCETTATO E ALTERATO
     intercepted_password_message = ATTACKER.intercept_message(student, university, Message(json.dumps(password_message)), encrypt=False, sign=False)
     input("L'attaccante intercetta il messaggio dela password, non firmato ma cifrato, per cui non può leggerne il contenuto. Potrebbe alterarlo, ma non conosce il secondo nonce e quindi non potrebbe inviare un messaggio valido all'università.")
-    PROBABILISTIC_SECOND_NONCE = secrets.randbelow(RANDOM_NUMBER_MAX)  # Numero casuale tra 0 e 9999
+    PROBABILISTIC_SECOND_NONCE = EXTRACT_RANDOM_NUMBER()  # Numero casuale tra 0 e 9999
     attack_password_message = {
         "password": "Ciao sono l'attaccante, ho rubato la password dello studente",
         "timestamp": time.time(),
@@ -275,7 +275,7 @@ def _immatricola_OLD(args:list[str]=[]):
             study_plan = input(f"Scegli un piano di studi tra {', '.join(study_plans.keys())}: ")
 
     student_initial_timestamp = time.time()
-    random_number = secrets.randbelow(RANDOM_NUMBER_MAX)  # Numero casuale tra 0 e 999999 non basato su timestamp
+    random_number = EXTRACT_RANDOM_NUMBER()  # Numero casuale tra 0 e 999999 non basato su timestamp
 
     message_data = {
         "name": student.get_name(),

@@ -1,4 +1,4 @@
-@startuml design
+@startuml
 package "communication"{
     class Message {
         - content:str
@@ -9,6 +9,16 @@ package "communication"{
     class Key {
         - value:str
         + getValue():str
+    }
+
+    class Certificate {
+        - content :CertificateContent
+        - scheme : Asymmetric_Scheme
+        + getUser():User
+        + getKey():Key
+        + read_timestamp() : str
+        + read_key() : str
+        + verify_signature (public_key : Asymmetric_Scheme) : boolean
     }
 
     Message <-- User
@@ -73,25 +83,24 @@ package "communication"{
         + get_label () : str
         
     }
-
     class University {
         - name : str
         - code : str 
         - study_plans : dict[str,StudyPlan]
         - students : dict[str,StudentData]
-        + check_activity_availability(activity: Activity) : bool
-        + check_exam_availability( exam : Exam) : bool
-        + check_matching( student : Studente, credential : Credential) : bool
-        + _create_student_credential (student : Student) : bool
+        + check_activity_availability(activity: Activity) : boolean
+        + check_exam_availability( exam : Exam) : boolean
+        + check_matching( student : Studente, credential : Credential) : boolean
+        + _create_student_credential (student : Student) : boolean
         + pass_activity(self, student: Student, results: ActivityResult)
         + pass_exam(self, student: Student, results: ExamResult)
-        + accept_incoming_exchange ( student: Student, incoming_university: 'University', incoming_serial_id: str, incoming_referrer: str, internal_referrer: str, exchange_period_days: int)
+        + accept_incoming_exchange ( student: Student, incoming_university: 'University')
         + add_activity(activity : Activity)
         + add_study_plan(plan_name : str, study_plan : StudyPlan):
-        + check_password(student : Student, passoword : str) : bool
+        + check_password(student : Student, passoword : str) : boolean
         + enrool_student(student : Student, password :str,study_plan_str)
         + is_incoming_student (student : Student)
-        + agree_exchange_contract( student:Student, destination_university: 'University', study_plan: StudyPlan, activities: list[Activity], internal_referrer: str):
+        + agree_exchange_contract(student:Student, destination_university: 'University')
     }   
 
     class CA {
@@ -119,19 +128,9 @@ class Credential {
     exams_results: list[ExamResult]
     activities_results: list[ActivityResult]
 }
-Student *-- Credential : -credential
+Credential --* Student  : -credential
 
 
-class Certificate {
-    - content :CertificateContent
-    - scheme : Asymmetric_Scheme
-    + getUser():User
-    + getKey():Key
-    + read_timestamp() : str
-    + read_key() : str
-    + verify_signature (public_key : Asymmetric_Scheme) : bool
-    
-}
 Certificate *-- User : -user
 Certificate *-- Key : -key
 
@@ -147,37 +146,38 @@ package "blockchain"{
         - prev_ID:str
         - author:str
         - merkle_or_ID:MerkleTree
-        - delete_flag:bool
+        - delete_flag:boolean
 
         + getId()
         + getAuthor():str
 
     }
-    Block *-- Hash_Algorithm : -hashing_algorithm
+
     class Blockchain {
         - validateBlock(block:Block):boolean
         + addBlock(block:Block):boolean
     }
     class MerkleTree {
-        +{static} getMerkleTree(credential):MerkleTree
+        -{static} build_tree(credential):MerkleTree
+        + validate():boolean
+        + validate_leafs(leafs:string[]):boolean
+
     }
     Block *-- MerkleTree : -credential
     Block <-- Blockchain
-    PointerList *-- Blockchain : -chain
+    List *-- Blockchain : -chain
 
-    class PointerList {}
-    class LinkedList
-    LinkedList <|-- PointerList
 }
 
 User <|-- Student
 User <|-- University
 User <|-- CA
+
 User <|-- Smart_Contract
 
+Key ..down..> University #line:white
+Hash_Algorithm --* Block: -hash_algorithm
 
+Smart_Contract ..down..> Certificate #line:white
 hide empty members
-
 @enduml
-
-

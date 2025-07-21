@@ -1,6 +1,5 @@
 import json
 import os
-import secrets
 import time
 from actors import University
 from actors.Student import Student
@@ -10,7 +9,7 @@ from algorithms.read_code import read_code
 from algorithms.autenticazione import autenticazione
 from blockchain import MerkleTree
 from communication import Message
-from constants import BLOCKCHAIN_FOLDER, DATA_DIRECTORY, MAXIMUM_TIMESTAMP_DIFFERENCE, RANDOM_NUMBER_MAX, STUDENTS_FOLDER, stringify_credential_dicts
+from constants import BLOCKCHAIN_FOLDER, DATA_DIRECTORY, MAXIMUM_TIMESTAMP_DIFFERENCE, STUDENTS_FOLDER, stringify_credential_dicts, EXTRACT_RANDOM_NUMBER
 
 
 def emetti_credenziale(args:list[str]=[]):
@@ -35,7 +34,7 @@ def emetti_credenziale(args:list[str]=[]):
     university:University = universities[university_code]
 
     #* 1 Lo studente comunica la richiesta della credenziale
-    initial_nonce = secrets.randbelow(RANDOM_NUMBER_MAX)
+    initial_nonce = EXTRACT_RANDOM_NUMBER()
     credential_request = {
         "timestamp": time.time(),
         "nonce": initial_nonce,
