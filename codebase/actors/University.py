@@ -463,6 +463,10 @@ class University(User):
         if exchange_plan_data.get("destination_university", {}).get("name") != credential_destination_university:
             raise ValueError(f" [{self._name}] La destinazione dello scambio non corrisponde alla credenziale dello studente {student.get_code()}.")
 
+        credential_internal_serial_id = credential.get("internal_serial_id")
+        if credential_internal_serial_id != serial_id:
+            raise ValueError(f" [{self._name}] La matricola dello studente {student.get_code()} non corrisponde a quella presente nella credenziale.")
+
         exchange_exams = exchange_plan_data.get("exams", {})
         exchange_activities = exchange_plan_data.get("activities", {})
 

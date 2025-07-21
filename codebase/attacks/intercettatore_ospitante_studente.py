@@ -7,30 +7,9 @@ import time
 from algorithms import *
 from communication import Certificate
 from constants import DATA_DIRECTORY, MAXIMUM_TIMESTAMP_DIFFERENCE, RANDOM_NUMBER_MAX, STUDENTS_FOLDER, _registra_attivita, _registra_esame
-from communication import Message, User
+from communication import Message
 from actors import *
-
-class Attacker(User):
-    def __init__(self, name: str):
-        super().__init__(name)
-
-    @staticmethod
-    def load_from_json(data: dict):
-        return User.load_from_json(data)
-
-def _intercept_message(sender: User, receiver: User, message: Message, encrypt: bool = True, sign: bool = False) -> Message:
-        """
-        Funzione per intercettare i messaggi tra lo studente e l'università.
-        L'attaccante può leggere i messaggi e modificarli se necessario.
-        """
-        if encrypt: # Se il messaggio viene inviato già cifrato, l'attaccante non è in grado di decifrarlo
-            mex = sender._keys[receiver.get_code()].encrypt(message) # Caso dello studente che invia un messaggio cifrato all'università
-        else: # Se il messaggio non viene cifrato, l'attaccante può leggerlo
-            mex = message
-        if sign: # Se il messaggio viene firmato, l'attaccante non è in grado di forgiare una firma valida quando modifica il contenuto
-            mex = sender._keys[sender.get_code()].sign(mex) # Caso dell'università che invia un messaggio firmato allo studente
-        return mex
-
+from attacks import Attacker
 def _immatricola(args:list[str]=[]):
     """
         Algoritmo di immatricolazione dello studente presso l'università. Lo studente deve fornire una password per autenticarsi in futuro.
@@ -132,7 +111,7 @@ def _immatricola(args:list[str]=[]):
 
     message = Message(json.dumps(message_data))
     # student.send(university, message, sign=False) #! INTERCETTATO
-    intercepted_message = _intercept_message(student, university, message, encrypt=True)
+    intercepted_message = ATTACKER.intercept_message(student, university, message, encrypt=True)
     print("L'attaccante ha intercettato il messaggio, tuttavia non ha modo di inferire il contenuto cifrato. I numeri casuali che l'utente ha utilizzato non sono visibili, e se non dipendono dal tempo, non sono prevedibili. L'attaccante potrebbe al più alterare il messaggio, ma non avrebbe senso siccome non potrebbe inferire altro")
     university._receive(student, intercepted_message, decrypt=True, verify=False)  # L'università riceve il messaggio e lo decifra con la propria chiave privata
     #* 4 L'università riceve il messaggio e lo decifra con la propria chiave privata,
@@ -152,7 +131,7 @@ def _immatricola(args:list[str]=[]):
         "timestamp": time.time()
     }
     #university.send(student, Message(json.dumps(uni_message)), encrypt=False, sign=True) #! INTERCETTATO
-    intercepted_uni_message = _intercept_message(university, student, Message(json.dumps(uni_message)), encrypt=False, sign=True)
+    intercepted_uni_message = ATTACKER.intercept_message(university, student, Message(json.dumps(uni_message)), encrypt=False, sign=True)
     INTERCEPTED_FIRST_NONCE = received_data["nonce0"]
     # ! Si presume che il secondo nonce sia indipendente dal primo e dal tempo, quindi l'attaccante non può prevederlo
     print("L'attaccante ha intercettato il messaggio dell'università, che naviga in chiaro ma è firmato, quindi l'attaccante non può alterarlo senza che lo studente se ne accorga. Può tuttavia leggere il contenuto del messaggio. L'unica informazione che inferisce è il primo nonce: se l'altro nonce è stocasticamente dipendente dal tempo e dal primo, l'attaccante potrebbe predirlo.")
@@ -185,8 +164,8 @@ def _immatricola(args:list[str]=[]):
         "text": "Password di immatricolazione"
     }
 
-    # student.send(university, Message(json.dumps(password_message)), sign=False) #! INTERCETTATO
-    intercepted_password_message = _intercept_message(student, university, Message(json.dumps(password_message)), encrypt=False, sign=False)
+    # student.send(university, Message(json.dumps(password_message)), sign=False) #! INTERCETTATO E ALTERATO
+    intercepted_password_message = ATTACKER.intercept_message(student, university, Message(json.dumps(password_message)), encrypt=False, sign=False)
     print("L'attaccante intercetta il messaggio dela password, non firmato ma cifrato, per cui non può leggerne il contenuto. Potrebbe alterarlo, ma non conosce il secondo nonce e quindi non potrebbe inviare un messaggio valido all'università.")
     PROBABILISTIC_SECOND_NONCE = secrets.randbelow(RANDOM_NUMBER_MAX)  # Numero casuale tra 0 e 9999
     attack_password_message = {
@@ -195,7 +174,7 @@ def _immatricola(args:list[str]=[]):
         "nonce": PROBABILISTIC_SECOND_NONCE,  # L'attaccante invia un nonce casuale, incrociando le dita
         "text": "Password di immatricolazione"
     }
-    student.send(university, Message(json.dumps(attack_password_message)), sign=False)  #! ALTERATO
+    ATTACKER.inject_message(student, university, Message(json.dumps(attack_password_message)), encrypt=True, sign=False)
     #* 6 L'università riceve la password e la salva nel proprio database, immatricolando lo studente
     received_message = university.get_last_message()
     received_data = json.loads(received_message.get_content())
@@ -311,7 +290,7 @@ def _immatricola_OLD(args:list[str]=[]):
 
     message = Message(json.dumps(message_data))
     # student.send(university, message, sign=False) #! INTERCETTATO
-    intercepted_message = _intercept_message(student, university, message, encrypt=True)
+    intercepted_message = ATTACKER.intercept_message(student, university, message, encrypt=True)
     INITIAL_PROBABLE_TIMESTAMP = time.time()  # Timestamp probabile per l'attaccante, che non conosce il timestamp originale
     print(intercepted_message.get_content())
     print("L'attaccante non può decifrare il messaggio perché è cifrato con la chiave pubblica dell'università, potrebbe tentare di inferire il contenuto se conosce formato e studente, confrontandolo con altri messaggi, tuttavia non è a conoscenza del numero casuale")
@@ -333,7 +312,7 @@ def _immatricola_OLD(args:list[str]=[]):
         "timestamp": time.time()
     }
     # university.send(student, Message(json.dumps(uni_message)), encrypt=False, sign=True) #! INTERCETTATO
-    intercepted_uni_message = _intercept_message(university, student, Message(json.dumps(uni_message)), encrypt=False, sign=True)
+    intercepted_uni_message = ATTACKER.intercept_message(university, student, Message(json.dumps(uni_message)), encrypt=False, sign=True)
     INTERCEPTED_INITIAL_NONCE = json.loads(intercepted_uni_message.get_content())["nonce"]
 
     print(intercepted_uni_message.get_content())
@@ -369,7 +348,7 @@ def _immatricola_OLD(args:list[str]=[]):
     }
 
     # student.send(university, Message(json.dumps(password_message)), sign=False) #! INTERCETTATO
-    intercepted_password_message = _intercept_message(student, university, Message(json.dumps(password_message)), encrypt=True, sign=False)
+    intercepted_password_message = ATTACKER.intercept_message(student, university, Message(json.dumps(password_message)), encrypt=True, sign=False)
     
     print(intercepted_password_message.get_content())
     print("L'attaccante non può decifrare il messaggio perché è cifrato con la chiave pubblica dell'università, non può inferire alcuna informazione sulla password, ma può alterare il messaggio, tuttavia non conosce il timestamp originale, ma solo il nonce che venne inviato all'inizio della comunicazione. Tuttalpiù, potrebbe tentare variando il timestamp, ma la probbilità di successo è relativamente bassa (sarebbe possibile implementare un secondo nonce casuale per aumentare la sicurezza)")

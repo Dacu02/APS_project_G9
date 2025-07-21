@@ -1,4 +1,6 @@
 from .studente_malevolo import studente_malevolo
 from .violazione_CA import violazione_CA
-from .violazione_universita import violazione_universita
+from .violazione_ospitante import violazione_ospitante
 from .intercettatore_ospitante_studente import intercettatore_ospitante_studente
+from .attacco_credenziale_nota import attacco_credenziale_nota
+from .util import Attacker

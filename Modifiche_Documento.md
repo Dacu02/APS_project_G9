@@ -7,3 +7,5 @@ E' stato individuato un ordine col quale studente e università utilizzano i non
 
 E' stato commesso un errore durante la progettazione: non è possibile alterare a piacimento l'ID di un blocco, siccome questo è ottenuto mediante l'hash dello stesso. Per cui si corregge il documento (in particolare, la parte dove si definisce come si rileva l'eventuale eliminazione di una certificazione, che viene alterata per supportare questa modifica).
 
+## 21/07 
+Da "I meccanismi di crittografia più comuni" a "I meccanismi di crittografia più recenti" in Attacco con credenziale nota
